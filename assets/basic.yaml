@@ -1,0 +1,29 @@
+View:
+  title: Guess your gender from your name
+  items:
+  - a. First Name: TextInput
+  - b. Find My Gender: Button
+  - c. Gender: Text
+
+API:
+  genderAPI:
+    uri: https://gender-api.com/test-drive-api?key=gE3CT26ctLhjufjXlKRMnqFrNLgSDcN4tPMK
+    parameters:
+      name:
+
+
+Action:
+  b:
+    click:
+      call: genderAPI
+      parameters:
+        name: a
+      success: c.value={gender}
+
+Layout:
+  Form:
+    spaceBetween: 2
+    items:
+      - a
+      - c
+      - b
