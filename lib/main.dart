@@ -1,5 +1,7 @@
 import 'dart:collection';
 
+import 'package:ensemble/action.dart';
+import 'package:ensemble/api.dart';
 import 'package:ensemble/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:yaml/yaml.dart';
@@ -47,8 +49,10 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   Widget buildFrom(YamlMap doc) {
     late Widget rtn = const Text('did not work');
     if (doc['View'] != null) {
-      View v = View(doc['View']);
-      Layout l = Layout(doc["Layout"], v);
+      View v = View.from(doc['View']);
+      Map<String,API> apis = APIs.from(doc['APIs']);
+      List<EnsembleAction> actions = EnsembleActions.configure(v, apis, doc['Actions']);
+      Layout l = Layout.from(doc["Layout"], v);
       rtn = l.build(context);
     }
     return rtn;
@@ -75,17 +79,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           )
       )
     );
-   /*
-    Widget rtn = const Text("didn't work");
-    if ( doc == null ) {
-      loadAsset(context, 'basic.yaml').then((def) {
-        doc = loadYaml(def);
-        print(json.encode(doc));
-
-      });
-    }
-    return rtn;
-    */
     /*
     return Form(
       key: _formKey,

@@ -37,6 +37,7 @@ dependencies:
   json_dynamic_widget: ^3.1.0
   yaml: ^3.1.0
   tuple: ^2.0.0
+  http: ^0.13.4
 
 dev_dependencies:
   flutter_test:

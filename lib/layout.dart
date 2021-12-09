@@ -1,11 +1,13 @@
 import 'package:ensemble/view.dart';
 import 'package:flutter/widgets.dart';
-import 'package:yaml/yaml.dart';
 
 class Layout {
   final Map map;
   final View view;
   Layout(this.map,this.view);
+  static Layout from(Map map,View view) {
+    return Layout(map,view);
+  }
   Widget build(BuildContext context) {
     Widget rtn = const Text('hey');
     map.forEach((k,v) {

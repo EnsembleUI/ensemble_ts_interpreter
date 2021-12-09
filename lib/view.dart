@@ -6,12 +6,15 @@ import 'package:flutter/cupertino.dart';
 
 class View {
   static const String PROPERTIES = "properties";
-  String title = '';
-  final List<WidgetView> items = [];
-  final Map<String,WidgetView> idWidgetMap = HashMap<String,WidgetView>();
-  View (YamlMap map) {
-    title = map['title'];
+  String title;
+  List<WidgetView> items;
+  Map<String,WidgetView> idWidgetMap;
+  View(this.title,this.items,this.idWidgetMap);
+  static View from(YamlMap map) {
+    String title = map['title'];
     var list = map['items'];
+    List<WidgetView> items = [];
+    Map<String,WidgetView> idWidgetMap = HashMap<String,WidgetView>();
     if ( list != null ) {
       for ( final YamlMap item in list ) {
         //a. *Where are you going : Auto-complete
@@ -27,9 +30,19 @@ class View {
         });
       }
     }
+    return View(title,items,idWidgetMap);
   }
   WidgetView? get(String id) {
-    return idWidgetMap[id];
+    if ( idWidgetMap.containsKey(id) ) {
+      return idWidgetMap[id];
+    }
+    return null;
+  }
+  WidgetView requireValue(String id) {
+    if ( idWidgetMap.containsKey(id) ) {
+      return idWidgetMap[id]!;
+    }
+    throw Exception(id+' is not present in the map');
   }
 }
 class WidgetViewFactory {
@@ -61,7 +74,7 @@ class WidgetViewFactory {
   }
 }
 class WidgetView {
-  final Widget widget;
+  Widget widget;
   final Map? properties;
   WidgetView(this.widget,this.properties);
 }

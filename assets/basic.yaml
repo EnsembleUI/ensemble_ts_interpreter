@@ -5,20 +5,22 @@ View:
   - b. Find My Gender: Button
   - c. Gender: Text
 
-API:
+APIs:
   genderAPI:
-    uri: https://gender-api.com/test-drive-api?key=gE3CT26ctLhjufjXlKRMnqFrNLgSDcN4tPMK
+    uri: https://gender-api.com/test-drive-api
     parameters:
+      key: gE3CT26ctLhjufjXlKRMnqFrNLgSDcN4tPMK
       name:
 
 
-Action:
+Actions:
   b:
     click:
-      call: genderAPI
-      parameters:
-        name: a
-      success: c.value={gender}
+      call:
+        api: genderAPI
+        parameters:
+          name: a
+        success: c.value={gender}
 
 Layout:
   Form:
