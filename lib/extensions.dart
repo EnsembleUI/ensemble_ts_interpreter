@@ -1,7 +1,9 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart';
 
 extension Value on TextFormField {
   String get value => controller!.value.text;
@@ -13,6 +15,11 @@ extension Value on TextFormField {
     controller!.text = v;
   }
   Map<String, dynamic> toJson() => {'value': value};
+}
+extension Json on Response {
+  Map<String, dynamic> toJson() {
+    return jsonDecode(body);
+  }
 }
 extension WidgetProps on Widget {
 

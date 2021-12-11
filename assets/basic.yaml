@@ -3,11 +3,11 @@ View:
   items:
   - a. First Name: TextInput
   - b. Find My Gender: Button
-  - c. Gender: Text
+  - c. Gender: TextInput
 
 APIs:
   genderAPI:
-    uri: https://gender-api.com/test-drive-api
+    uri: https://gender-api.com/get
     parameters:
       key: gE3CT26ctLhjufjXlKRMnqFrNLgSDcN4tPMK
       name:
@@ -19,8 +19,8 @@ Actions:
       call:
         api: genderAPI
         parameters:
-          name: a.value
-        success: {c.value=response.gender}
+          name: "'Khurram'+a.value"
+        success: c.value=response.gender
 
 Layout:
   Form:

@@ -1,10 +1,12 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:ensemble/api.dart';
 import 'package:ensemble/view.dart';
 import 'package:expressions/expressions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:http/http.dart';
 import 'package:yaml/yaml.dart';
 import 'package:flutter/cupertino.dart';
 import 'extensions.dart';
@@ -99,13 +101,15 @@ abstract class Handler {
 /*
         api: genderAPI
         parameters:
-          name: a
-        success: c.value={gender}
+          name: a.value
+        success: c.value=response.gender
  */
 class APIHandler extends Handler {
   API api;
   Map<String,String>? paramMetaValues;
-  APIHandler(this.api,this.paramMetaValues);
+  String? success;
+  String? error;
+  APIHandler(this.api,this.paramMetaValues,this.success,this.error);
   static APIHandler from(View view,Map<String,API> apis,YamlMap map) {
     if ( !apis.containsKey(map['api']) ) {
       throw Exception('api with name='+map['api']+' not define');
@@ -117,23 +121,37 @@ class APIHandler extends Handler {
         paramMetaValues[k.toString()] = v.toString();
       });
     }
-    return APIHandler(api, paramMetaValues);
+    return APIHandler(api,paramMetaValues,map['success'],map['error']);
+  }
+  Map<String,dynamic> prepareContext(WidgetAction action) {
+    Map<String,dynamic> context = HashMap();
+    action.view.idWidgetMap.forEach((k, v) {
+      context[k] = v.widget;
+    });
+    return context;
   }
   @override
   void handle(WidgetAction action) {
     Map<String,String> values = HashMap();
+    var context = prepareContext(action);
     if ( paramMetaValues != null ) {
       paramMetaValues!.forEach((k, v) {
         var expression = Expression.parse(v);
-        Map<String,Widget> context = HashMap();
-        action.view.idWidgetMap.forEach((k, v) {
-          context[k] = v.widget;
-        });
         const evaluator = MyEvaluator();
         var r = evaluator.eval(expression,context);
         values[k] = r;
       });
     }
+    Future<Response> response = api.call(values);
+    response.then((res) {
+      if ( success != null ) {
+        context["response"] = res;
+        var expression = Expression.parse(success!);
+        const evaluator = MyEvaluator();
+        var r = evaluator.eval(expression,context);
+      }
+
+    });
   }
 
 }
@@ -144,8 +162,12 @@ class MyEvaluator extends ExpressionEvaluator {
   dynamic evalMemberExpression(
       MemberExpression expression, Map<String, dynamic> context) {
     var object = eval(expression.object, context);
-    var obj = (object as Widget).toJson();
-    var r = obj[expression.property.name];
+    if ( object is Widget ) {
+      object = (object as Widget).toJson();
+    } else if ( object is Response ) {
+      object = (object as Response).toJson();
+    }
+    var r = object[expression.property.name];
     return r;
   }
 }

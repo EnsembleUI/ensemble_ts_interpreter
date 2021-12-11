@@ -10,17 +10,22 @@ class API {
   Map<String,String>? params;
   String method = 'get';
   API(this.name,this.uri,this.params);
-  Future<http.Response> call(Map<String,String>? paramValues) {
+  Future<http.Response> call(Map<String,String>? paramValues) async {
     Map<String,String> m = HashMap();
     if ( params != null ) {
       m.addAll(params!);
-      m.addAll(paramValues!);
     }
-    Future<http.Response> res;
+    if ( paramValues != null ) {
+      m.addAll(paramValues);
+    }
+    http.Response res;
     if ( method == 'get' ) {
-      res = http.Client().get(Uri.dataFromString(uri, parameters: m));
+      Uri _uri = Uri.parse(uri);
+
+      //res = await http.get(Uri.dataFromString(uri, parameters: m));
+      res = await http.get(_uri.replace(queryParameters:m));
     } else if ( method == 'post' ) {
-      res = http.Client().post(Uri.dataFromString(uri, parameters: m));
+      res = await http.post(Uri.dataFromString(uri, parameters: m));
     } else {
       throw Exception(method+' Method for http is not supported');
     }
