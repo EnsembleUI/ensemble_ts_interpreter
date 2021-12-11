@@ -5,8 +5,6 @@ import 'package:ensemble/api.dart';
 import 'package:ensemble/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:yaml/yaml.dart';
-import 'dart:convert';
-import 'package:tuple/tuple.dart';
 import 'view.dart';
 
 void main() {

@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:yaml/yaml.dart';
 import 'package:flutter/cupertino.dart';
+import 'extensions.dart';
 
 class View {
   static const String PROPERTIES = "properties";
@@ -49,11 +50,12 @@ class WidgetViewFactory {
   static WidgetView? getWidgetView(String name,String key,String label, Map? properties) {
     WidgetView? rtn;
     if ( name == 'TextInput' ) {
-      rtn = WidgetView(
-          TextFormField(
-              key: Key(key),
-              decoration: InputDecoration(labelText:label,hintText:label),
-          ), properties);
+      TextFormField widget = TextFormField(
+        key: Key(key),
+        controller: TextEditingController(),
+        decoration: InputDecoration(labelText:label,hintText:label),
+      );
+      rtn = WidgetView(widget, properties);
     } else if ( name == 'Button' ) {
       rtn = WidgetView(
           TextButton(

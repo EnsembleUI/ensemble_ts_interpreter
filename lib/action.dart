@@ -2,15 +2,17 @@ import 'dart:collection';
 
 import 'package:ensemble/api.dart';
 import 'package:ensemble/view.dart';
+import 'package:expressions/expressions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:yaml/yaml.dart';
+import 'package:flutter/cupertino.dart';
+import 'extensions.dart';
 
 enum Event {
   click,longPress
 }
 class EnsembleAction {
-
 }
 /*
 click:
@@ -25,6 +27,7 @@ class WidgetAction implements EnsembleAction {
   Event event;
   View view;
   Handler handler;
+  TextFormField? f;
   WidgetAction(this.target,this.event,this.view,this.handler);
   static WidgetAction from(WidgetView target,String eventName,View view,Map<String,API> apis,YamlMap map) {
     Event? event;
@@ -43,12 +46,13 @@ class WidgetAction implements EnsembleAction {
         APIHandler handler = APIHandler.from(view, apis,v);
         action = WidgetAction(target,event!,view,handler);
         if ( event == Event.click ) {
+          final Widget orig = target.widget;
           target.widget = GestureDetector(
             onTap: () {
-              print('ontap on '+target.widget.key.toString());
+              print('ontap on '+orig.key.toString());
               handler.handle(action!);
             },
-            child: target.widget
+            child: AbsorbPointer(child:orig)
           );
         }
       } else {
@@ -83,7 +87,7 @@ class EnsembleActions {
     map.forEach((k,v) {
       WidgetView? wv = view.get(k);
       if ( wv != null ) {
-        actions.addAll(WidgetActions.from(view,wv!,apis,v));
+        actions.addAll(WidgetActions.from(view,wv,apis,v));
       }
     });
     return actions;
@@ -117,8 +121,32 @@ class APIHandler extends Handler {
   }
   @override
   void handle(WidgetAction action) {
-    print('handle called');
+    Map<String,String> values = HashMap();
+    if ( paramMetaValues != null ) {
+      paramMetaValues!.forEach((k, v) {
+        var expression = Expression.parse(v);
+        Map<String,Widget> context = HashMap();
+        action.view.idWidgetMap.forEach((k, v) {
+          context[k] = v.widget;
+        });
+        const evaluator = MyEvaluator();
+        var r = evaluator.eval(expression,context);
+        values[k] = r;
+      });
+    }
   }
 
+}
+class MyEvaluator extends ExpressionEvaluator {
+  const MyEvaluator();
+
+  @override
+  dynamic evalMemberExpression(
+      MemberExpression expression, Map<String, dynamic> context) {
+    var object = eval(expression.object, context);
+    var obj = (object as Widget).toJson();
+    var r = obj[expression.property.name];
+    return r;
+  }
 }
 

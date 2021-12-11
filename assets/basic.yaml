@@ -19,8 +19,8 @@ Actions:
       call:
         api: genderAPI
         parameters:
-          name: a
-        success: c.value={gender}
+          name: a.value
+        success: {c.value=response.gender}
 
 Layout:
   Form:
