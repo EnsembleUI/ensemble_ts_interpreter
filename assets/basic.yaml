@@ -19,8 +19,46 @@ Actions:
       call:
         api: genderAPI
         parameters:
-          name: "'Khurram'+a.value"
-        success: c.value=response.gender
+          name: a.value
+        success: |-
+            {
+              "type": "Program",
+              "body": [
+                {
+                  "type": "ExpressionStatement",
+                  "expression": {
+                    "type": "AssignmentExpression",
+                    "operator": "=",
+                    "left": {
+                      "type": "MemberExpression",
+                      "object": {
+                        "type": "Identifier",
+                        "name": "c"
+                      },
+                      "property": {
+                        "type": "Identifier",
+                        "name": "value"
+                      },
+                      "computed": false
+                    },
+                    "right": {
+                      "type": "MemberExpression",
+                      "object": {
+                        "type": "Identifier",
+                        "name": "response"
+                      },
+                      "property": {
+                        "type": "Identifier",
+                        "name": "gender"
+                      },
+                      "computed": false
+                    }
+                  }
+                }
+              ],
+              "sourceType": "script"
+            }
+
 
 Layout:
   Form:

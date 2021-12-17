@@ -2,6 +2,8 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:ensemble/api.dart';
+import 'package:ensemble/expressions/ast.dart';
+import 'package:ensemble/expressions/js_interpreter.dart';
 import 'package:ensemble/view.dart';
 import 'package:expressions/expressions.dart';
 import 'package:flutter/material.dart';
@@ -145,10 +147,16 @@ class APIHandler extends Handler {
     Future<Response> response = api.call(values);
     response.then((res) {
       if ( success != null ) {
-        context["response"] = res;
+        var decodedResponse = jsonDecode(utf8.decode(res.bodyBytes)) as Map;
+        context["response"] = decodedResponse;
+        var json = jsonDecode(success!);
+        List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+        Interpreter(context).evaluate(arr);
+        /*
         var expression = Expression.parse(success!);
         const evaluator = MyEvaluator();
         var r = evaluator.eval(expression,context);
+         */
       }
 
     });

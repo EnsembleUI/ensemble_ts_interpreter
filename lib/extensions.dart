@@ -23,6 +23,17 @@ extension Json on Response {
 }
 extension WidgetProps on Widget {
 
+  void setProperty(String name,var value) {
+    if ( name == 'value' ) {
+      this.value = value;
+    }
+  }
+  getProperty(String name) {
+    if ( name == 'value' ) {
+      return value;
+    }
+    throw Exception(name+' is not recognized as a property of object '+this.toString());
+  }
   set value(String newValue) {
     if ( this is TextFormField ) {
       (this as TextFormField).value = newValue;

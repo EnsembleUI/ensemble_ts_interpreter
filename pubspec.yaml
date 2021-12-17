@@ -64,6 +64,7 @@ flutter:
   assets:
     - assets/hotel_booking.yaml
     - assets/basic.yaml
+    - assets/basic_conditionals.yaml
 
   # To add assets to your application, add an assets section, like this:
   # assets:
