@@ -1,3 +1,4 @@
+#Screen1
 View:
   title: Guess your gender from your name
   items:
@@ -12,6 +13,9 @@ APIs:
       key: gE3CT26ctLhjufjXlKRMnqFrNLgSDcN4tPMK
       name:
 
+Transitions:
+  - tr1. Screen1 -> Screen2 : slide
+  - tr2. Screen1 -> Screen3 : slide
 
 Actions:
   b:
@@ -20,7 +24,11 @@ Actions:
         api: genderAPI
         parameters:
           name: a.value
-        success: c.value = response.gender
+        success: |-
+          c.value = response.gender;
+          flowContext.put('gender',c.value);
+          log('gender retrieved as '+c.value);
+          $tr1.go();
 
 Layout:
   Form:
