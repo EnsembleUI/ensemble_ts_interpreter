@@ -1,10 +1,10 @@
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:ensemble/api.dart';
-import 'package:ensemble/expressions/ast.dart';
-import 'package:ensemble/expressions/js_interpreter.dart';
-import 'package:ensemble/view.dart';
+import 'package:sdui/api.dart';
+import 'package:sdui/expressions/ast.dart';
+import 'package:sdui/expressions/js_interpreter.dart';
+import 'package:sdui/view.dart';
 import 'package:expressions/expressions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';

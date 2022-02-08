@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'ast.dart';
-import 'package:ensemble/extensions.dart';
+import 'package:sdui/extensions.dart';
 
 class Interpreter implements JSASTVisitor {
   Map context;
@@ -40,7 +40,7 @@ class Interpreter implements JSASTVisitor {
         obj[exp.property] = val;
       }
     } else if ( stmt.left is Identifier ) {
-      context[stmt.left] = val;
+      context[(stmt.left as Identifier).name] = val;
     }
   }
   @override

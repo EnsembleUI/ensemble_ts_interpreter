@@ -159,7 +159,13 @@ class MemberExpr implements ASTNode {
   String object,property;
   MemberExpr(this.object,this.property);
   static MemberExpr fromJson(var jsonNode,ASTBuilder builder) {
-    String prop = jsonNode['property']['name'];
+    String type = jsonNode['property']['type'];
+    String prop = '';
+    if ( type == 'Identifier' ) {
+      prop = jsonNode['property']['name'];
+    } else if ( type == 'Literal' ) {
+      prop = jsonNode['property']['value'];
+    }
     return MemberExpr(jsonNode['object']['name'], prop);
   }
   @override
@@ -188,6 +194,8 @@ class ASTBuilder {
       return IfStatement.fromJson(node, this);
     } else if ( type == 'Literal' ) {
       return Literal.fromJson(node, this);
+    } else if ( type == 'Identifier' ) {
+      return Identifier.fromJson(node, this);
     } else if ( type == 'BlockStatement' ) {
       return BlockStatement.fromJson(node, this);
     } else if ( type == 'BinaryExpression' ) {

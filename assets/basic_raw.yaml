@@ -1,4 +1,4 @@
-#Screen1
+ID: Screen1
 View:
   title: Guess your gender from your name
   items:
@@ -15,7 +15,9 @@ APIs:
 
 Transitions:
   - tr1. Screen1 -> Screen2 : slide
-  - tr2. Screen1 -> Screen3 : slide
+  - tr2. Screen1 -> Screen3 :
+      ios: modal_from_bottom
+      android: default_child
 
 Actions:
   b:
@@ -28,7 +30,7 @@ Actions:
           c.value = response.gender;
           flowContext.put('gender',c.value);
           log('gender retrieved as '+c.value);
-          $tr1.go();
+          tr1.go();
 
 Layout:
   Form:
