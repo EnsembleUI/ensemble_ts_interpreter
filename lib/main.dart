@@ -58,8 +58,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   }
 
 
-  final List<String> entries = <String>['Sample1: Guess Gender from Name', 'Sample2: Stock Quotes'];
-  final List<String> entryPaths = <String>['genderapi.yaml', 'stocks.yaml'];
+  final List<String> entries = <String>['Sample1: Guess Gender from Name', 'Sample2: Stock Quotes', 'Sample3: Web View of news'];
+  final List<String> entryPaths = <String>['genderapi_ts.yaml', 'stocks.yaml','news.yaml'];
   final List<int> colorCodes = <int>[600, 500];
   @override
   Widget build(BuildContext context) {
@@ -94,7 +94,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                     ),
                     const Padding(
                         padding: EdgeInsets.symmetric(vertical:50,horizontal:10),
-                          child:Text("Above are just two examples of Server Driven UI. "
+                          child:Text("Above are just three examples of Server Driven UI. "
                               "\n\nTapping on each will make a request to the sever and fetch the definition of the page alongwith some simple UI logic. \n\nThis the ViewModel. \n\nThis app will parse the ViewModel and create the page dynamically. "
                               "\n\nThe view definition also specifies action handlers, APIs to call and simple logic to use. "
                               "\n\nEnjoy :-) email me at khuram.mahmood@gmail.com if you have questions. "

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:sdui/invokable.dart';
 import 'ast.dart';
 import 'package:sdui/extensions.dart';
 
@@ -34,8 +35,16 @@ class Interpreter implements JSASTVisitor {
     if ( stmt.left is MemberExpr ) {
       MemberExpr exp = stmt.left as MemberExpr;
       var obj = context[exp.object];
-      if ( obj is Widget ) {
-        (obj as Widget).setProperty(exp.property,val);
+/*      if ( obj is Widget ) {
+        obj.setProperty(exp.property,val);
+      } else */
+      if ( obj is Invokable ) {
+        Function? setter = obj.setters()[exp.property];
+        if ( setter != null ) {
+          setter(val);
+        } else {
+          throw Exception("cannot compute statement="+stmt.toString()+" as no setter found for property="+exp.property);
+        }
       } else {
         obj[exp.property] = val;
       }
@@ -70,17 +79,17 @@ class Interpreter implements JSASTVisitor {
   }
   @override
   bool visitLogicalExpression(LogicalExpression stmt) {
-    bool left = evaluateBooleanExpression(stmt.left);
+    dynamic left = visitExpression(stmt.left);
     bool rtn = false;
-    if ( stmt.op == Operator.and ) {
+    if ( stmt.op == LogicalOperator.and ) {
       if ( !left ) {
         rtn = left;
       } else {
-        bool right = evaluateBooleanExpression(stmt.right);
+        dynamic right = visitExpression(stmt.right);
         rtn = left && right;
       }
-    } else if ( stmt.op == Operator.or ) {
-      bool right = evaluateBooleanExpression(stmt.right);
+    } else if ( stmt.op == LogicalOperator.or ) {
+      bool right = visitExpression(stmt.right);
       rtn = left || right;
     } else {
       throw Exception('unrecognized operator:'+stmt.op.toString()+' in expression '+stmt.toString());
@@ -92,15 +101,15 @@ class Interpreter implements JSASTVisitor {
     dynamic left = compute(stmt.left);
     dynamic right = compute(stmt.right);
     bool rtn = false;
-    if ( stmt.op == Operator.equals ) {
+    if ( stmt.op == BinaryOperator.equals ) {
       rtn = left == right;
-    } else if ( stmt.op == Operator.lt ) {
+    } else if ( stmt.op == BinaryOperator.lt ) {
       rtn = left < right;
-    } else if ( stmt.op == Operator.ltEquals ) {
+    } else if ( stmt.op == BinaryOperator.ltEquals ) {
       rtn = left <= right;
-    } else if ( stmt.op == Operator.gt ) {
+    } else if ( stmt.op == BinaryOperator.gt ) {
       rtn = left > right;
-    } else if ( stmt.op == Operator.gtEquals ) {
+    } else if ( stmt.op == BinaryOperator.gtEquals ) {
       rtn = left >= right;
     } else {
       throw Exception(stmt.op.toString() + ' is not yet supported');
@@ -125,11 +134,64 @@ class Interpreter implements JSASTVisitor {
   dynamic visitMemberExpression(MemberExpr stmt) {
     var obj = context[stmt.object];
     dynamic val;
-    if ( obj is Widget ) {
+    /*if ( obj is Widget ) {
       val = (obj as Widget).getProperty(stmt.property);
-    } else {
+    } else */
+    if ( obj is Invokable ) {
+      Function? getter = obj.getters()[stmt.property];
+      if ( getter != null ) {
+        val = getter();
+      } else {
+        throw Exception("cannot compute statement="+stmt.toString()+" as no getter found for property="+stmt.property);
+      }
+    }
+    else {
       val = obj[stmt.property];
     }
     return val;
+  }
+
+  @override
+  dynamic visitCallExpression(CallExpression stmt) {
+    dynamic val;
+    if ( stmt.callee is MemberExpr ) {
+      MemberExpr exp = stmt.callee as MemberExpr;
+      var obj = context[exp.object];
+
+      if ( obj is Invokable ) {
+        Function? method = obj.methods()[exp.property];
+        if ( method != null ) {
+          val = method(stmt.arguments);
+        } else {
+          throw Exception("cannot compute statement="+stmt.toString()+" as no method found for property="+exp.property);
+        }
+      }
+      else {
+        val = obj[exp.property];
+      }
+      return val;
+    }
+
+  }
+
+  @override
+  dynamic visitExpression(Expression stmt) {
+    if ( stmt is BinaryExpression ) {
+      return visitBinaryExpression(stmt);
+    } else if ( stmt is LogicalExpression ) {
+      return visitLogicalExpression(stmt);
+    } else if ( stmt is CallExpression ) {
+      return visitCallExpression(stmt);
+    } else if ( stmt is MemberExpr ) {
+      return visitMemberExpression(stmt);
+    } else if ( stmt is AssignmentExpression ) {
+      return visitAssignmentExpression(stmt);
+    } else if ( stmt is Identifier ) {
+      return visitIdentifier(stmt);
+    } else if ( stmt is Literal ) {
+      return visitLiteral(stmt);
+    } else {
+      throw Exception("This type of expression is not currently supported. Expression="+stmt.toString());
+    }
   }
 }

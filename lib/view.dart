@@ -1,6 +1,8 @@
 
 import 'dart:collection';
 import 'package:flutter/material.dart';
+import 'package:sdui/invokablewidgets.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'package:yaml/yaml.dart';
 import 'package:flutter/cupertino.dart';
 import 'extensions.dart';
@@ -50,7 +52,13 @@ class WidgetViewFactory {
   static WidgetView? getWidgetView(String name,String key,String label, Map? properties) {
     WidgetView? rtn;
     if ( name == 'TextInput' ) {
-      TextFormField widget = TextFormField(
+      /*TextFormField widget = TextFormField(
+        key: Key(key),
+        controller: TextEditingController(),
+        decoration: InputDecoration(labelText:label,hintText:label),
+      );
+      */
+      TextFormField widget = InvokableTextFormField(
         key: Key(key),
         controller: TextEditingController(),
         decoration: InputDecoration(labelText:label,hintText:label),
@@ -71,6 +79,13 @@ class WidgetViewFactory {
             key: Key(key)
           ),properties
        );
+    } else if ( name == 'WebView' ) {
+      rtn = WidgetView(
+          WebView(
+              javascriptMode: JavascriptMode.unrestricted,
+              key: Key(key)
+          ),properties
+      );
     }
     return rtn;
   }

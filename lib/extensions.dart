@@ -21,6 +21,7 @@ extension Json on Response {
     return jsonDecode(body);
   }
 }
+
 extension WidgetProps on Widget {
 
   void setProperty(String name,var value) {

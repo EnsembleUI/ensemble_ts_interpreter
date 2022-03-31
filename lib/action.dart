@@ -5,7 +5,7 @@ import 'package:sdui/api.dart';
 import 'package:sdui/expressions/ast.dart';
 import 'package:sdui/expressions/js_interpreter.dart';
 import 'package:sdui/view.dart';
-import 'package:expressions/expressions.dart';
+import 'package:expressions/expressions.dart' as quickexp;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
@@ -138,7 +138,7 @@ class APIHandler extends Handler {
     var context = prepareContext(action);
     if ( paramMetaValues != null ) {
       paramMetaValues!.forEach((k, v) {
-        var expression = Expression.parse(v);
+        var expression = quickexp.Expression.parse(v);
         const evaluator = MyEvaluator();
         var r = evaluator.eval(expression,context);
         values[k] = r;
@@ -163,12 +163,12 @@ class APIHandler extends Handler {
   }
 
 }
-class MyEvaluator extends ExpressionEvaluator {
+class MyEvaluator extends quickexp.ExpressionEvaluator {
   const MyEvaluator();
 
   @override
   dynamic evalMemberExpression(
-      MemberExpression expression, Map<String, dynamic> context) {
+      quickexp.MemberExpression expression, Map<String, dynamic> context) {
     var object = eval(expression.object, context);
     if ( object is Widget ) {
       object = (object as Widget).toJson();
