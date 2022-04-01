@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:sdui/invokable.dart';
 import 'ast.dart';
-import 'package:sdui/extensions.dart';
 
 class Interpreter implements JSASTVisitor {
   Map context;
@@ -18,6 +15,7 @@ class Interpreter implements JSASTVisitor {
       visitAssignmentExpression(stmt.expression as AssignmentExpression);
     }
   }
+  /*
   dynamic compute(ASTNode node) {
     dynamic val;
     if ( node is MemberExpr ) {
@@ -29,15 +27,19 @@ class Interpreter implements JSASTVisitor {
     }
     return val;
   }
+   */
   @override
   void visitAssignmentExpression(AssignmentExpression stmt) {
-    dynamic val = compute(stmt.right);
+    dynamic val = visitExpression(stmt.right);
     if ( stmt.left is MemberExpr ) {
       MemberExpr exp = stmt.left as MemberExpr;
       var obj = context[exp.object];
 /*      if ( obj is Widget ) {
         obj.setProperty(exp.property,val);
       } else */
+      if ( stmt.op != AssignmentOperator.equal ) {
+        throw Exception("AssignentOperator="+stmt.op.toString()+" in stmt="+stmt.toString()+" is not yet supported");
+      }
       if ( obj is Invokable ) {
         Function? setter = obj.setters()[exp.property];
         if ( setter != null ) {
@@ -98,11 +100,13 @@ class Interpreter implements JSASTVisitor {
   }
   @override
   bool visitBinaryExpression(BinaryExpression stmt) {
-    dynamic left = compute(stmt.left);
-    dynamic right = compute(stmt.right);
+    dynamic left = visitExpression(stmt.left);
+    dynamic right = visitExpression(stmt.right);
     bool rtn = false;
     if ( stmt.op == BinaryOperator.equals ) {
       rtn = left == right;
+    } else if ( stmt.op == BinaryOperator.notequals) {
+      rtn = left != right;
     } else if ( stmt.op == BinaryOperator.lt ) {
       rtn = left < right;
     } else if ( stmt.op == BinaryOperator.ltEquals ) {
@@ -150,7 +154,13 @@ class Interpreter implements JSASTVisitor {
     }
     return val;
   }
-
+  dynamic computeArguments(List<ASTNode> args) {
+    List l = [];
+    args.forEach((stmt) {
+      l.add(visitExpression(stmt as Expression));
+    });
+    return l;
+  }
   @override
   dynamic visitCallExpression(CallExpression stmt) {
     dynamic val;
@@ -161,7 +171,7 @@ class Interpreter implements JSASTVisitor {
       if ( obj is Invokable ) {
         Function? method = obj.methods()[exp.property];
         if ( method != null ) {
-          val = method(stmt.arguments);
+          val = Function.apply(method, computeArguments(stmt.arguments));
         } else {
           throw Exception("cannot compute statement="+stmt.toString()+" as no method found for property="+exp.property);
         }
@@ -190,8 +200,23 @@ class Interpreter implements JSASTVisitor {
       return visitIdentifier(stmt);
     } else if ( stmt is Literal ) {
       return visitLiteral(stmt);
+    } else if ( stmt is UnaryExpression ) {
+      return visitUnaryExpression(stmt);
     } else {
       throw Exception("This type of expression is not currently supported. Expression="+stmt.toString());
     }
+  }
+
+  @override
+  dynamic visitUnaryExpression(UnaryExpression stmt) {
+    dynamic val = visitExpression(stmt.argument);
+    if ( stmt.op == UnaryOperator.minus ) {
+      val = -1 * val;
+    } else if ( stmt.op == UnaryOperator.typeof ) {
+      val = val.runtimeType;
+    } else {
+      throw Exception(stmt.op.toString()+" not yet implemented. stmt="+stmt.toString());
+    }
+    return val;
   }
 }

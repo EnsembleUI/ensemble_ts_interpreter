@@ -6,16 +6,23 @@ abstract class JSASTVisitor {
   void visitIfStatement(IfStatement stmt);
   bool visitBinaryExpression(BinaryExpression stmt);
   bool visitLogicalExpression(LogicalExpression stmt);
+  dynamic visitUnaryExpression(UnaryExpression stmt);
   dynamic visitLiteral(Literal stmt);
   dynamic visitIdentifier(Identifier stmt);
   void visitBlockStatement(BlockStatement stmt);
   dynamic visitCallExpression(CallExpression stmt);
 }
 enum BinaryOperator {
-  equal,equals,lt,gt,ltEquals,gtEquals
+  equals,lt,gt,ltEquals,gtEquals,notequals
+}
+enum AssignmentOperator {
+  equal
 }
 enum LogicalOperator {
   or,and,not
+}
+enum UnaryOperator {
+  minus,plus,not,typeof,voidop
 }
 abstract class ASTNode {
   void accept(JSASTVisitor visitor);
@@ -53,8 +60,38 @@ class BlockStatement implements ASTNode {
 }
 abstract class Expression extends ASTNode {}
 abstract class BooleanExpression extends Expression {}
+class UnaryExpression implements Expression {
+  Expression argument;
+  UnaryOperator op;
+  UnaryExpression(this.argument,this.op);
+  static UnaryExpression fromJson(var jsonNode,ASTBuilder builder) {
+    String operator = jsonNode['operator'];
+    UnaryOperator? op;
+    if ( operator == '-' ) {
+      op = UnaryOperator.minus;
+    } else if ( operator == '+' ) {
+      op = UnaryOperator.plus;
+    } else if ( operator == '!' ) {
+      op = UnaryOperator.not;
+    } else if ( operator == 'typeof' ) {
+      op = UnaryOperator.typeof;
+    } else if ( operator == 'void' ) {
+      op = UnaryOperator.voidop;
+    } else {
+      Exception(operator+' is not yet supported');
+    }
+    return UnaryExpression(builder.buildNode(jsonNode['argument']) as Expression, op!);
+  }
+
+  @override
+  void accept(JSASTVisitor visitor) {
+    visitor.visitUnaryExpression(this);
+  }
+
+}
+
 class BinaryExpression implements BooleanExpression {
-  BooleanExpression left,right;
+  Expression left,right;
   BinaryOperator op;
   BinaryExpression(this.left,this.op,this.right);
   static BinaryExpression fromJson(var jsonNode,ASTBuilder builder) {
@@ -70,12 +107,14 @@ class BinaryExpression implements BooleanExpression {
       op = BinaryOperator.gt;
     } else if ( operator == '<=' ) {
       op = BinaryOperator.gtEquals;
+    } else if ( operator == '!=' ) {
+      op = BinaryOperator.notequals;
     } else {
       Exception(operator+' is not yet supported');
     }
-    return BinaryExpression(builder.buildNode(jsonNode['left']) as BooleanExpression,
+    return BinaryExpression(builder.buildNode(jsonNode['left']) as Expression,
         op!,
-        builder.buildNode(jsonNode['right']) as BooleanExpression
+        builder.buildNode(jsonNode['right']) as Expression
     );
   }
   @override
@@ -160,17 +199,18 @@ class ExpressionStatement implements ASTNode {
 }
 
 class AssignmentExpression implements Expression {
-  ASTNode left,right;
-  BinaryOperator op;
+  Expression left,right;
+  AssignmentOperator op;
   AssignmentExpression(this.left,this.op,this.right);
   static AssignmentExpression fromJson(var jsonNode,ASTBuilder builder) {
-    BinaryOperator op;
+    AssignmentOperator op;
     if ( jsonNode['operator'] == '=' ) {
-      op = BinaryOperator.equal;
+      op = AssignmentOperator.equal;
     } else {
       throw Exception('Operator '+jsonNode['operator']+' is not yet supported');
     }
-    return AssignmentExpression(builder.buildNode(jsonNode['left']), op, builder.buildNode(jsonNode['right']));
+    return AssignmentExpression(builder.buildNode(jsonNode['left']) as Expression,
+        op, builder.buildNode(jsonNode['right']) as Expression);
   }
   @override
   void accept(JSASTVisitor visitor) {
@@ -226,6 +266,8 @@ class ASTBuilder {
       return LogicalExpression.fromJson(node, this);
     } else if ( type == 'CallExpression' ) {
       return CallExpression.fromJson(node, this);
+    } else if ( type == 'UnaryExpression' ) {
+      return UnaryExpression.fromJson(node, this);
     }
     throw Exception(type+" is not yet supported. Full expression is="+node.toString());
   }
