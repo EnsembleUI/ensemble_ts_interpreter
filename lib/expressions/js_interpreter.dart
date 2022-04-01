@@ -11,8 +11,10 @@ class Interpreter implements JSASTVisitor {
   }
   @override
   void visitExpressionStatement(ExpressionStatement stmt) {
-    if ( stmt.expression is AssignmentExpression ) {
-      visitAssignmentExpression(stmt.expression as AssignmentExpression);
+    if ( stmt.expression is Expression ) {
+      visitExpression(stmt.expression as Expression);
+    } else {
+      throw Exception("Statements other than Expressions not yet implemented for ExpressionStatement. stmt="+stmt.expression.toString());
     }
   }
   /*
