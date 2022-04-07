@@ -1,7 +1,7 @@
 
 import 'dart:collection';
 import 'package:flutter/material.dart';
-import 'package:sdui/invokablewidgets.dart';
+import 'package:sdui/invokables/invokablewidgets.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:yaml/yaml.dart';
 import 'package:flutter/cupertino.dart';

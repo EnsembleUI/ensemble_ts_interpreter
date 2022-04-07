@@ -218,17 +218,10 @@ class AssignmentExpression implements Expression {
   }
 }
 class MemberExpr implements Expression {
-  String object,property;
+  Expression object,property;
   MemberExpr(this.object,this.property);
   static MemberExpr fromJson(var jsonNode,ASTBuilder builder) {
-    String type = jsonNode['property']['type'];
-    String prop = '';
-    if ( type == 'Identifier' ) {
-      prop = jsonNode['property']['name'];
-    } else if ( type == 'Literal' ) {
-      prop = jsonNode['property']['value'];
-    }
-    return MemberExpr(jsonNode['object']['name'], prop);
+    return MemberExpr(builder.buildNode(jsonNode['object']) as Expression, builder.buildNode(jsonNode['property']) as Expression);
   }
   @override
   void accept(JSASTVisitor visitor) {

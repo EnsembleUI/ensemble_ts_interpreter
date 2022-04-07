@@ -2,8 +2,9 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:sdui/api.dart';
-import 'package:sdui/expressions/ast.dart';
-import 'package:sdui/expressions/js_interpreter.dart';
+import 'package:sdui/invokables/invokablemap.dart';
+import 'package:sdui/parser/ast.dart';
+import 'package:sdui/parser/js_interpreter.dart';
 import 'package:sdui/view.dart';
 import 'package:expressions/expressions.dart' as quickexp;
 import 'package:flutter/material.dart';
@@ -148,7 +149,8 @@ class APIHandler extends Handler {
     response.then((res) {
       if ( success != null ) {
         var decodedResponse = jsonDecode(utf8.decode(res.bodyBytes)) as Map;
-        context["response"] = decodedResponse;
+        InvokableMap m = InvokableMap(decodedResponse);
+        context["response"] = m;
         var json = jsonDecode(success!);
         List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
         Interpreter(context).evaluate(arr);

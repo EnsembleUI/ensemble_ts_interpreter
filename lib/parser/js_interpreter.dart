@@ -1,4 +1,5 @@
-import 'package:sdui/invokable.dart';
+import 'package:sdui/invokables/invokable.dart';
+import 'package:sdui/invokables/invokableprimitives.dart';
 import 'ast.dart';
 
 class Interpreter implements JSASTVisitor {
@@ -34,26 +35,17 @@ class Interpreter implements JSASTVisitor {
   void visitAssignmentExpression(AssignmentExpression stmt) {
     dynamic val = visitExpression(stmt.right);
     if ( stmt.left is MemberExpr ) {
-      MemberExpr exp = stmt.left as MemberExpr;
-      var obj = context[exp.object];
-/*      if ( obj is Widget ) {
-        obj.setProperty(exp.property,val);
-      } else */
+      ObjectPattern pattern = visitMemberExpression(stmt.left as MemberExpr,computeAsPattern: true);
+      var obj = pattern.obj;
       if ( stmt.op != AssignmentOperator.equal ) {
         throw Exception("AssignentOperator="+stmt.op.toString()+" in stmt="+stmt.toString()+" is not yet supported");
       }
       if ( obj is Invokable ) {
-        Function? setter = obj.setters()[exp.property];
-        if ( setter != null ) {
-          setter(val);
-        } else {
-          throw Exception("cannot compute statement="+stmt.toString()+" as no setter found for property="+exp.property);
-        }
-      } else {
-        obj[exp.property] = val;
+        obj.set(pattern.property, val);
       }
     } else if ( stmt.left is Identifier ) {
-      context[(stmt.left as Identifier).name] = val;
+      String name = visitIdentifier(stmt.left as Identifier);
+      context[name] = val;
     }
   }
   @override
@@ -73,9 +65,9 @@ class Interpreter implements JSASTVisitor {
   bool evaluateBooleanExpression(BooleanExpression stmt) {
     bool rtn = false;
     if ( stmt is LogicalExpression ) {
-      rtn = visitLogicalExpression(stmt as LogicalExpression);
+      rtn = visitLogicalExpression(stmt);
     } else if ( stmt is BinaryExpression ) {
-      rtn = visitBinaryExpression(stmt as BinaryExpression);
+      rtn = visitBinaryExpression(stmt);
     } else {
       throw Exception(stmt.toString()+' is an unsupported boolean expression');
     }
@@ -128,58 +120,60 @@ class Interpreter implements JSASTVisitor {
   }
   @override
   dynamic visitIdentifier(Identifier stmt) {
-    return context[stmt.name];
+    return stmt.name;
   }
   @override
   void visitBlockStatement(BlockStatement stmt) {
-    stmt.statements.forEach((statement) {
+    for ( var statement in stmt.statements ) {
       statement.accept(this);
-    });
+    }
   }
   @override
-  dynamic visitMemberExpression(MemberExpr stmt) {
-    var obj = context[stmt.object];
-    dynamic val;
-    /*if ( obj is Widget ) {
-      val = (obj as Widget).getProperty(stmt.property);
-    } else */
-    if ( obj is Invokable ) {
-      Function? getter = obj.getters()[stmt.property];
-      if ( getter != null ) {
-        val = getter();
+  dynamic visitMemberExpression(MemberExpr stmt, {bool computeAsPattern=false}) {
+    var exp = visitExpression(stmt.object);
+    dynamic obj;
+    if ( stmt.object is MemberExpr ) {
+      //like c.value.indexOf. The c.value is a memberexp that then has the indexOf called on it
+      if ( InvokablePrimitive.isPrimitive(exp) ) {
+        obj = InvokablePrimitive.getPrimitive(exp);
+      } else if ( exp is Invokable ) {
+        obj = exp;
       } else {
-        throw Exception("cannot compute statement="+stmt.toString()+" as no getter found for property="+stmt.property);
+        throw Exception('unable to compute obj='+stmt.object.toString()+' for member expression='+stmt.toString());
       }
+    } else {
+      obj = context[exp];
     }
-    else {
-      val = obj[stmt.property];
+    dynamic val;
+    var property = visitExpression(stmt.property);
+    if ( obj is! Invokable ) {
+      throw Exception("unknown object.; obj must be of type Invokable but is "+obj.toString());
+    }
+    if ( computeAsPattern ) {
+      val = ObjectPattern(obj, property);
+    } else {
+      val = obj.get(property);
     }
     return val;
   }
   dynamic computeArguments(List<ASTNode> args) {
     List l = [];
-    args.forEach((stmt) {
+    for ( var stmt in args ) {
       l.add(visitExpression(stmt as Expression));
-    });
+    }
     return l;
   }
   @override
   dynamic visitCallExpression(CallExpression stmt) {
     dynamic val;
     if ( stmt.callee is MemberExpr ) {
-      MemberExpr exp = stmt.callee as MemberExpr;
-      var obj = context[exp.object];
-
-      if ( obj is Invokable ) {
-        Function? method = obj.methods()[exp.property];
-        if ( method != null ) {
-          val = Function.apply(method, computeArguments(stmt.arguments));
-        } else {
-          throw Exception("cannot compute statement="+stmt.toString()+" as no method found for property="+exp.property);
-        }
-      }
-      else {
-        val = obj[exp.property];
+      ObjectPattern pattern = visitMemberExpression(stmt.callee as MemberExpr,computeAsPattern:true);
+      var obj = pattern.obj;
+      Function? method = obj.methods()[pattern.property];
+      if ( method != null ) {
+        val = Function.apply(method, computeArguments(stmt.arguments));
+      } else {
+        throw Exception("cannot compute statement="+stmt.toString()+" as no method found for property="+pattern.property.toString());
       }
       return val;
     }
@@ -221,4 +215,9 @@ class Interpreter implements JSASTVisitor {
     }
     return val;
   }
+}
+class ObjectPattern {
+  Invokable obj;
+  String property;
+  ObjectPattern(this.obj,this.property);
 }

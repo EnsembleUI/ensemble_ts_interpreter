@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:sdui/invokable.dart';
+import 'package:sdui/invokables/invokable.dart';
 
 class InvokableTextFormField extends TextFormField with Invokable {
    InvokableTextFormField({
@@ -38,6 +38,23 @@ class InvokableTextFormField extends TextFormField with Invokable {
     return {
       'value': (newValue) => controller!.text = newValue,
     };
+  }
+
+  @override
+  get(String prop) {
+    Function? f = getters()[prop];
+    if ( f != null ) {
+      return f();
+    }
+    throw Exception('getter by name='+prop+' is not defined on this object='+toString());
+  }
+
+  @override
+  void set(String prop, val) {
+    Function? f = setters()[prop];
+    if ( f != null ) {
+      f(val);
+    }
   }
 
 }
