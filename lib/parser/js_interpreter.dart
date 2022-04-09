@@ -40,9 +40,7 @@ class Interpreter implements JSASTVisitor {
       if ( stmt.op != AssignmentOperator.equal ) {
         throw Exception("AssignentOperator="+stmt.op.toString()+" in stmt="+stmt.toString()+" is not yet supported");
       }
-      if ( obj is Invokable ) {
-        obj.set(pattern.property, val);
-      }
+      obj.set(pattern.property, val);
     } else if ( stmt.left is Identifier ) {
       String name = visitIdentifier(stmt.left as Identifier);
       context[name] = val;

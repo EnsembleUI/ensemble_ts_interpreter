@@ -1,7 +1,8 @@
 
 import 'dart:collection';
 import 'package:flutter/material.dart';
-import 'package:sdui/invokables/invokablewidgets.dart';
+import 'package:sdui/invokables/invokabletext.dart';
+import 'package:sdui/invokables/invokabletextformfield.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:yaml/yaml.dart';
 import 'package:flutter/cupertino.dart';
@@ -74,8 +75,8 @@ class WidgetViewFactory {
       );
     } else if ( name == 'Text' ) {
       rtn = WidgetView(
-          Text(
-            label,
+          InvokableText(
+            TextController(label),
             key: Key(key)
           ),properties
        );

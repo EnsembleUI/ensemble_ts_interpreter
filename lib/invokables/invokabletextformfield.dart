@@ -1,9 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:sdui/invokables/hasinvokable.dart';
 import 'package:sdui/invokables/invokable.dart';
 
-class InvokableTextFormField extends TextFormField with Invokable {
+class InvokableTextFormField extends TextFormField with Invokable,HasInvokable {
    InvokableTextFormField({
      Key? key,
      TextEditingController? controller,
@@ -57,4 +58,8 @@ class InvokableTextFormField extends TextFormField with Invokable {
     }
   }
 
+  @override
+  Invokable get invokable => this;
 }
+
+
