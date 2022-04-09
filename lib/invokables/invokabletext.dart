@@ -65,7 +65,7 @@ class TextController extends Controller<InvokableText> {
 
   set value (String value) {
     text = value;
-    notifyListeners();
+    notifyListeners();//make sure to always call it on all setters
   }
   String get value => text;
 }
