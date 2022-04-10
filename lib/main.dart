@@ -59,7 +59,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
 
 
   final List<String> entries = <String>['Sample1: Guess Gender from Name', 'Sample2: Stock Quotes', 'Sample3: Web View of news'];
-  final List<String> entryPaths = <String>['genderapi_ts.yaml', 'stocks.yaml','news.yaml'];
+  final List<String> entryPaths = <String>['a0dcfefc-298d-42ab-932a-aab70c87891b', '0b66a9d9-9125-46b3-82ec-5b360ab73fbd','c8a19fcf-69c0-4751-9733-032291c83937'];
   final List<int> colorCodes = <int>[600, 500];
   @override
   Widget build(BuildContext context) {
@@ -158,7 +158,7 @@ class SecondRoute extends StatelessWidget {
 }
 Future<String> GoToPage(page,title,context) async {
   final response = await http
-      .get(Uri.parse('https://serverdrivenui-602d6.web.app/$page'));
+      .get(Uri.parse('https://pz0mwfkp5m.execute-api.us-east-1.amazonaws.com/dev/screen/content?id=$page'));
 
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response,
