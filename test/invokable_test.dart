@@ -26,7 +26,7 @@ class Ensemble extends Object with Invokable {
   }
 
   @override
-  get(dynamic prop) {
+  dynamic getProperty(dynamic prop) {
     if ( prop == 'name' ) {
       return name;
     }
@@ -34,7 +34,7 @@ class Ensemble extends Object with Invokable {
   }
 
   @override
-  void set(dynamic prop, val) {
+  void setProperty(dynamic prop, dynamic val) {
 
   }
   

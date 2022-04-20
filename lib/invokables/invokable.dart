@@ -42,7 +42,7 @@ mixin Invokable {
     return rtn;
   }
 
-  dynamic getProperty(String prop) {
+  dynamic getProperty(dynamic prop) {
     Function? func = getters()[prop];
     if (func == null && this is HasController) {
       func = (this as HasController).controller.getBaseGetters()[prop];
@@ -52,7 +52,7 @@ mixin Invokable {
       return func();
     }
   }
-  void setProperty(String prop, dynamic val) {
+  void setProperty(dynamic prop, dynamic val) {
     Function? func = setters()[prop];
     if (func == null && this is HasController) {
       func = (this as HasController).controller.getBaseSetters()[prop];
