@@ -51,7 +51,7 @@ class InvokableString extends InvokablePrimitive with Invokable {
   }
 
   @override
-  get(String prop) {
+  getProperty(String prop) {
     Function? f = getters()[prop];
     if ( f != null ) {
       return f();
@@ -60,7 +60,7 @@ class InvokableString extends InvokablePrimitive with Invokable {
   }
 
   @override
-  void set(String prop, val) {
+  void setProperty(String prop, val) {
     // TODO: implement set
   }
 }
@@ -88,13 +88,13 @@ class InvokableBoolean extends InvokablePrimitive with Invokable {
   }
 
   @override
-  get(String prop) {
+  getProperty(String prop) {
     // TODO: implement get
     throw UnimplementedError();
   }
 
   @override
-  void set(String prop, val) {
+  void setProperty(String prop, val) {
     // TODO: implement set
   }
 
@@ -124,13 +124,13 @@ class InvokableNumber extends InvokablePrimitive with Invokable {
   }
 
   @override
-  get(String prop) {
+  getProperty(String prop) {
     // TODO: implement get
     throw UnimplementedError();
   }
 
   @override
-  void set(String prop, val) {
+  void setProperty(String prop, val) {
     // TODO: implement set
   }
 
@@ -158,12 +158,12 @@ class InvokableNull extends InvokablePrimitive with Invokable {
   }
 
   @override
-  get(String prop) {
+  getProperty(String prop) {
     return null;
   }
 
   @override
-  void set(String prop, val) {
+  void setProperty(String prop, val) {
     throw Exception("cannot set property on null. prop="+prop);
   }
 

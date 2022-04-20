@@ -19,12 +19,12 @@ class InvokableMap extends Object with Invokable {
   }
 
   @override
-  get(String prop) {
+  getProperty(String prop) {
     return map[prop];
   }
 
   @override
-  void set(String prop, val) {
+  void setProperty(String prop, val) {
     map[prop] = val;
   }
 

@@ -40,7 +40,7 @@ class Interpreter implements JSASTVisitor {
       if ( stmt.op != AssignmentOperator.equal ) {
         throw Exception("AssignentOperator="+stmt.op.toString()+" in stmt="+stmt.toString()+" is not yet supported");
       }
-      obj.set(pattern.property, val);
+      obj.setProperty(pattern.property, val);
     } else if ( stmt.left is Identifier ) {
       String name = visitIdentifier(stmt.left as Identifier);
       context[name] = val;
@@ -150,7 +150,7 @@ class Interpreter implements JSASTVisitor {
     if ( computeAsPattern ) {
       val = ObjectPattern(obj, property);
     } else {
-      val = obj.get(property);
+      val = obj.getProperty(property);
     }
     return val;
   }
