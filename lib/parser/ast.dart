@@ -4,7 +4,7 @@ abstract class JSASTVisitor {
   dynamic visitMemberExpression(MemberExpr stmt);
   dynamic visitExpression(Expression stmt);
   void visitIfStatement(IfStatement stmt);
-  bool visitBinaryExpression(BinaryExpression stmt);
+  dynamic visitBinaryExpression(BinaryExpression stmt);
   bool visitLogicalExpression(LogicalExpression stmt);
   dynamic visitUnaryExpression(UnaryExpression stmt);
   dynamic visitLiteral(Literal stmt);
@@ -13,7 +13,7 @@ abstract class JSASTVisitor {
   dynamic visitCallExpression(CallExpression stmt);
 }
 enum BinaryOperator {
-  equals,lt,gt,ltEquals,gtEquals,notequals
+  equals,lt,gt,ltEquals,gtEquals,notequals,minus,plus,multiply,divide,inop,instaneof
 }
 enum AssignmentOperator {
   equal
@@ -25,7 +25,7 @@ enum UnaryOperator {
   minus,plus,not,typeof,voidop
 }
 abstract class ASTNode {
-  void accept(JSASTVisitor visitor);
+  dynamic accept(JSASTVisitor visitor);
 }
 class IfStatement implements ASTNode {
   ASTNode test,consequent;
@@ -84,8 +84,8 @@ class UnaryExpression implements Expression {
   }
 
   @override
-  void accept(JSASTVisitor visitor) {
-    visitor.visitUnaryExpression(this);
+  dynamic accept(JSASTVisitor visitor) {
+    return visitor.visitUnaryExpression(this);
   }
 
 }
@@ -109,6 +109,14 @@ class BinaryExpression implements BooleanExpression {
       op = BinaryOperator.gtEquals;
     } else if ( operator == '!=' ) {
       op = BinaryOperator.notequals;
+    } else if ( operator == '-' ) {
+      op = BinaryOperator.minus;
+    } else if ( operator == '+' ) {
+      op = BinaryOperator.plus;
+    } else if ( operator == '*' ) {
+      op = BinaryOperator.multiply;
+    } else if ( operator == '/' ) {
+      op = BinaryOperator.divide;
     } else {
       Exception(operator+' is not yet supported');
     }
@@ -118,8 +126,8 @@ class BinaryExpression implements BooleanExpression {
     );
   }
   @override
-  void accept(JSASTVisitor visitor) {
-    visitor.visitBinaryExpression(this);
+  dynamic accept(JSASTVisitor visitor) {
+    return visitor.visitBinaryExpression(this);
   }
 }
 //http://160.16.109.33/github.com/mason-lang/esast/class/src/ast.js~CallExpression.html
@@ -132,8 +140,8 @@ class CallExpression implements Expression {
     return CallExpression(callee, builder.buildArray(jsonNode['arguments']));
   }
   @override
-  void accept(JSASTVisitor visitor) {
-    visitor.visitCallExpression(this);
+  dynamic accept(JSASTVisitor visitor) {
+    return visitor.visitCallExpression(this);
   }
 }
 class LogicalExpression implements BooleanExpression {
@@ -159,8 +167,8 @@ class LogicalExpression implements BooleanExpression {
     );
   }
   @override
-  void accept(JSASTVisitor visitor) {
-    visitor.visitLogicalExpression(this);
+  dynamic accept(JSASTVisitor visitor) {
+    return visitor.visitLogicalExpression(this);
   }
 }
 class Literal implements Expression {
@@ -193,8 +201,8 @@ class ExpressionStatement implements ASTNode {
     return ExpressionStatement(builder.buildNode(exp));
   }
   @override
-  void accept(JSASTVisitor visitor) {
-    visitor.visitExpressionStatement(this);
+  dynamic accept(JSASTVisitor visitor) {
+    return visitor.visitExpressionStatement(this);
   }
 }
 

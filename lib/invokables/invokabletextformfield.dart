@@ -42,7 +42,7 @@ class InvokableTextFormField extends TextFormField with Invokable,HasInvokable {
   }
 
   @override
-  get(String prop) {
+  get(dynamic prop) {
     Function? f = getters()[prop];
     if ( f != null ) {
       return f();
@@ -51,7 +51,7 @@ class InvokableTextFormField extends TextFormField with Invokable,HasInvokable {
   }
 
   @override
-  void set(String prop, val) {
+  void set(dynamic prop, val) {
     Function? f = setters()[prop];
     if ( f != null ) {
       f(val);

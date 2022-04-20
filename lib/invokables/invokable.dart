@@ -6,8 +6,8 @@ mixin Invokable {
   Map<String, Function> getters();
   Map<String, Function> setters();
   Map<String, Function> methods();
-  dynamic get(String prop);
-  void set(String prop,dynamic val);
+  dynamic get(dynamic prop);
+  void set(dynamic prop,dynamic val);
 }
 class Controller<T> extends ChangeNotifier {
 

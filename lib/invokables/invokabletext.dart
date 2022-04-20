@@ -17,7 +17,7 @@ class InvokableText extends StatefulWidget with Invokable,HasController<TextCont
     return Random(seed).nextInt(max);
   }
   @override
-  get(String prop) {
+  get(dynamic prop) {
     Function? f = getters()[prop];
     if ( f != null ) {
       return f();
@@ -43,7 +43,7 @@ class InvokableText extends StatefulWidget with Invokable,HasController<TextCont
   }
 
   @override
-  void set(String prop, val) {
+  void set(dynamic prop, val) {
     Function? f = setters()[prop];
     if ( f != null ) {
       f(val);

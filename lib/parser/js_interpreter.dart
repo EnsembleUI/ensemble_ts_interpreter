@@ -1,19 +1,23 @@
 import 'package:sdui/invokables/invokable.dart';
+import 'package:sdui/invokables/invokablelist.dart';
+import 'package:sdui/invokables/invokablemap.dart';
 import 'package:sdui/invokables/invokableprimitives.dart';
 import 'ast.dart';
 
 class Interpreter implements JSASTVisitor {
   Map context;
   Interpreter(this.context);
-  void evaluate(List<ASTNode> json) {
+  dynamic evaluate(List<ASTNode> json) {
+    dynamic? rtnValue;
     for (ASTNode node in json) {
-      node.accept(this);
+      rtnValue = node.accept(this);
     }
+    return rtnValue;
   }
   @override
-  void visitExpressionStatement(ExpressionStatement stmt) {
+  dynamic visitExpressionStatement(ExpressionStatement stmt) {
     if ( stmt.expression is Expression ) {
-      visitExpression(stmt.expression as Expression);
+      return visitExpression(stmt.expression as Expression);
     } else {
       throw Exception("Statements other than Expressions not yet implemented for ExpressionStatement. stmt="+stmt.expression.toString());
     }
@@ -91,10 +95,10 @@ class Interpreter implements JSASTVisitor {
     return rtn;
   }
   @override
-  bool visitBinaryExpression(BinaryExpression stmt) {
+  dynamic visitBinaryExpression(BinaryExpression stmt) {
     dynamic left = visitExpression(stmt.left);
     dynamic right = visitExpression(stmt.right);
-    bool rtn = false;
+    dynamic rtn = false;
     if ( stmt.op == BinaryOperator.equals ) {
       rtn = left == right;
     } else if ( stmt.op == BinaryOperator.notequals) {
@@ -107,6 +111,10 @@ class Interpreter implements JSASTVisitor {
       rtn = left > right;
     } else if ( stmt.op == BinaryOperator.gtEquals ) {
       rtn = left >= right;
+    } else if ( stmt.op == BinaryOperator.minus ) {
+      rtn = left - right;
+    } else if ( stmt.op == BinaryOperator.plus ) {
+      rtn = left + right;
     } else {
       throw Exception(stmt.op.toString() + ' is not yet supported');
     }
@@ -130,12 +138,16 @@ class Interpreter implements JSASTVisitor {
   dynamic visitMemberExpression(MemberExpr stmt, {bool computeAsPattern=false}) {
     var exp = visitExpression(stmt.object);
     dynamic obj;
-    if ( stmt.object is MemberExpr ) {
+    if ( stmt.object is MemberExpr || stmt.object is CallExpression ) {
       //like c.value.indexOf. The c.value is a memberexp that then has the indexOf called on it
-      if ( InvokablePrimitive.isPrimitive(exp) ) {
+      if (InvokablePrimitive.isPrimitive(exp)) {
         obj = InvokablePrimitive.getPrimitive(exp);
-      } else if ( exp is Invokable ) {
+      } else if (exp is Invokable) {
         obj = exp;
+      } else if (exp is Map) {
+        obj = InvokableMap(exp);
+      } else if ( exp is List ) {
+        obj = InvokableList(exp);
       } else {
         throw Exception('unable to compute obj='+stmt.object.toString()+' for member expression='+stmt.toString());
       }
@@ -144,6 +156,11 @@ class Interpreter implements JSASTVisitor {
     }
     dynamic val;
     var property = visitExpression(stmt.property);
+    if ( obj is Map ) {
+      obj = InvokableMap(obj);
+    } else if ( obj is List ) {
+      obj = InvokableList(obj);
+    }
     if ( obj is! Invokable ) {
       throw Exception("unknown object.; obj must be of type Invokable but is "+obj.toString());
     }
@@ -216,6 +233,6 @@ class Interpreter implements JSASTVisitor {
 }
 class ObjectPattern {
   Invokable obj;
-  String property;
+  dynamic property;
   ObjectPattern(this.obj,this.property);
 }
