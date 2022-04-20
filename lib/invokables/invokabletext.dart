@@ -3,33 +3,32 @@ import 'dart:math';
 import 'package:flutter/widgets.dart';
 import 'package:sdui/invokables/invokable.dart';
 
-class InvokableText extends StatefulWidget with Invokable,HasController<TextController,InvokableText> {
+class InvokableText extends StatefulWidget with Invokable, HasController<TextController, InvokableTextWidgetState> {
   @override
   final TextController controller;
   const InvokableText(this.controller, {Key? key}) : super(key:key);
 
   @override
   State<StatefulWidget> createState() => InvokableTextWidgetState();
+
   void toUppercase() {
-    setters()['value']!(getters()['value']!().toString().toUpperCase());
+    setters()['text']!(getters()['text']!().toString().toUpperCase());
   }
   int random(int seed,int max) {
     return Random(seed).nextInt(max);
-  }
-  @override
-  get(dynamic prop) {
-    Function? f = getters()[prop];
-    if ( f != null ) {
-      return f();
-    }
-    throw Exception('getter by name='+prop+' is not defined on this object='+toString());
   }
 
   @override
   Map<String, Function> getters() {
     return {
-      'value': () => controller.value,
-      'text': () => controller.value
+      'text': () => controller.text
+    };
+  }
+
+  @override
+  Map<String, Function> setters() {
+    return {
+      'text': (newValue) => controller.text = newValue,
     };
   }
 
@@ -42,36 +41,17 @@ class InvokableText extends StatefulWidget with Invokable,HasController<TextCont
     };
   }
 
-  @override
-  void set(dynamic prop, val) {
-    Function? f = setters()[prop];
-    if ( f != null ) {
-      f(val);
-    }
-  }
 
-  @override
-  Map<String, Function> setters() {
-    return {
-      'value': (newValue) => controller.value = newValue,
-      'text': (newValue) => controller.value = newValue,
-    };
-  }
 }
 
-class TextController extends Controller<InvokableText> {
+class TextController extends Controller {
   String text;
   TextController(this.text);
-
-  set value (String value) {
-    text = value;
-    notifyListeners();//make sure to always call it on all setters
-  }
-  String get value => text;
 }
-class InvokableTextWidgetState extends InvokableState<InvokableText>{
+
+class InvokableTextWidgetState extends WidgetState<InvokableText> {
   @override
   Widget build(BuildContext context) {
-    return Text(widget.controller.value);
+    return Text(widget.controller.text);
   }
 }
