@@ -41,8 +41,8 @@ class InvokableString extends InvokablePrimitive with Invokable {
   @override
   Map<String, Function> methods() {
     return {
-      'indexOf': (String str) { return val.indexOf(str);},
-      'split': (String str) { return val.split(str);}
+      'indexOf': (String str) => val.indexOf(str),
+      'split': (String delimiter) => val.split(delimiter)
     };
   }
 
@@ -52,16 +52,7 @@ class InvokableString extends InvokablePrimitive with Invokable {
   }
 
   @override
-  get(dynamic prop) {
-    Function? f = getters()[prop];
-    if ( f != null ) {
-      return f();
-    }
-    return null;
-  }
-
-  @override
-  void set(dynamic prop, val) {
+  void setProperty(dynamic prop, dynamic val) {
     // TODO: implement set
   }
 }
@@ -89,13 +80,13 @@ class InvokableBoolean extends InvokablePrimitive with Invokable {
   }
 
   @override
-  get(dynamic prop) {
+  dynamic getProperty(dynamic prop) {
     // TODO: implement get
     throw UnimplementedError();
   }
 
   @override
-  void set(dynamic prop, val) {
+  void setProperty(dynamic prop, dynamic val) {
     // TODO: implement set
   }
 
@@ -125,13 +116,13 @@ class InvokableNumber extends InvokablePrimitive with Invokable {
   }
 
   @override
-  get(dynamic prop) {
+  dynamic getProperty(dynamic prop) {
     // TODO: implement get
     throw UnimplementedError();
   }
 
   @override
-  void set(dynamic prop, val) {
+  void setProperty(dynamic prop, dynamic val) {
     // TODO: implement set
   }
 
@@ -159,12 +150,12 @@ class InvokableNull extends InvokablePrimitive with Invokable {
   }
 
   @override
-  get(dynamic prop) {
+  dynamic getProperty(dynamic prop) {
     return null;
   }
 
   @override
-  void set(dynamic prop, val) {
+  void setProperty(dynamic prop, dynamic val) {
     throw Exception("cannot set property on null. prop="+prop);
   }
 

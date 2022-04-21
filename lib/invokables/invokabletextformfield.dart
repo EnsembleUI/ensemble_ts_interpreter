@@ -1,10 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:sdui/invokables/hasinvokable.dart';
 import 'package:sdui/invokables/invokable.dart';
 
-class InvokableTextFormField extends TextFormField with Invokable,HasInvokable {
+class InvokableTextFormField extends TextFormField with Invokable {
    InvokableTextFormField({
      Key? key,
      TextEditingController? controller,
@@ -42,7 +41,7 @@ class InvokableTextFormField extends TextFormField with Invokable,HasInvokable {
   }
 
   @override
-  get(dynamic prop) {
+  dynamic getProperty(dynamic prop) {
     Function? f = getters()[prop];
     if ( f != null ) {
       return f();
@@ -51,15 +50,13 @@ class InvokableTextFormField extends TextFormField with Invokable,HasInvokable {
   }
 
   @override
-  void set(dynamic prop, val) {
+  void setProperty(dynamic prop, dynamic val) {
     Function? f = setters()[prop];
     if ( f != null ) {
       f(val);
     }
   }
 
-  @override
-  Invokable get invokable => this;
 }
 
 

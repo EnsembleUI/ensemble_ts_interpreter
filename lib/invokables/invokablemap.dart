@@ -19,12 +19,12 @@ class InvokableMap extends Object with Invokable {
   }
 
   @override
-  get(dynamic prop) {
+  dynamic getProperty(dynamic prop) {
     return map[prop];
   }
 
   @override
-  void set(dynamic prop, val) {
+  void setProperty(dynamic prop, dynamic val) {
     map[prop] = val;
   }
 

@@ -21,7 +21,7 @@ class InvokableList extends Object with Invokable {
   }
 
   @override
-  get(dynamic prop) {
+  dynamic getProperty(dynamic prop) {
     if ( prop is int ) {
       return list[prop];
     }
@@ -33,7 +33,7 @@ class InvokableList extends Object with Invokable {
   }
 
   @override
-  void set(dynamic prop, val) {
+  void setProperty(dynamic prop, dynamic val) {
     if ( prop is int ) {
       list[prop] = val;
     }
