@@ -42,22 +42,13 @@ class InvokableString extends InvokablePrimitive with Invokable {
   Map<String, Function> methods() {
     return {
       'indexOf': (String str) => val.indexOf(str),
-      'split': (String str) => val.split(str)
+      'split': (String delimiter) => val.split(delimiter)
     };
   }
 
   @override
   Map<String, Function> setters() {
     return {};
-  }
-
-  @override
-  dynamic getProperty(dynamic prop) {
-    Function? f = getters()[prop];
-    if ( f != null ) {
-      return f();
-    }
-    return null;
   }
 
   @override

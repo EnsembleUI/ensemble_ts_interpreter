@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:sdui/invokables/hasinvokable.dart';
 import 'package:sdui/invokables/invokable.dart';
 
 class InvokableTextFormField extends TextFormField with Invokable {
