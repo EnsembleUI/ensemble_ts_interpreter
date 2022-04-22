@@ -34,10 +34,10 @@ mixin Invokable {
     return rtn;
   }
 
-  List<String> getMethods() {
-    List<String> rtn = methods().keys.toList();
+  Map<String, Function> getMethods() {
+    Map<String, Function> rtn = methods();
     if (this is HasController) {
-      rtn.addAll((this as HasController).controller.getBaseMethods().keys);
+      rtn.addAll((this as HasController).controller.getBaseMethods());
     }
     return rtn;
   }
@@ -65,19 +65,6 @@ mixin Invokable {
       if (this is HasController) {
         (this as HasController).controller.dispatchChanges();
       }
-    }
-  }
-  void callMethod(String method) {
-    Function? func = methods()[method];
-    if (func == null && this is HasController) {
-      func = (this as HasController).controller.getBaseMethods()[method];
-    }
-
-    if (func != null) {
-      func();
-
-      // if the method update properties that need a widget redraw, you will
-      // need to explicitly dispatchChanges() in your implementation
     }
   }
 }
