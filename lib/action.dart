@@ -1,11 +1,11 @@
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:sdui/api.dart';
-import 'package:sdui/invokables/invokablemap.dart';
-import 'package:sdui/parser/ast.dart';
-import 'package:sdui/parser/js_interpreter.dart';
-import 'package:sdui/view.dart';
+import 'package:ensemble_ts_interpreter/api.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
+import 'package:ensemble_ts_interpreter/parser/ast.dart';
+import 'package:ensemble_ts_interpreter/parser/js_interpreter.dart';
+import 'package:ensemble_ts_interpreter/view.dart';
 import 'package:expressions/expressions.dart' as quickexp;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';

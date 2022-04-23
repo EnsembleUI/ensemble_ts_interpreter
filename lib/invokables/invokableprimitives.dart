@@ -1,4 +1,4 @@
-import 'package:sdui/invokables/invokable.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 
 abstract class InvokablePrimitive {
   static Invokable? getPrimitive(dynamic t) {

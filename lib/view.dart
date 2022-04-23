@@ -1,8 +1,8 @@
 
 import 'dart:collection';
 import 'package:flutter/material.dart';
-import 'package:sdui/invokables/invokabletext.dart';
-import 'package:sdui/invokables/invokabletextformfield.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokabletext.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokabletextformfield.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:yaml/yaml.dart';
 import 'package:flutter/cupertino.dart';

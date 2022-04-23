@@ -1,4 +1,4 @@
-import 'package:sdui/view.dart';
+import 'package:ensemble_ts_interpreter/view.dart';
 import 'package:flutter/widgets.dart';
 
 class Layout {

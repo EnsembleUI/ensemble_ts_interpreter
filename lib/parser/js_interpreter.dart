@@ -1,7 +1,7 @@
-import 'package:sdui/invokables/invokable.dart';
-import 'package:sdui/invokables/invokablelist.dart';
-import 'package:sdui/invokables/invokablemap.dart';
-import 'package:sdui/invokables/invokableprimitives.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
 import 'ast.dart';
 
 class Interpreter implements JSASTVisitor {

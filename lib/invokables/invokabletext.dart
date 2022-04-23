@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';
-import 'package:sdui/invokables/invokable.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 
 class InvokableText extends StatefulWidget with Invokable, HasController<TextController, InvokableTextWidgetState> {
   @override

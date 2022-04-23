@@ -1,4 +1,4 @@
-import 'package:sdui/invokables/invokable.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 
 class InvokableList extends Object with Invokable {
   List list;

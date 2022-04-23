@@ -1,10 +1,10 @@
-import 'package:sdui/invokables/invokable.dart';
-import 'package:sdui/parser/ast.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
+import 'package:ensemble_ts_interpreter/parser/ast.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:test/test.dart';
 
-import 'package:sdui/parser/js_interpreter.dart';
+import 'package:ensemble_ts_interpreter/parser/js_interpreter.dart';
 class Ensemble extends Object with Invokable {
   String? name;
   Ensemble(this.name);
