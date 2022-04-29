@@ -135,6 +135,11 @@ class Interpreter implements JSASTVisitor {
     }
   }
   @override
+  dynamic visitThisExpression(ThisExpr stmt, {bool computeAsPattern=false}) {
+    return "this";
+  }
+
+  @override
   dynamic visitMemberExpression(MemberExpr stmt, {bool computeAsPattern=false}) {
     var exp = visitExpression(stmt.object);
     dynamic obj;
@@ -213,6 +218,8 @@ class Interpreter implements JSASTVisitor {
       return visitLiteral(stmt);
     } else if ( stmt is UnaryExpression ) {
       return visitUnaryExpression(stmt);
+    } else if (stmt is ThisExpr) {
+      return visitThisExpression(stmt);
     } else {
       throw Exception("This type of expression is not currently supported. Expression="+stmt.toString());
     }

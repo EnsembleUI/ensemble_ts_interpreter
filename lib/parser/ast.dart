@@ -1,6 +1,9 @@
+import 'package:expressions/expressions.dart';
+
 abstract class JSASTVisitor {
   void visitExpressionStatement(ExpressionStatement stmt);
   void visitAssignmentExpression(AssignmentExpression stmt);
+  dynamic visitThisExpression(ThisExpr stmt);
   dynamic visitMemberExpression(MemberExpr stmt);
   dynamic visitExpression(Expression stmt);
   void visitIfStatement(IfStatement stmt);
@@ -225,6 +228,17 @@ class AssignmentExpression implements Expression {
     visitor.visitAssignmentExpression(this);
   }
 }
+
+class ThisExpr implements Expression {
+  ThisExpr();
+  static ThisExpr fromJson(var jsonNode, ASTBuilder builder) {
+    return ThisExpr();
+  }
+  @override
+  accept(JSASTVisitor visitor) {
+    visitor.visitThisExpression(this);
+  }
+}
 class MemberExpr implements Expression {
   Expression object,property;
   MemberExpr(this.object,this.property);
@@ -269,6 +283,8 @@ class ASTBuilder {
       return CallExpression.fromJson(node, this);
     } else if ( type == 'UnaryExpression' ) {
       return UnaryExpression.fromJson(node, this);
+    } else if (type == 'ThisExpression') {
+      return ThisExpr.fromJson(node, this);
     }
     throw Exception(type+" is not yet supported. Full expression is="+node.toString());
   }

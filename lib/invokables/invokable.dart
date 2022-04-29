@@ -52,6 +52,8 @@ mixin Invokable {
       return func();
     }
   }
+
+  /// update a property. If this is a HasController (i.e. Widget), notify it of changes
   void setProperty(dynamic prop, dynamic val) {
     Function? func = setters()[prop];
     if (func == null && this is HasController) {
