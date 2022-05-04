@@ -49,7 +49,7 @@ class TextController extends Controller {
   TextController(this.text);
 }
 
-class InvokableTextWidgetState extends WidgetState<InvokableText> {
+class InvokableTextWidgetState extends BaseWidgetState<InvokableText> {
   @override
   Widget build(BuildContext context) {
     return Text(widget.controller.text);

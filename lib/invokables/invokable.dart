@@ -100,8 +100,8 @@ abstract class Controller extends ChangeNotifier {
 mixin WidgetStateMixin {
 }
 
-/// base State for Widgets that want to participate in Ensemble widget tree
-abstract class WidgetState<W extends HasController> extends State<W> with WidgetStateMixin {
+/// base state for Flutter widgets that want to be of Invokable type
+abstract class BaseWidgetState<W extends HasController> extends State<W> with WidgetStateMixin {
   void changeState() {
     setState(() {
 
