@@ -19,6 +19,11 @@ class Interpreter implements JSASTVisitor {
   Interpreter(Map globalContext) {
     contexts.push(globalContext);
   }
+  Interpreter cloneForContext(Map context) {
+    Interpreter i = Interpreter(contexts._list.first);
+    i.pushContext(context);
+    return i;
+  }
   void pushContext(Map context) {
     contexts.push(context);
   }
@@ -307,14 +312,13 @@ class Interpreter implements JSASTVisitor {
       for ( int i=0;i<args.length;i++ ) {
         ctx[args.elementAt(i)] = params.elementAt(i);
       }
-      pushContext(ctx);
+      Interpreter i = cloneForContext(ctx);
       dynamic rtn;
       if ( stmt.blockStmt != null ) {
-        rtn = visitBlockStatement(stmt.blockStmt!);
+        rtn = i.visitBlockStatement(stmt.blockStmt!);
       } else {
-        rtn = visitExpression(stmt.expression!);
+        rtn = i.visitExpression(stmt.expression!);
       }
-      popContext();
       return rtn;
     };
   }
