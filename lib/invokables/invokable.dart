@@ -1,6 +1,9 @@
 import 'package:flutter/widgets.dart';
 
 mixin Invokable {
+  // optional ID to identify this Invokable
+  String? id;
+
   /// mark these functions as protected as we need the implementations,
   /// but discourage direct usages.
   /// Reasons:
@@ -52,6 +55,8 @@ mixin Invokable {
       return func();
     }
   }
+
+  /// update a property. If this is a HasController (i.e. Widget), notify it of changes
   void setProperty(dynamic prop, dynamic val) {
     Function? func = setters()[prop];
     if (func == null && this is HasController) {
@@ -63,7 +68,7 @@ mixin Invokable {
 
       // ask our controller to notify its listeners of changes
       if (this is HasController) {
-        (this as HasController).controller.dispatchChanges();
+        (this as HasController).controller.dispatchChanges(KeyValue(prop.toString(), val));
       }
     }
   }
@@ -76,8 +81,11 @@ mixin HasController<C extends Controller, S extends WidgetStateMixin> on Statefu
 }
 
 abstract class Controller extends ChangeNotifier {
+  KeyValue? lastSetterProperty;
+
   // notify listeners of changes
-  void dispatchChanges() {
+  void dispatchChanges(KeyValue changedProperty) {
+    lastSetterProperty = changedProperty;
     notifyListeners();
   }
 
@@ -98,9 +106,10 @@ abstract class Controller extends ChangeNotifier {
 mixin WidgetStateMixin {
 }
 
-/// base State for Widgets that want to participate in Ensemble widget tree
-abstract class WidgetState<W extends HasController> extends State<W> with WidgetStateMixin {
+/// base state for Flutter widgets that want to be of Invokable type
+abstract class BaseWidgetState<W extends HasController> extends State<W> with WidgetStateMixin {
   void changeState() {
+    // trigger widget to rebuild
     setState(() {
 
     });
@@ -124,4 +133,11 @@ abstract class WidgetState<W extends HasController> extends State<W> with Widget
   }
 
 
+}
+
+class KeyValue {
+  KeyValue(this.key, this.value);
+
+  String key;
+  dynamic value;
 }

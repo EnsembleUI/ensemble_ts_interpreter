@@ -39,6 +39,31 @@ class Ensemble extends Object with Invokable {
   }
   
 }
+
+class ThisObject with Invokable {
+  String _identity = 'Spiderman';
+  @override
+  Map<String, Function> getters() {
+    return {
+      'identity': () => _identity
+    };
+  }
+
+  @override
+  Map<String, Function> methods() {
+    return {
+      'toString': () => 'ThisObject'
+    };
+  }
+
+  @override
+  Map<String, Function> setters() {
+    return {
+      'identity': (newValue) => _identity = newValue
+    };
+  }
+
+}
 void main() {
   //ensembleStore.session.login.contextId = response.body.data.contextID;
   Map<String, dynamic> context = {
@@ -63,7 +88,8 @@ void main() {
       }
     },
     'ensemble':Ensemble('EnsembleObject'),
-    'users':[{'name':'John'},{'name':'Mary'}]
+    'users':[{'name':'John'},{'name':'Mary'}],
+    'this': ThisObject()
   };
   test('MapTest', () async {
     /*
@@ -102,6 +128,9 @@ void main() {
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     dynamic rtnValue = Interpreter(context).evaluate(arr);
     expect(rtnValue,context['users'][1]);
+  });
+  test('using this', () {
+
   });
   test('mapTest', () async {
     /*
