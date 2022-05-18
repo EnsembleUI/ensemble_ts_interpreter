@@ -3,12 +3,55 @@ import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
 import 'ast.dart';
-
+class Stack<E> {
+  final _list = <E>[];
+  void push(E value) => _list.add(value);
+  E pop() => _list.removeLast();
+  E get peek => _list.last;
+  bool get isEmpty => _list.isEmpty;
+  bool get isNotEmpty => _list.isNotEmpty;
+  int get length => _list.length;
+  @override
+  String toString() => _list.toString();
+}
 class Interpreter implements JSASTVisitor {
-  Map context;
-  Interpreter(this.context);
+  Stack<Map> contexts = Stack();
+  Interpreter(Map globalContext) {
+    contexts.push(globalContext);
+  }
+  void pushContext(Map context) {
+    contexts.push(context);
+  }
+  Map popContext() {
+    return contexts.pop();
+  }
+  Map? findContext(String name) {
+    //go in reverse order looking for the name
+    for ( var i=contexts.length-1;i>=0;i-- ) {
+      if ( contexts._list.elementAt(i).containsKey(name) ) {
+        return contexts._list.elementAt(i);
+      }
+    }
+    return null;
+  }
+  //insert or update
+  void upsertValue(String name,dynamic value) {
+    Map? m = findContext(name);
+    if ( m != null ) {
+      m[name] = value;
+    } else {
+      contexts.peek[name] = value;
+    }
+  }
+  dynamic getValue(String name) {
+    Map? m = findContext(name);
+    if ( m != null ) {
+      return m[name];
+    }
+    return null;
+  }
   dynamic evaluate(List<ASTNode> json) {
-    dynamic? rtnValue;
+    dynamic rtnValue;
     for (ASTNode node in json) {
       rtnValue = node.accept(this);
     }
@@ -41,13 +84,18 @@ class Interpreter implements JSASTVisitor {
     if ( stmt.left is MemberExpr ) {
       ObjectPattern pattern = visitMemberExpression(stmt.left as MemberExpr,computeAsPattern: true);
       var obj = pattern.obj;
-      if ( stmt.op != AssignmentOperator.equal ) {
+      if ( stmt.op == AssignmentOperator.equal ) {
+        obj.setProperty(pattern.property, val);
+      } else if ( stmt.op == AssignmentOperator.plusEqual ) {
+        obj.setProperty(pattern.property, obj.getProperty(pattern.property) + val);
+      } else if ( stmt.op == AssignmentOperator.minusEqual ) {
+        obj.setProperty(pattern.property, obj.getProperty(pattern.property) - val);
+      } else {
         throw Exception("AssignentOperator="+stmt.op.toString()+" in stmt="+stmt.toString()+" is not yet supported");
       }
-      obj.setProperty(pattern.property, val);
     } else if ( stmt.left is Identifier ) {
       String name = visitIdentifier(stmt.left as Identifier);
-      context[name] = val;
+      upsertValue(name, val);
     }
   }
   @override
@@ -129,10 +177,12 @@ class Interpreter implements JSASTVisitor {
     return stmt.name;
   }
   @override
-  void visitBlockStatement(BlockStatement stmt) {
+  dynamic visitBlockStatement(BlockStatement stmt) {
+    dynamic rtn;
     for ( var statement in stmt.statements ) {
-      statement.accept(this);
+      rtn = statement.accept(this);
     }
+    return rtn;
   }
   @override
   dynamic visitMemberExpression(MemberExpr stmt, {bool computeAsPattern=false}) {
@@ -152,7 +202,7 @@ class Interpreter implements JSASTVisitor {
         throw Exception('unable to compute obj='+stmt.object.toString()+' for member expression='+stmt.toString());
       }
     } else {
-      obj = context[exp];
+      obj = getValue(exp);
     }
     dynamic val;
     var property = visitExpression(stmt.property);
@@ -213,6 +263,8 @@ class Interpreter implements JSASTVisitor {
       return visitLiteral(stmt);
     } else if ( stmt is UnaryExpression ) {
       return visitUnaryExpression(stmt);
+    } else if ( stmt is ArrowFunctionExpression ) {
+      return visitArrowFunctionExpression(stmt);
     } else {
       throw Exception("This type of expression is not currently supported. Expression="+stmt.toString());
     }
@@ -229,6 +281,35 @@ class Interpreter implements JSASTVisitor {
       throw Exception(stmt.op.toString()+" not yet implemented. stmt="+stmt.toString());
     }
     return val;
+  }
+
+  @override
+  Function visitArrowFunctionExpression(ArrowFunctionExpression stmt) {
+    final List<dynamic> args = computeArguments(stmt.params);
+    return (List<dynamic> params) {
+      /*
+        1. create a map, parmValueMap
+        2. go through params and create a args[i]: parm[i] entry in the map
+        3. push the map to the context stack
+        4. execute the blockstatement or expression
+       */
+      if ( args.length != params.length ) {
+        throw Exception("visitArrowFunctionExpression: args.length != params.length. They must be equal");
+      }
+      Map ctx = {};
+      for ( int i=0;i<args.length;i++ ) {
+        ctx[args.elementAt(i)] = params.elementAt(i);
+      }
+      pushContext(ctx);
+      dynamic rtn;
+      if ( stmt.blockStmt != null ) {
+        rtn = visitBlockStatement(stmt.blockStmt!);
+      } else {
+        rtn = visitExpression(stmt.expression!);
+      }
+      popContext();
+      return rtn;
+    };
   }
 }
 class ObjectPattern {

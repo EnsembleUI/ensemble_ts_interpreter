@@ -9,14 +9,15 @@ abstract class JSASTVisitor {
   dynamic visitUnaryExpression(UnaryExpression stmt);
   dynamic visitLiteral(Literal stmt);
   dynamic visitIdentifier(Identifier stmt);
-  void visitBlockStatement(BlockStatement stmt);
+  dynamic visitBlockStatement(BlockStatement stmt);
   dynamic visitCallExpression(CallExpression stmt);
+  Function visitArrowFunctionExpression(ArrowFunctionExpression stmt);
 }
 enum BinaryOperator {
   equals,lt,gt,ltEquals,gtEquals,notequals,minus,plus,multiply,divide,inop,instaneof
 }
 enum AssignmentOperator {
-  equal
+  equal,plusEqual,minusEqual
 }
 enum LogicalOperator {
   or,and,not
@@ -130,6 +131,28 @@ class BinaryExpression implements BooleanExpression {
     return visitor.visitBinaryExpression(this);
   }
 }
+class ArrowFunctionExpression implements Expression {
+  BlockStatement? blockStmt;
+  Expression? expression;
+  List<ASTNode> params;
+  ArrowFunctionExpression(this.blockStmt,this.expression,this.params);
+  static ArrowFunctionExpression fromJson(var jsonNode,ASTBuilder builder) {
+    List<ASTNode> params = builder.buildArray(jsonNode['params']);
+    BlockStatement? blockStmt;
+    Expression? expression;
+    if ( jsonNode['body']['type'] == 'BlockStatement' ) {
+      blockStmt = builder.buildNode(jsonNode['body']) as BlockStatement;
+    } else {
+      expression = builder.buildNode(jsonNode['body']) as Expression;
+    }
+    return ArrowFunctionExpression(blockStmt,expression,params);
+  }
+  @override
+  accept(JSASTVisitor visitor) {
+    visitor.visitArrowFunctionExpression(this);
+  }
+
+}
 //http://160.16.109.33/github.com/mason-lang/esast/class/src/ast.js~CallExpression.html
 class CallExpression implements Expression {
   Expression callee;
@@ -214,6 +237,10 @@ class AssignmentExpression implements Expression {
     AssignmentOperator op;
     if ( jsonNode['operator'] == '=' ) {
       op = AssignmentOperator.equal;
+    } else if ( jsonNode['operator'] == '+=' ) {
+      op = AssignmentOperator.plusEqual;
+    } else if ( jsonNode['operator'] == '-=' ) {
+      op = AssignmentOperator.minusEqual;
     } else {
       throw Exception('Operator '+jsonNode['operator']+' is not yet supported');
     }
@@ -269,6 +296,8 @@ class ASTBuilder {
       return CallExpression.fromJson(node, this);
     } else if ( type == 'UnaryExpression' ) {
       return UnaryExpression.fromJson(node, this);
+    } else if ( type == 'ArrowFunctionExpression' ) {
+      return ArrowFunctionExpression.fromJson(node, this);
     }
     throw Exception(type+" is not yet supported. Full expression is="+node.toString());
   }

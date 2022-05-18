@@ -12,7 +12,11 @@ class InvokableList extends Object with Invokable {
 
   @override
   Map<String, Function> methods() {
-    return {};
+    return {
+      'map': (Function f) =>  {
+        list.map((e) => f([e])).toList()
+      }
+    };
   }
 
   @override

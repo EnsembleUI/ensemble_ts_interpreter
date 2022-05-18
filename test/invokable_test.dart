@@ -103,4 +103,17 @@ void main() {
     dynamic rtnValue = Interpreter(context).evaluate(arr);
     expect(rtnValue,context['users'][1]);
   });
+  test('mapTest', () async {
+    /*
+      users.map(user => {
+        user.name += "NEW";
+      });
+     */
+    final file = File('test_resources/arraymaptest.json');
+    final json = jsonDecode(await file.readAsString());
+    String origValue = context['users'][1]['name'];
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    Interpreter(context).evaluate(arr);
+    expect(context['users'][1]['name'],origValue+'NEW');
+  });
 }
