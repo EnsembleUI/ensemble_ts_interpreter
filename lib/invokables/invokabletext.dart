@@ -6,7 +6,7 @@ import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 class InvokableText extends StatefulWidget with Invokable, HasController<TextController, InvokableTextWidgetState> {
   @override
   final TextController controller;
-  const InvokableText(this.controller, {Key? key}) : super(key:key);
+  InvokableText(this.controller, {Key? key}) : super(key:key);
 
   @override
   State<StatefulWidget> createState() => InvokableTextWidgetState();
