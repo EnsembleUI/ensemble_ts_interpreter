@@ -36,7 +36,7 @@ class IfStatement implements ASTNode {
   static IfStatement fromJson(var jsonNode,ASTBuilder builder) {
     return IfStatement(builder.buildNode(jsonNode['test']),
         builder.buildNode(jsonNode['consequent']),
-        builder.buildNode(jsonNode['alternate'])
+        (jsonNode['alternate']!=null)?builder.buildNode(jsonNode['alternate']):null
       );
   }
   @override

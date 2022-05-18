@@ -105,10 +105,15 @@ class Interpreter implements JSASTVisitor {
   }
   @override
   void visitIfStatement(IfStatement stmt) {
-    if ( stmt.test is! BooleanExpression ) {
+    dynamic rtn = visitExpression(stmt.test as Expression);
+    bool test = (rtn)?true:false;
+   /* if ( stmt.test is! BooleanExpression ) {
+      dynamic rtn = visitExpression(stmt.test as Expression);
       throw Exception('only boolean expression is supported as test for if stmt '+stmt.toString());
     }
     bool test = evaluateBooleanExpression(stmt.test as BooleanExpression);
+
+    */
     if ( test ) {
       stmt.consequent.accept(this);
     } else {
@@ -289,6 +294,8 @@ class Interpreter implements JSASTVisitor {
       val = -1 * val;
     } else if ( stmt.op == UnaryOperator.typeof ) {
       val = val.runtimeType;
+    } else if ( stmt.op == UnaryOperator.not ) {
+      val = !val;
     } else {
       throw Exception(stmt.op.toString()+" not yet implemented. stmt="+stmt.toString());
     }
