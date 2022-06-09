@@ -6,7 +6,6 @@ import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
 import 'package:ensemble_ts_interpreter/parser/ast.dart';
 import 'package:ensemble_ts_interpreter/parser/js_interpreter.dart';
 import 'package:ensemble_ts_interpreter/view.dart';
-import 'package:expressions/expressions.dart' as quickexp;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
@@ -137,14 +136,6 @@ class APIHandler extends Handler {
   void handle(WidgetAction action) {
     Map<String,String> values = HashMap();
     var context = prepareContext(action);
-    if ( paramMetaValues != null ) {
-      paramMetaValues!.forEach((k, v) {
-        var expression = quickexp.Expression.parse(v);
-        const evaluator = MyEvaluator();
-        var r = evaluator.eval(expression,context);
-        values[k] = r;
-      });
-    }
     Future<Response> response = api.call(values);
     response.then((res) {
       if ( success != null ) {
@@ -165,20 +156,12 @@ class APIHandler extends Handler {
   }
 
 }
-class MyEvaluator extends quickexp.ExpressionEvaluator {
+class MyEvaluator {
   const MyEvaluator();
 
   @override
-  dynamic evalMemberExpression(
-      quickexp.MemberExpression expression, Map<String, dynamic> context) {
-    var object = eval(expression.object, context);
-    if ( object is Widget ) {
-      object = (object as Widget).toJson();
-    } else if ( object is Response ) {
-      object = (object as Response).toJson();
-    }
-    var r = object[expression.property.name];
-    return r;
+  dynamic evalMemberExpression() {
+
   }
 }
 
