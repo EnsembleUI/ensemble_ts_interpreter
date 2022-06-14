@@ -145,4 +145,20 @@ void main() {
     Interpreter(context).evaluate(arr);
     expect(context['users'][1]['name'],origValue+'NEW');
   });
+  test('variableDeclarationTest', () async {
+    /*
+      let user = 'John Doe';
+      user += ' II';
+      let age = 12;
+      age += 3;
+      let str = 'user='+user+' is '+age+' years old.'
+      users[0]['name'] = str;
+     */
+    final file = File('test_resources/variabledecl.json');
+    final json = jsonDecode(await file.readAsString());
+    String origValue = context['users'][0]['name'];
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    Interpreter(context).evaluate(arr);
+    expect(context['users'][0]['name'],'user=John Doe II is 15 years old.');
+  });
 }

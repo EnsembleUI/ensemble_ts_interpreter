@@ -1,3 +1,6 @@
+//http://160.16.109.33/github.com/mason-lang/esast/
+import 'package:yaml/yaml.dart';
+
 abstract class JSASTVisitor {
   void visitExpressionStatement(ExpressionStatement stmt);
   void visitAssignmentExpression(AssignmentExpression stmt);
@@ -9,10 +12,12 @@ abstract class JSASTVisitor {
   bool visitLogicalExpression(LogicalExpression stmt);
   dynamic visitUnaryExpression(UnaryExpression stmt);
   dynamic visitLiteral(Literal stmt);
-  dynamic visitIdentifier(Identifier stmt);
+  String visitIdentifier(Identifier stmt);
   dynamic visitBlockStatement(BlockStatement stmt);
   dynamic visitCallExpression(CallExpression stmt);
   Function visitArrowFunctionExpression(ArrowFunctionExpression stmt);
+  void visitVariableDeclaration(VariableDeclaration stmt);
+  void visitVariableDeclarator(VariableDeclarator stmt);
 }
 enum BinaryOperator {
   equals,lt,gt,ltEquals,gtEquals,notequals,minus,plus,multiply,divide,inop,instaneof
@@ -25,6 +30,9 @@ enum LogicalOperator {
 }
 enum UnaryOperator {
   minus,plus,not,typeof,voidop
+}
+enum VariableDeclarationKind {
+  constant,let,variable
 }
 abstract class ASTNode {
   dynamic accept(JSASTVisitor visitor);
@@ -130,6 +138,54 @@ class BinaryExpression implements BooleanExpression {
   @override
   dynamic accept(JSASTVisitor visitor) {
     return visitor.visitBinaryExpression(this);
+  }
+}
+abstract class Declaration extends ASTNode {}
+class VariableDeclaration implements Declaration {
+  VariableDeclarationKind kind;
+  List<VariableDeclarator> declarators;
+  VariableDeclaration(this.kind,this.declarators);
+  static VariableDeclaration fromJson(var jsonNode,ASTBuilder builder) {
+    String k = jsonNode['kind'] as String;
+    VariableDeclarationKind kind;
+    if ( k == 'let' ) {
+      kind = VariableDeclarationKind.let;
+    } else if ( k == 'var' ) {
+      kind = VariableDeclarationKind.variable;
+    } else {
+      kind = VariableDeclarationKind.constant;
+    }
+    List<dynamic> declarations = jsonNode['declarations'];
+    List<VariableDeclarator> declarators = [];
+    for ( var node in declarations ) {
+      declarators.add(builder.buildNode(node) as VariableDeclarator);
+    }
+    return VariableDeclaration(kind,declarators);
+  }
+  @override
+  accept(JSASTVisitor visitor) {
+    visitor.visitVariableDeclaration(this);
+  }
+}
+class VariableDeclarator extends ASTNode {
+  Identifier id;
+  Expression? init;
+  VariableDeclarator(this.id,this.init);
+  static VariableDeclarator fromJson(var jsonNode,ASTBuilder builder) {
+    ASTNode n = builder.buildNode(jsonNode['id']);
+    if ( n is! Identifier ) {
+      throw Exception('Only Identifiers are supported for variable declarations at this time');
+    }
+    Identifier id = n;
+    Expression? init;
+    if ( jsonNode['init'] != null ) {
+      init = builder.buildNode(jsonNode['init']) as Expression;
+    }
+    return VariableDeclarator(id,init);
+  }
+  @override
+  accept(JSASTVisitor visitor) {
+    visitor.visitVariableDeclarator(this);
   }
 }
 class ArrowFunctionExpression implements Expression {
@@ -312,6 +368,10 @@ class ASTBuilder {
       return ThisExpr.fromJson(node, this);
     } else if ( type == 'ArrowFunctionExpression' ) {
       return ArrowFunctionExpression.fromJson(node, this);
+    } else if ( type == 'VariableDeclaration' ) {
+      return VariableDeclaration.fromJson(node, this);
+    } else if ( type == 'VariableDeclarator' ) {
+      return VariableDeclarator.fromJson(node, this);
     }
     throw Exception(type+" is not yet supported. Full expression is="+node.toString());
   }

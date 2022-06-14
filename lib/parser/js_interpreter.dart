@@ -39,6 +39,13 @@ class Interpreter implements JSASTVisitor {
     }
     return null;
   }
+  void insertValue(String name,dynamic value) {
+    Map context = contexts.peek;
+    if ( context.containsKey(name) ) {
+      throw Exception('A key with name='+name+' already exists in this context');
+    }
+    context[name] = value;
+  }
   //insert or update
   void upsertValue(String name,dynamic value) {
     Map? m = findContext(name);
@@ -83,9 +90,17 @@ class Interpreter implements JSASTVisitor {
     return val;
   }
    */
+  dynamic getValueFromExpression(Expression exp) {
+    dynamic val = visitExpression(exp);
+    if ( exp is Identifier ) {
+      //not a literal, need to get it from context
+      val = getValue(val);
+    }
+    return val;
+  }
   @override
   void visitAssignmentExpression(AssignmentExpression stmt) {
-    dynamic val = visitExpression(stmt.right);
+    dynamic val = getValueFromExpression(stmt.right);
     if ( stmt.left is MemberExpr ) {
       ObjectPattern pattern = visitMemberExpression(stmt.left as MemberExpr,computeAsPattern: true);
       var obj = pattern.obj;
@@ -100,7 +115,21 @@ class Interpreter implements JSASTVisitor {
       }
     } else if ( stmt.left is Identifier ) {
       String name = visitIdentifier(stmt.left as Identifier);
-      upsertValue(name, val);
+      dynamic value = getValue(name);
+      if ( value != null ) {
+        if ( stmt.op == AssignmentOperator.equal ) {
+          value = val;
+        } else if ( stmt.op == AssignmentOperator.plusEqual ) {
+          value += val;
+        } else if ( stmt.op == AssignmentOperator.minusEqual ) {
+          value -= val;
+        } else {
+          throw Exception("AssignentOperator="+stmt.op.toString()+" in stmt="+stmt.toString()+" is not yet supported");
+        }
+      } else {
+        value = val;
+      }
+      upsertValue(name, value);
     }
   }
   @override
@@ -154,9 +183,15 @@ class Interpreter implements JSASTVisitor {
   }
   @override
   dynamic visitBinaryExpression(BinaryExpression stmt) {
-    dynamic left = visitExpression(stmt.left);
-    dynamic right = visitExpression(stmt.right);
+    dynamic left = getValueFromExpression(stmt.left);
+    dynamic right = getValueFromExpression(stmt.right);
     dynamic rtn = false;
+    if ( left.runtimeType != right.runtimeType ) {
+      //let's say left is a string and right is an integer. Dart does not allow an operation like
+      //concatenation on different types, javascript etc do allow that
+      left = left.toString();
+      right = right.toString();
+    }
     if ( stmt.op == BinaryOperator.equals ) {
       rtn = left == right;
     } else if ( stmt.op == BinaryOperator.notequals) {
@@ -183,7 +218,7 @@ class Interpreter implements JSASTVisitor {
     return stmt.value;
   }
   @override
-  dynamic visitIdentifier(Identifier stmt) {
+  String visitIdentifier(Identifier stmt) {
     return stmt.name;
   }
   @override
@@ -328,6 +363,26 @@ class Interpreter implements JSASTVisitor {
       }
       return rtn;
     };
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration stmt) {
+    if ( stmt.kind == VariableDeclarationKind.constant ) {
+      throw Exception('const variable declaration is not yet supported. Use let or var instead');
+    }
+    for ( VariableDeclarator decl in stmt.declarators ) {
+      visitVariableDeclarator(decl);
+    }
+  }
+
+  @override
+  void visitVariableDeclarator(VariableDeclarator decl) {
+    String name = visitIdentifier(decl.id);
+    dynamic value;
+    if ( decl.init != null ) {
+      value = getValueFromExpression(decl.init!);
+    }
+    insertValue(name, value);
   }
 }
 class ObjectPattern {
