@@ -149,9 +149,12 @@ void main() {
     /*
       let user = 'John Doe';
       user += ' II';
-      let age = 12;
+      let age;
+      age = 12;
       age += 3;
-      let str = 'user='+user+' is '+age+' years old.'
+      var curr = 12.9382929;
+      curr= curr.prettyCurrency();
+      let str = 'user='+user+' is '+age+' years old and has '+curr;
       users[0]['name'] = str;
      */
     final file = File('test_resources/variabledecl.json');
@@ -159,6 +162,18 @@ void main() {
     String origValue = context['users'][0]['name'];
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     Interpreter(context).evaluate(arr);
-    expect(context['users'][0]['name'],'user=John Doe II is 15 years old.');
+    expect(context['users'][0]['name'],'user=John Doe II is 15 years old and has \$12.94');
+  });
+  test('primitives', () async {
+    /*
+    var curr = '12.3456';
+    curr = curr.tryParseDouble().prettyCurrency();
+    users[0]['name'] = 'John has '+curr;
+     */
+    final file = File('test_resources/primitives.json');
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    Interpreter(context).evaluate(arr);
+    expect(context['users'][0]['name'],'John has \$12.35');
   });
 }

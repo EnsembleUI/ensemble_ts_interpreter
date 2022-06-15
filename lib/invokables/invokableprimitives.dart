@@ -92,6 +92,8 @@ class InvokableString extends InvokablePrimitive with Invokable {
       'prettyCurrency': () => InvokablePrimitive.prettyCurrency(val),
       'prettyDate': () => InvokablePrimitive.prettyDate(val),
       'prettyDateTime': () => InvokablePrimitive.prettyDateTime(val),
+      'tryParseInt':() => int.tryParse(val),
+      'tryParseDouble':() => double.tryParse(val)
     };
   }
 

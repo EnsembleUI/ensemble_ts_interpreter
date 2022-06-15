@@ -233,12 +233,14 @@ class Interpreter implements JSASTVisitor {
   dynamic visitThisExpression(ThisExpr stmt, {bool computeAsPattern=false}) {
     return "this";
   }
+  Invokable? getInvokable(dynamic exp) {
 
+  }
   @override
   dynamic visitMemberExpression(MemberExpr stmt, {bool computeAsPattern=false}) {
-    var exp = visitExpression(stmt.object);
+    var exp = getValueFromExpression(stmt.object);
     dynamic obj;
-    if ( stmt.object is MemberExpr || stmt.object is CallExpression ) {
+    //if ( stmt.object is MemberExpr || stmt.object is CallExpression ) {
       //like c.value.indexOf. The c.value is a memberexp that then has the indexOf called on it
       if (InvokablePrimitive.isPrimitive(exp)) {
         obj = InvokablePrimitive.getPrimitive(exp);
@@ -251,9 +253,11 @@ class Interpreter implements JSASTVisitor {
       } else {
         throw Exception('unable to compute obj='+stmt.object.toString()+' for member expression='+stmt.toString());
       }
-    } else {
+    /*} else {
       obj = getValue(exp);
     }
+
+     */
     dynamic val;
     var property = visitExpression(stmt.property);
     if ( obj is Map ) {
