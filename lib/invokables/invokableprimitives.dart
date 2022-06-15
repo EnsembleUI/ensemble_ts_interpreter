@@ -1,4 +1,5 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
+import 'package:intl/intl.dart';
 
 abstract class InvokablePrimitive {
   static Invokable? getPrimitive(dynamic t) {
@@ -20,6 +21,51 @@ abstract class InvokablePrimitive {
     }
     return rtn;
   }
+  static String prettyCurrency(dynamic input) {
+    num? value;
+    if (input is num) {
+      value = input;
+    } else if (input is String) {
+      value = num.tryParse(input);
+    }
+    if (value != null) {
+      NumberFormat formatter = NumberFormat.currency(locale: 'en_US', symbol: "\$");
+      return formatter.format(value);
+    }
+    return '';
+  }
+  static String prettyDate(dynamic input) {
+    DateTime? dateTime = _parseDateTime(input);
+    if (dateTime != null) {
+      return DateFormat.yMMMd().format(dateTime);
+    }
+    return '';
+  }
+  static String prettyDateTime(dynamic input) {
+    DateTime? dateTime = _parseDateTime(input);
+    if (dateTime != null) {
+      return DateFormat.yMMMd().format(dateTime) + ' ' + DateFormat.jm().format(dateTime);
+    }
+    return '';
+  }
+  // try to parse the input into a DateTime
+  static DateTime? _parseDateTime(dynamic input) {
+    if (input is int) {
+      return DateTime.fromMillisecondsSinceEpoch(input * 1000);
+    } else if (input is String) {
+      int? intValue = int.tryParse(input);
+      if (intValue != null) {
+        return DateTime.fromMillisecondsSinceEpoch(intValue * 1000);
+      } else {
+        try {
+          return DateTime.parse(input);
+        } on FormatException catch (_, e) {}
+      }
+    }
+    return null;
+  }
+
+
   dynamic getValue();
 
 }
@@ -42,7 +88,10 @@ class InvokableString extends InvokablePrimitive with Invokable {
   Map<String, Function> methods() {
     return {
       'indexOf': (String str) => val.indexOf(str),
-      'split': (String delimiter) => val.split(delimiter)
+      'split': (String delimiter) => val.split(delimiter),
+      'prettyCurrency': () => InvokablePrimitive.prettyCurrency(val),
+      'prettyDate': () => InvokablePrimitive.prettyDate(val),
+      'prettyDateTime': () => InvokablePrimitive.prettyDateTime(val),
     };
   }
 
@@ -55,6 +104,7 @@ class InvokableString extends InvokablePrimitive with Invokable {
   void setProperty(dynamic prop, dynamic val) {
     // TODO: implement set
   }
+
 }
 class InvokableBoolean extends InvokablePrimitive with Invokable {
   bool val;
@@ -107,7 +157,11 @@ class InvokableNumber extends InvokablePrimitive with Invokable {
 
   @override
   Map<String, Function> methods() {
-    return {};
+    return {
+      'prettyCurrency': () => InvokablePrimitive.prettyCurrency(val),
+      'prettyDate': () => InvokablePrimitive.prettyDate(val),
+      'prettyDateTime': () => InvokablePrimitive.prettyDateTime(val),
+    };
   }
 
   @override
