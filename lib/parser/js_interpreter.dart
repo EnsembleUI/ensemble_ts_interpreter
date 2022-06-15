@@ -271,10 +271,14 @@ class Interpreter implements JSASTVisitor {
     }
     return val;
   }
-  dynamic computeArguments(List<ASTNode> args) {
+  dynamic computeArguments(List<ASTNode> args,{bool resolveIdentifiers=false}) {
     List l = [];
     for ( var stmt in args ) {
-      l.add(visitExpression(stmt as Expression));
+      if ( resolveIdentifiers ) {
+        l.add(getValueFromExpression(stmt as Expression));
+      } else {
+        l.add(visitExpression(stmt as Expression));
+      }
     }
     return l;
   }
@@ -285,8 +289,9 @@ class Interpreter implements JSASTVisitor {
       ObjectPattern pattern = visitMemberExpression(stmt.callee as MemberExpr,computeAsPattern:true);
       var obj = pattern.obj;
       Function? method = obj.methods()[pattern.property];
+      List? arguments = computeArguments(stmt.arguments,resolveIdentifiers:true);
       if ( method != null ) {
-        val = Function.apply(method, computeArguments(stmt.arguments));
+        val = Function.apply(method, arguments);
       } else {
         throw Exception("cannot compute statement="+stmt.toString()+" as no method found for property="+pattern.property.toString());
       }
