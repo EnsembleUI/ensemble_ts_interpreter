@@ -186,7 +186,7 @@ class Interpreter implements JSASTVisitor {
     dynamic left = getValueFromExpression(stmt.left);
     dynamic right = getValueFromExpression(stmt.right);
     dynamic rtn = false;
-    if ( left.runtimeType != right.runtimeType ) {
+    if ( left is String || right is String ) {
       //let's say left is a string and right is an integer. Dart does not allow an operation like
       //concatenation on different types, javascript etc do allow that
       left = left.toString();
