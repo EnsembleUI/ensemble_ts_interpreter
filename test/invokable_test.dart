@@ -176,4 +176,15 @@ void main() {
     Interpreter(context).evaluate(arr);
     expect(context['users'][0]['name'],'John has \$12.35');
   });
+  test('returnExpression', () async {
+    /*
+      'quick brown fox '+users[0]["name"]+' over the fence and received '+users[0]["name"].length+' dollars'
+     */
+    final file = File('test_resources/returnexpression.json');
+    final json = jsonDecode(await file.readAsString());
+    context['users'][0]["name"] = 'jumped';
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    dynamic rtn = Interpreter(context).evaluate(arr);
+    expect(rtn,'quick brown fox jumped over the fence and received 6 dollars');
+  });
 }
