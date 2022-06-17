@@ -92,7 +92,7 @@ class Interpreter implements JSASTVisitor {
    */
   dynamic getValueFromExpression(Expression exp) {
     dynamic val = visitExpression(exp);
-    if ( exp is Identifier ) {
+    if ( exp is Identifier || exp is ThisExpr ) {
       //not a literal, need to get it from context
       val = getValue(val);
     }
