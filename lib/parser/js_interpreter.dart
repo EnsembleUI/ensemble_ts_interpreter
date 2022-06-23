@@ -72,7 +72,7 @@ class Interpreter implements JSASTVisitor {
   @override
   dynamic visitExpressionStatement(ExpressionStatement stmt) {
     if ( stmt.expression is Expression ) {
-      return visitExpression(stmt.expression as Expression);
+      return getValueFromExpression(stmt.expression as Expression);
     } else {
       throw Exception("Statements other than Expressions not yet implemented for ExpressionStatement. stmt="+stmt.expression.toString());
     }
@@ -164,17 +164,17 @@ class Interpreter implements JSASTVisitor {
   }
   @override
   bool visitLogicalExpression(LogicalExpression stmt) {
-    dynamic left = visitExpression(stmt.left);
+    dynamic left = getValueFromExpression(stmt.left);
     bool rtn = false;
     if ( stmt.op == LogicalOperator.and ) {
       if ( !left ) {
         rtn = left;
       } else {
-        dynamic right = visitExpression(stmt.right);
+        dynamic right = getValueFromExpression(stmt.right);
         rtn = left && right;
       }
     } else if ( stmt.op == LogicalOperator.or ) {
-      bool right = visitExpression(stmt.right);
+      bool right = getValueFromExpression(stmt.right);
       rtn = left || right;
     } else {
       throw Exception('unrecognized operator:'+stmt.op.toString()+' in expression '+stmt.toString());

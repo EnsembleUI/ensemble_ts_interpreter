@@ -89,7 +89,8 @@ void main() {
     },
     'ensemble':Ensemble('EnsembleObject'),
     'users':[{'name':'John'},{'name':'Mary'}],
-    'this': ThisObject()
+    'this': ThisObject(),
+    'age':3
   };
   test('MapTest', () async {
     /*
@@ -186,5 +187,29 @@ void main() {
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     dynamic rtn = Interpreter(context).evaluate(arr);
     expect(rtn,'quick brown fox jumped over the fence and received 6 dollars');
+  });
+  test('returnIdentifier', () async {
+    /*
+      age
+     */
+    final file = File('test_resources/returnidentifier.json');
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    dynamic rtn = Interpreter(context).evaluate(arr);
+    expect(rtn,context['age']);
+  });
+  test('ifstatement', () async {
+    /*
+      if ( age == 2 ) {
+        users[0]['age'] = 'Two years old';
+      } else {
+        users[0]['age'] = 'Over Two years old';
+      }
+     */
+    final file = File('test_resources/ifstatement.json');
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    dynamic rtn = Interpreter(context).evaluate(arr);
+    expect(context['users'][0]['age'],'Over Two years old');
   });
 }
