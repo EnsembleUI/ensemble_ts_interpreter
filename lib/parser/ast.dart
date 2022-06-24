@@ -8,6 +8,7 @@ abstract class JSASTVisitor {
   dynamic visitMemberExpression(MemberExpr stmt);
   dynamic visitExpression(Expression stmt);
   void visitIfStatement(IfStatement stmt);
+  dynamic visitConditionalExpression(ConditionalExpression stmt);
   dynamic visitBinaryExpression(BinaryExpression stmt);
   bool visitLogicalExpression(LogicalExpression stmt);
   dynamic visitUnaryExpression(UnaryExpression stmt);
@@ -51,6 +52,20 @@ class IfStatement implements ASTNode {
   void accept(JSASTVisitor visitor) {
     visitor.visitIfStatement(this);
   }
+}
+class ConditionalExpression implements Expression {
+  Expression test,consequent,alternate;
+  ConditionalExpression(this.test,this.consequent,this.alternate);
+  static ConditionalExpression fromJson(var jsonNode,ASTBuilder builder) {
+    return ConditionalExpression(builder.buildNode(jsonNode['test']) as Expression,
+        builder.buildNode(jsonNode['consequent']) as Expression,
+        builder.buildNode(jsonNode['alternate']) as Expression);
+  }
+  @override
+  accept(JSASTVisitor visitor) {
+    visitor.visitConditionalExpression(this);
+  }
+
 }
 class BlockStatement implements ASTNode {
   List<ASTNode> statements;
@@ -350,7 +365,9 @@ class ASTBuilder {
       return MemberExpr.fromJson(node, this);
     } else if ( type == 'IfStatement' ) {
       return IfStatement.fromJson(node, this);
-    } else if ( type == 'Literal' ) {
+    }  else if ( type == 'ConditionalExpression' ) {
+      return ConditionalExpression.fromJson(node, this);
+    }else if ( type == 'Literal' ) {
       return Literal.fromJson(node, this);
     } else if ( type == 'Identifier' ) {
       return Identifier.fromJson(node, this);

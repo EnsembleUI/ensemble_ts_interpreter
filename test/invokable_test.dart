@@ -207,9 +207,23 @@ void main() {
       }
      */
     final file = File('test_resources/ifstatement.json');
+    context['age'] = 3;
     final json = jsonDecode(await file.readAsString());
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     dynamic rtn = Interpreter(context).evaluate(arr);
     expect(context['users'][0]['age'],'Over Two years old');
   });
+  test('ternary', () async {
+    /*
+      (age > 2)?users[0]['age']='More than two years old':users[0]['age']='2 and under';
+      }
+     */
+    final file = File('test_resources/ternary.json');
+    context['age'] = 1;
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    dynamic rtn = Interpreter(context).evaluate(arr);
+    expect(context['users'][0]['age'],'2 and under');
+  });
+
 }

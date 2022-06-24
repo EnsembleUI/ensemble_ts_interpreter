@@ -132,24 +132,33 @@ class Interpreter implements JSASTVisitor {
       upsertValue(name, value);
     }
   }
-  @override
-  void visitIfStatement(IfStatement stmt) {
-    dynamic rtn = visitExpression(stmt.test as Expression);
-    bool test = (rtn)?true:false;
-   /* if ( stmt.test is! BooleanExpression ) {
+  dynamic executeConditional(Expression testExp,ASTNode consequent,ASTNode? alternate) {
+    dynamic condition = visitExpression(testExp);
+    bool test = (condition)?true:false;
+    /* if ( stmt.test is! BooleanExpression ) {
       dynamic rtn = visitExpression(stmt.test as Expression);
       throw Exception('only boolean expression is supported as test for if stmt '+stmt.toString());
     }
     bool test = evaluateBooleanExpression(stmt.test as BooleanExpression);
 
     */
+    dynamic rtn;
     if ( test ) {
-      stmt.consequent.accept(this);
+      rtn = consequent.accept(this);
     } else {
-      if ( stmt.alternate != null ) {
-        stmt.alternate!.accept(this);
+      if ( alternate != null ) {
+        rtn = alternate.accept(this);
       }
     }
+    return rtn;
+  }
+  @override
+  dynamic visitConditionalExpression(ConditionalExpression stmt) {
+    return executeConditional(stmt.test,stmt.consequent,stmt.alternate);
+  }
+  @override
+  void visitIfStatement(IfStatement stmt) {
+    executeConditional(stmt.test as Expression,stmt.consequent,stmt.alternate);
   }
   bool evaluateBooleanExpression(BooleanExpression stmt) {
     bool rtn = false;
@@ -326,7 +335,9 @@ class Interpreter implements JSASTVisitor {
       return visitArrowFunctionExpression(stmt);
     } else if (stmt is ThisExpr) {
       return visitThisExpression(stmt);
-    } else {
+    } else if (stmt is ConditionalExpression) {
+      return visitConditionalExpression(stmt);
+    }else {
       throw Exception("This type of expression is not currently supported. Expression="+stmt.toString());
     }
   }
@@ -388,7 +399,7 @@ class Interpreter implements JSASTVisitor {
   void visitVariableDeclarator(VariableDeclarator decl) {
     String name = visitIdentifier(decl.id);
     dynamic value;
-    if ( decl.init != null ) {
+    if (decl.init != null) {
       value = getValueFromExpression(decl.init!);
     }
     insertValue(name, value);
