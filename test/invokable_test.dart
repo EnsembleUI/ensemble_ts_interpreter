@@ -67,32 +67,34 @@ class ThisObject with Invokable {
 }
 void main() {
   //ensembleStore.session.login.contextId = response.body.data.contextID;
-  Map<String, dynamic> context = {
-    'response': {
-      'name': 'Peter Parker',
-      'age': 25,
-      'first_name': 'Peter',
-      'last-name': 'Parker',
-      'body': {
-        'data': {
-          'contextID': '123456'
+  Map<String, dynamic> initContext() {
+    return {
+      'response': {
+        'name': 'Peter Parker',
+        'age': 25,
+        'first_name': 'Peter',
+        'last-name': 'Parker',
+        'body': {
+          'data': {
+            'contextID': '123456'
+          }
+        },
+        'headers': {
+          'Set-Cookie':'abc:xyz;mynewcookie:abc'
         }
       },
-      'headers': {
-        'Set-Cookie':'abc:xyz;mynewcookie:abc'
-      }
-    },
-    'ensembleStore': {
-      'session': {
-        'login': {
+      'ensembleStore': {
+        'session': {
+          'login': {
+          }
         }
-      }
-    },
-    'ensemble':Ensemble('EnsembleObject'),
-    'users':[{'name':'John'},{'name':'Mary'}],
-    'this': ThisObject(),
-    'age':3
-  };
+      },
+      'ensemble':Ensemble('EnsembleObject'),
+      'users':[{'name':'John'},{'name':'Mary'}],
+      'this': ThisObject(),
+      'age':3
+    };
+  }
   test('MapTest', () async {
     /*
     ensembleStore.session.login.contextId = response.body.data.contextID;
@@ -100,6 +102,7 @@ void main() {
      */
     final file = File('test_resources/maptest.json');
     final json = jsonDecode(await file.readAsString());
+    Map<String, dynamic> context = initContext();
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     Interpreter(context).evaluate(arr);
     expect(context['ensembleStore']['session']['login']['contextId'],'123456');
@@ -108,6 +111,7 @@ void main() {
     //ensemble.name
     final file = File('test_resources/expression.json');
     final json = jsonDecode(await file.readAsString());
+    Map<String, dynamic> context = initContext();
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     dynamic rtnValue = Interpreter(context).evaluate(arr);
     expect(rtnValue,(context['ensemble'] as Ensemble).name);
@@ -116,6 +120,7 @@ void main() {
     //ensembleStore.session.login.cookie = response.headers['Set-Cookie'].split(';')[0]
     final file = File('test_resources/propsthroughquotes.json');
     final json = jsonDecode(await file.readAsString());
+    Map<String, dynamic> context = initContext();
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     dynamic rtnValue = Interpreter(context).evaluate(arr);
     expect(context['ensembleStore']['session']['login']['cookie'],context['response']['headers']['Set-Cookie'].split(';')[0]);
@@ -127,6 +132,7 @@ void main() {
      */
     final file = File('test_resources/arrayaccesstest.json');
     final json = jsonDecode(await file.readAsString());
+    Map<String, dynamic> context = initContext();
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     dynamic rtnValue = Interpreter(context).evaluate(arr);
     expect(rtnValue,context['users'][1]);
@@ -142,6 +148,7 @@ void main() {
      */
     final file = File('test_resources/arraymaptest.json');
     final json = jsonDecode(await file.readAsString());
+    Map<String, dynamic> context = initContext();
     String origValue = context['users'][1]['name'];
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     Interpreter(context).evaluate(arr);
@@ -161,6 +168,8 @@ void main() {
      */
     final file = File('test_resources/variabledecl.json');
     final json = jsonDecode(await file.readAsString());
+    Map<String, dynamic> context = initContext();
+    context.remove('age');
     String origValue = context['users'][0]['name'];
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     Interpreter(context).evaluate(arr);
@@ -174,6 +183,7 @@ void main() {
      */
     final file = File('test_resources/primitives.json');
     final json = jsonDecode(await file.readAsString());
+    Map<String, dynamic> context = initContext();
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     Interpreter(context).evaluate(arr);
     expect(context['users'][0]['name'],'John has \$12.35');
@@ -184,6 +194,7 @@ void main() {
      */
     final file = File('test_resources/returnexpression.json');
     final json = jsonDecode(await file.readAsString());
+    Map<String, dynamic> context = initContext();
     context['users'][0]["name"] = 'jumped';
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     dynamic rtn = Interpreter(context).evaluate(arr);
@@ -195,6 +206,7 @@ void main() {
      */
     final file = File('test_resources/returnidentifier.json');
     final json = jsonDecode(await file.readAsString());
+    Map<String, dynamic> context = initContext();
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     dynamic rtn = Interpreter(context).evaluate(arr);
     expect(rtn,context['age']);
@@ -208,6 +220,7 @@ void main() {
       }
      */
     final file = File('test_resources/ifstatement.json');
+    Map<String, dynamic> context = initContext();
     context['age'] = 3;
     final json = jsonDecode(await file.readAsString());
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
@@ -220,6 +233,7 @@ void main() {
       }
      */
     final file = File('test_resources/ternary.json');
+    Map<String, dynamic> context = initContext();
     context['age'] = 1;
     final json = jsonDecode(await file.readAsString());
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
@@ -240,7 +254,8 @@ void main() {
     final file = File('test_resources/varArrDecl.json');
     final json = jsonDecode(await file.readAsString());
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    Interpreter(context).evaluate(arr);
-    expect((context['arr'] as InvokableList).list.join(''),'hello nobody hello John hello Mary');
+    Map<String, dynamic> ctx = initContext();
+    Interpreter(ctx).evaluate(arr);
+    expect((ctx['arr'] as InvokableList).list.join(''),'hello nobody hello John hello Mary');
   });
 }
