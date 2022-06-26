@@ -39,6 +39,8 @@ mixin Invokable {
       str = obj.val;
     } else if ( obj is String ) {
       str = obj;
+    } else if ( obj is Map && obj.containsKey('value') ) {
+      str = obj['value'] as String;
     }
     return str;
   }

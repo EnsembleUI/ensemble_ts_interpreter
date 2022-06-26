@@ -1,5 +1,4 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
-
 class InvokableMap extends Object with Invokable {
   Map map;
   InvokableMap(this.map);

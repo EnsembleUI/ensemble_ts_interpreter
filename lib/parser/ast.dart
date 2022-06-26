@@ -5,7 +5,7 @@ abstract class JSASTVisitor {
   void visitExpressionStatement(ExpressionStatement stmt);
   void visitAssignmentExpression(AssignmentExpression stmt);
   dynamic visitThisExpression(ThisExpr stmt);
-  dynamic visitArrayExpresion(ArrayExpression stmt);
+  dynamic visitArrayExpression(ArrayExpression stmt);
   dynamic visitMemberExpression(MemberExpr stmt);
   dynamic visitExpression(Expression stmt);
   void visitIfStatement(IfStatement stmt);
@@ -20,6 +20,8 @@ abstract class JSASTVisitor {
   Function visitArrowFunctionExpression(ArrowFunctionExpression stmt);
   void visitVariableDeclaration(VariableDeclaration stmt);
   void visitVariableDeclarator(VariableDeclarator stmt);
+  Map visitObjectExpression(ObjectExpr stmt);
+  Map visitProperty(Property stmt);
 }
 enum BinaryOperator {
   equals,lt,gt,ltEquals,gtEquals,notequals,minus,plus,multiply,divide,inop,instaneof
@@ -340,11 +342,51 @@ class ArrayExpression implements Expression {
   List arr;
   ArrayExpression(this.arr);
   static ArrayExpression fromJson(var jsonNode,ASTBuilder builder) {
-    return ArrayExpression(jsonNode['elements'] as List);
+    return ArrayExpression(builder.buildArray(jsonNode['elements'] as List));
   }
   @override
   accept(JSASTVisitor visitor) {
-    visitor.visitArrayExpresion(this);
+    visitor.visitArrayExpression(this);
+  }
+}
+class Property extends ASTNode {
+  Expression key;//either Literal | Identifier
+  Expression value;
+  Property(this.key,this.value);
+  static Property fromJson(var jsonNode,ASTBuilder builder) {
+    if ( jsonNode['kind'] != 'init' ) {
+      throw Exception('currently function calls to initialize properties of an object are unsupported');
+    }
+    Expression key = builder.buildNode(jsonNode['key']) as Expression;
+    if ( !(key is Literal) && !(key is Identifier) ) {
+      throw Exception("Property key must be either Literal or Identifier");
+    }
+    return Property(key,builder.buildNode(jsonNode['value']) as Expression);
+  }
+
+  @override
+  accept(JSASTVisitor visitor) {
+    visitor.visitProperty(this);
+  }
+}
+class ObjectExpr implements Expression {
+  List<Property> properties;
+  ObjectExpr(this.properties);
+  static ObjectExpr fromJson(var jsonNode,ASTBuilder builder) {
+    List props = jsonNode['properties'];
+    return ObjectExpr(buildArray(props,builder));
+  }
+
+  @override
+  accept(JSASTVisitor visitor) {
+    visitor.visitObjectExpression(this);
+  }
+  static List<Property> buildArray(var jsonArr,ASTBuilder builder) {
+    List<Property> nodes = [];
+    jsonArr.forEach((node) {
+      nodes.add(builder.buildNode(node) as Property);
+    });
+    return nodes;
   }
 }
 class MemberExpr implements Expression {
@@ -403,6 +445,10 @@ class ASTBuilder {
       return VariableDeclaration.fromJson(node, this);
     } else if ( type == 'VariableDeclarator' ) {
       return VariableDeclarator.fromJson(node, this);
+    } else if ( type == 'ObjectExpression' ) {
+      return ObjectExpr.fromJson(node, this);
+    } else if ( type == 'Property' ) {
+      return Property.fromJson(node, this);
     }
     throw Exception(type+" is not yet supported. Full expression is="+node.toString());
   }

@@ -92,7 +92,8 @@ void main() {
       'ensemble':Ensemble('EnsembleObject'),
       'users':[{'name':'John'},{'name':'Mary'}],
       'this': ThisObject(),
-      'age':3
+      'age':3,
+      'apiChart':{'data':[]}
     };
   }
   test('MapTest', () async {
@@ -256,6 +257,21 @@ void main() {
     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
     Map<String, dynamic> ctx = initContext();
     Interpreter(ctx).evaluate(arr);
-    expect((ctx['arr'] as InvokableList).list.join(''),'hello nobody hello John hello Mary');
+    expect((ctx['arr']).join(''),'hello nobody hello John hello Mary');
+  });
+  test('moreArrayTests', () async {
+    /*
+    var a = {};
+    apiChart.data = [{
+        "color": "0xffffcccb",
+        "data": [-97,-33,-57,-56]
+      }];
+     */
+    final file = File('test_resources/morearrays.json');
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    Map<String, dynamic> ctx = initContext();
+    Interpreter(ctx).evaluate(arr);
+    expect(ctx['apiChart']['data'][0]['data'][1],-33);
   });
 }

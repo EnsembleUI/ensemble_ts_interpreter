@@ -331,7 +331,9 @@ class Interpreter implements JSASTVisitor {
     } else if (stmt is ConditionalExpression) {
       return visitConditionalExpression(stmt);
     } else if ( stmt is ArrayExpression ) {
-      return visitArrayExpresion(stmt);
+      return visitArrayExpression(stmt);
+    } else if ( stmt is ObjectExpr ) {
+      return visitObjectExpression(stmt);
     } else {
       throw Exception("This type of expression is not currently supported. Expression="+stmt.toString());
     }
@@ -401,8 +403,30 @@ class Interpreter implements JSASTVisitor {
   }
 
   @override
-  visitArrayExpresion(ArrayExpression stmt) {
-    return InvokableList(stmt.arr);
+  visitArrayExpression(ArrayExpression stmt) {
+    List arr = [];
+    for ( Expression obj in stmt.arr ) {
+      arr.add(getValueFromExpression(obj));
+    }
+    return arr;
+  }
+
+  @override
+  Map visitObjectExpression(ObjectExpr stmt) {
+    Map obj = {};
+    for ( Property property in stmt.properties ) {
+      Map prop = visitProperty(property);
+      obj[prop['key']] = prop['value'];
+    }
+    return obj;
+  }
+
+  @override
+  Map visitProperty(Property stmt) {
+    return {
+      'key':getValueFromExpression(stmt.key),
+      'value':getValueFromExpression(stmt.value)
+    };
   }
 }
 class ObjectPattern {
