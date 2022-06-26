@@ -1,3 +1,6 @@
+import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
 import 'package:flutter/widgets.dart';
 
 mixin Invokable {
@@ -21,6 +24,33 @@ mixin Invokable {
   @protected
   Map<String, Function> methods();
 
+  List? getList(Object obj) {
+    List? l;
+    if ( obj is InvokableList ) {
+      l = obj.list;
+    } else if ( obj is List ) {
+      l = obj;
+    }
+    return l;
+  }
+  String? getString(Object obj) {
+    String? str;
+    if ( obj is InvokableString ) {
+      str = obj.val;
+    } else if ( obj is String ) {
+      str = obj;
+    }
+    return str;
+  }
+  Map? getMap(Object obj) {
+    Map? m;
+    if ( obj is InvokableMap ) {
+      m = obj.map;
+    } else if ( obj is Map ) {
+      m = obj;
+    }
+    return m;
+  }
   List<String> getGettableProperties() {
     List<String> rtn = getters().keys.toList();
     if (this is HasController) {
