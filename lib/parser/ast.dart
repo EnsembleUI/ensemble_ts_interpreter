@@ -5,6 +5,7 @@ abstract class JSASTVisitor {
   void visitExpressionStatement(ExpressionStatement stmt);
   void visitAssignmentExpression(AssignmentExpression stmt);
   dynamic visitThisExpression(ThisExpr stmt);
+  dynamic visitArrayExpresion(ArrayExpression stmt);
   dynamic visitMemberExpression(MemberExpr stmt);
   dynamic visitExpression(Expression stmt);
   void visitIfStatement(IfStatement stmt);
@@ -335,6 +336,17 @@ class ThisExpr implements Expression {
     visitor.visitThisExpression(this);
   }
 }
+class ArrayExpression implements Expression {
+  List arr;
+  ArrayExpression(this.arr);
+  static ArrayExpression fromJson(var jsonNode,ASTBuilder builder) {
+    return ArrayExpression(jsonNode['elements'] as List);
+  }
+  @override
+  accept(JSASTVisitor visitor) {
+    visitor.visitArrayExpresion(this);
+  }
+}
 class MemberExpr implements Expression {
   Expression object,property;
   MemberExpr(this.object,this.property);
@@ -383,6 +395,8 @@ class ASTBuilder {
       return UnaryExpression.fromJson(node, this);
     } else if (type == 'ThisExpression') {
       return ThisExpr.fromJson(node, this);
+    } else if ( type == 'ArrayExpression' ) {
+      return ArrayExpression.fromJson(node, this);
     } else if ( type == 'ArrowFunctionExpression' ) {
       return ArrowFunctionExpression.fromJson(node, this);
     } else if ( type == 'VariableDeclaration' ) {

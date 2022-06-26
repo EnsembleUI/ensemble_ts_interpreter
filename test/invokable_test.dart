@@ -1,4 +1,5 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
 import 'package:ensemble_ts_interpreter/parser/ast.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -225,5 +226,21 @@ void main() {
     dynamic rtn = Interpreter(context).evaluate(arr);
     expect(context['users'][0]['age'],'2 and under');
   });
-
+  test('variableDeclarationWithArrayTest', () async {
+    /*
+      var arr = [];
+      arr[0] = 'hello';
+      arr[1] = ' ';
+      arr.add('nobody');
+      users.map(user => {
+        arr.add(' ');
+        arr.add('hello '+user.name);
+      });
+     */
+    final file = File('test_resources/varArrDecl.json');
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    Interpreter(context).evaluate(arr);
+    expect((context['arr'] as InvokableList).list.join(''),'hello nobody hello John hello Mary');
+  });
 }

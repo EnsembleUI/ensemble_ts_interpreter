@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
@@ -249,24 +251,17 @@ class Interpreter implements JSASTVisitor {
   dynamic visitMemberExpression(MemberExpr stmt, {bool computeAsPattern=false}) {
     var exp = getValueFromExpression(stmt.object);
     dynamic obj;
-    //if ( stmt.object is MemberExpr || stmt.object is CallExpression ) {
-      //like c.value.indexOf. The c.value is a memberexp that then has the indexOf called on it
-      if (InvokablePrimitive.isPrimitive(exp)) {
-        obj = InvokablePrimitive.getPrimitive(exp);
-      } else if (exp is Invokable) {
-        obj = exp;
-      } else if (exp is Map) {
-        obj = InvokableMap(exp);
-      } else if ( exp is List ) {
-        obj = InvokableList(exp);
-      } else {
-        throw Exception('unable to compute obj='+stmt.object.toString()+' for member expression='+stmt.toString());
-      }
-    /*} else {
-      obj = getValue(exp);
+    if (InvokablePrimitive.isPrimitive(exp)) {
+      obj = InvokablePrimitive.getPrimitive(exp);
+    } else if (exp is Invokable) {
+      obj = exp;
+    } else if (exp is Map) {
+      obj = InvokableMap(exp);
+    } else if ( exp is List ) {
+      obj = InvokableList(exp);
+    } else {
+      throw Exception('unable to compute obj='+stmt.object.toString()+' for member expression='+stmt.toString());
     }
-
-     */
     dynamic val;
     var property = visitExpression(stmt.property);
     if ( obj is Map ) {
@@ -337,7 +332,9 @@ class Interpreter implements JSASTVisitor {
       return visitThisExpression(stmt);
     } else if (stmt is ConditionalExpression) {
       return visitConditionalExpression(stmt);
-    }else {
+    } else if ( stmt is ArrayExpression ) {
+      return visitArrayExpresion(stmt);
+    } else {
       throw Exception("This type of expression is not currently supported. Expression="+stmt.toString());
     }
   }
@@ -403,6 +400,11 @@ class Interpreter implements JSASTVisitor {
       value = getValueFromExpression(decl.init!);
     }
     insertValue(name, value);
+  }
+
+  @override
+  visitArrayExpresion(ArrayExpression stmt) {
+    return InvokableList(stmt.arr);
   }
 }
 class ObjectPattern {

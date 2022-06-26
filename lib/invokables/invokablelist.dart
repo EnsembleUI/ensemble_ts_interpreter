@@ -15,7 +15,10 @@ class InvokableList extends Object with Invokable {
     return {
       'map': (Function f) =>  {
         list.map((e) => f([e])).toList()
-      }
+      },
+      'add': (dynamic val) => list.add(val),
+      'push': (dynamic val) => list.add(val),
+      'indexOf': (dynamic val) => list.indexOf(val),
     };
   }
 
@@ -39,7 +42,13 @@ class InvokableList extends Object with Invokable {
   @override
   void setProperty(dynamic prop, dynamic val) {
     if ( prop is int ) {
-      list[prop] = val;
+      if ( prop >= 0 && prop < list.length ) {
+        list[prop] = val;
+      } else if ( list.length == prop ) {
+        list.add(val);
+      }
+    } else {
+      throw Exception('The passed in prop ='+prop.toString()+' is invalid for this array');
     }
   }
 }
