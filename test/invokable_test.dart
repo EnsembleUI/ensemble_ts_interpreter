@@ -1,6 +1,7 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
 import 'package:ensemble_ts_interpreter/parser/ast.dart';
+import 'package:json_path/json_path.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:test/test.dart';
@@ -273,5 +274,42 @@ void main() {
     Map<String, dynamic> ctx = initContext();
     Interpreter(ctx).evaluate(arr);
     expect(ctx['apiChart']['data'][0]['data'][1],-33);
+  });
+  test('jsonobjecttest', () async {
+    /*
+    a large json object. See jsonpath.json for the actual object
+     */
+    final file = File('test_resources/jsonobject.json');
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    Map<String, dynamic> ctx = initContext();
+    dynamic m = Interpreter(ctx).evaluate(arr);
+    expect(ctx['body']['records'][2]['fields']['Year'],"1920");
+  });
+  test('jsonpathtest', () async {
+    /*
+      see jsonpath.json. This is not a ast test
+     */
+    final file = File('test_resources/jsonpath.json');
+    final json = jsonDecode(await file.readAsString());
+    List years = JsonPath(r'$..Year').read(json).map((match)=>int.parse(match.value)).toList();
+    List pop = JsonPath(r'$..Population').read(json).map((match)=>match.value).toList();
+    expect(years[3],1930);
+    expect(pop[3],6.93);
+  });
+  test('jsonpathintstest', () async {
+    /*
+    var result = response.path('$..Year',(match)=>match);
+     */
+    final file = File('test_resources/jsonpath.json');
+    final json = jsonDecode(await file.readAsString());
+    Map<String, dynamic> ctx = initContext();
+    ctx['response'] = json;
+
+    final astFile = File('test_resources/jsonpathints.json');
+    final ast = jsonDecode(await astFile.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(ast['body']);
+    Interpreter(ctx).evaluate(arr);
+    expect(ctx['result'][1],1910);
   });
 }

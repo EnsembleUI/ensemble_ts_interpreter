@@ -1,4 +1,5 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
+import 'package:json_path/json_path.dart';
 class InvokableMap extends Object with Invokable {
   Map map;
   InvokableMap(this.map);
@@ -9,7 +10,16 @@ class InvokableMap extends Object with Invokable {
 
   @override
   Map<String, Function> methods() {
-    return {};
+    return {
+      'path':(String path,Function? mapFunction) {
+        return JsonPath(path)
+            .read(map)
+            .map((match)=>(mapFunction!=null)?mapFunction([match.value]):match.value)
+            .toList();
+      }
+
+
+    };
   }
 
   @override
