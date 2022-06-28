@@ -19,6 +19,7 @@ class InvokableList extends Object with Invokable {
       'add': (dynamic val) => list.add(val),
       'push': (dynamic val) => list.add(val),
       'indexOf': (dynamic val) => list.indexOf(val),
+      'unique': () => list.toSet().toList()
     };
   }
 
