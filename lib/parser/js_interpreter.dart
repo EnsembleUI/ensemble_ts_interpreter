@@ -157,8 +157,8 @@ class Interpreter implements JSASTVisitor {
     return executeConditional(stmt.test,stmt.consequent,stmt.alternate);
   }
   @override
-  void visitIfStatement(IfStatement stmt) {
-    executeConditional(stmt.test as Expression,stmt.consequent,stmt.alternate);
+  dynamic visitIfStatement(IfStatement stmt) {
+    return executeConditional(stmt.test as Expression,stmt.consequent,stmt.alternate);
   }
   bool evaluateBooleanExpression(BooleanExpression stmt) {
     bool rtn = false;
@@ -373,10 +373,14 @@ class Interpreter implements JSASTVisitor {
       }
       Interpreter i = cloneForContext(ctx);
       dynamic rtn;
-      if ( stmt.blockStmt != null ) {
-        rtn = i.visitBlockStatement(stmt.blockStmt!);
-      } else {
-        rtn = i.visitExpression(stmt.expression!);
+      try {
+        if (stmt.blockStmt != null) {
+          rtn = i.visitBlockStatement(stmt.blockStmt!);
+        } else {
+          rtn = i.visitExpression(stmt.expression!);
+        }
+      } on ControlFlowReturnException catch(e) {
+        rtn = e.returnValue;
       }
       return rtn;
     };
@@ -428,6 +432,19 @@ class Interpreter implements JSASTVisitor {
       'value':getValueFromExpression(stmt.value)
     };
   }
+
+  @override
+  visitReturnStatement(ReturnStatement stmt) {
+    dynamic returnValue;
+    if ( stmt.argument != null ) {
+      returnValue = getValueFromExpression(stmt.argument!);
+    }
+    throw ControlFlowReturnException(returnValue);
+  }
+}
+class ControlFlowReturnException implements Exception {
+  dynamic returnValue;
+  ControlFlowReturnException(this.returnValue);
 }
 class ObjectPattern {
   Invokable obj;

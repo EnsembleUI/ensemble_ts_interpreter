@@ -22,6 +22,7 @@ abstract class JSASTVisitor {
   void visitVariableDeclarator(VariableDeclarator stmt);
   Map visitObjectExpression(ObjectExpr stmt);
   Map visitProperty(Property stmt);
+  dynamic visitReturnStatement(ReturnStatement stmt);
 }
 enum BinaryOperator {
   equals,lt,gt,ltEquals,gtEquals,notequals,minus,plus,multiply,divide,inop,instaneof
@@ -52,8 +53,8 @@ class IfStatement implements ASTNode {
       );
   }
   @override
-  void accept(JSASTVisitor visitor) {
-    visitor.visitIfStatement(this);
+  dynamic accept(JSASTVisitor visitor) {
+    return visitor.visitIfStatement(this);
   }
 }
 class ConditionalExpression implements Expression {
@@ -66,7 +67,7 @@ class ConditionalExpression implements Expression {
   }
   @override
   accept(JSASTVisitor visitor) {
-    visitor.visitConditionalExpression(this);
+    return visitor.visitConditionalExpression(this);
   }
 
 }
@@ -82,8 +83,8 @@ class BlockStatement implements ASTNode {
     return BlockStatement(nodes);
   }
   @override
-  void accept(JSASTVisitor visitor) {
-    visitor.visitBlockStatement(this);
+  dynamic accept(JSASTVisitor visitor) {
+    return visitor.visitBlockStatement(this);
   }
 }
 abstract class Expression extends ASTNode {}
@@ -182,7 +183,7 @@ class VariableDeclaration implements Declaration {
   }
   @override
   accept(JSASTVisitor visitor) {
-    visitor.visitVariableDeclaration(this);
+    return visitor.visitVariableDeclaration(this);
   }
 }
 class VariableDeclarator extends ASTNode {
@@ -203,7 +204,7 @@ class VariableDeclarator extends ASTNode {
   }
   @override
   accept(JSASTVisitor visitor) {
-    visitor.visitVariableDeclarator(this);
+    return visitor.visitVariableDeclarator(this);
   }
 }
 class ArrowFunctionExpression implements Expression {
@@ -224,7 +225,7 @@ class ArrowFunctionExpression implements Expression {
   }
   @override
   accept(JSASTVisitor visitor) {
-    visitor.visitArrowFunctionExpression(this);
+    return visitor.visitArrowFunctionExpression(this);
   }
 
 }
@@ -276,8 +277,8 @@ class Literal implements Expression {
     return Literal(jsonNode['value']);
   }
   @override
-  void accept(JSASTVisitor visitor) {
-    visitor.visitLiteral(this);
+  dynamic accept(JSASTVisitor visitor) {
+    return visitor.visitLiteral(this);
   }
 }
 class Identifier implements Expression {
@@ -287,8 +288,8 @@ class Identifier implements Expression {
     return Identifier(jsonNode['name']);
   }
   @override
-  void accept(JSASTVisitor visitor) {
-    visitor.visitIdentifier(this);
+  accept(JSASTVisitor visitor) {
+    return visitor.visitIdentifier(this);
   }
 }
 class ExpressionStatement implements ASTNode {
@@ -323,8 +324,8 @@ class AssignmentExpression implements Expression {
         op, builder.buildNode(jsonNode['right']) as Expression);
   }
   @override
-  void accept(JSASTVisitor visitor) {
-    visitor.visitAssignmentExpression(this);
+  accept(JSASTVisitor visitor) {
+    return visitor.visitAssignmentExpression(this);
   }
 }
 
@@ -335,7 +336,7 @@ class ThisExpr implements Expression {
   }
   @override
   accept(JSASTVisitor visitor) {
-    visitor.visitThisExpression(this);
+    return visitor.visitThisExpression(this);
   }
 }
 class ArrayExpression implements Expression {
@@ -346,7 +347,7 @@ class ArrayExpression implements Expression {
   }
   @override
   accept(JSASTVisitor visitor) {
-    visitor.visitArrayExpression(this);
+    return visitor.visitArrayExpression(this);
   }
 }
 class Property extends ASTNode {
@@ -366,7 +367,7 @@ class Property extends ASTNode {
 
   @override
   accept(JSASTVisitor visitor) {
-    visitor.visitProperty(this);
+    return visitor.visitProperty(this);
   }
 }
 class ObjectExpr implements Expression {
@@ -379,7 +380,7 @@ class ObjectExpr implements Expression {
 
   @override
   accept(JSASTVisitor visitor) {
-    visitor.visitObjectExpression(this);
+    return visitor.visitObjectExpression(this);
   }
   static List<Property> buildArray(var jsonArr,ASTBuilder builder) {
     List<Property> nodes = [];
@@ -396,11 +397,26 @@ class MemberExpr implements Expression {
     return MemberExpr(builder.buildNode(jsonNode['object']) as Expression, builder.buildNode(jsonNode['property']) as Expression);
   }
   @override
-  void accept(JSASTVisitor visitor) {
-    visitor.visitMemberExpression(this);
+  accept(JSASTVisitor visitor) {
+    return visitor.visitMemberExpression(this);
   }
 }
+class ReturnStatement extends ASTNode {
+  Expression? argument;
+  ReturnStatement(this.argument);
+  static ReturnStatement fromJson(var jsonNode,ASTBuilder builder) {
+    Expression? argument;
+    if ( jsonNode['argument'] != null ) {
+      argument = builder.buildNode(jsonNode['argument']) as Expression;
+    }
+    return ReturnStatement(argument);
+  }
 
+  @override
+  accept(JSASTVisitor visitor) {
+    return visitor.visitReturnStatement(this);
+  }
+}
 class ASTBuilder {
   List<ASTNode> buildArray(var jsonArr) {
     List<ASTNode> nodes = [];
@@ -449,6 +465,8 @@ class ASTBuilder {
       return ObjectExpr.fromJson(node, this);
     } else if ( type == 'Property' ) {
       return Property.fromJson(node, this);
+    } else if ( type == 'ReturnStatement' ) {
+      return ReturnStatement.fromJson(node, this);
     }
     throw Exception(type+" is not yet supported. Full expression is="+node.toString());
   }

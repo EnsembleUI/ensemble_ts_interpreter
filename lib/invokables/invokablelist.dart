@@ -19,7 +19,24 @@ class InvokableList extends Object with Invokable {
       'add': (dynamic val) => list.add(val),
       'push': (dynamic val) => list.add(val),
       'indexOf': (dynamic val) => list.indexOf(val),
-      'unique': () => list.toSet().toList()
+      'unique': () => list.toSet().toList(),
+      'sort': ([Function? f]) {
+        if ( f == null ) {
+          list.sort();
+        } else {
+          list.sort((a,b)=> f([a,b]));
+        }
+        return list;
+
+      },
+      'sortF': ([Function? f]) {
+        if ( f == null ) {
+          list.sort();
+        } else {
+          list.sort((a,b)=> f([a,b]));
+        }
+        return list;
+       }
     };
   }
 

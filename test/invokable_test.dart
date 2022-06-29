@@ -312,4 +312,30 @@ void main() {
     Interpreter(ctx).evaluate(arr);
     expect(ctx['result'][1],1910);
   });
+  test('listsortuniquetest', () async {
+    /*
+      var list = [10,4,2,4,1,3,8,4,5,6,2,4,8,7,2,9,9,1];
+      var uniqueList = list.unique();
+      var sortedList = uniqueList.sort();
+      var strList = ["2","4","4","1","3"];
+      strList.unique().sort((a,b)=> {
+        var intA = a.tryParseInt();
+        var intB = b.tryParseInt();
+        if ( intA < intB ) {
+          return -1;
+        } else if ( intA > intB ) {
+          return 1;
+        } else {
+          return 0;
+      }
+      });
+     */
+    final file = File('test_resources/listsortunique.json');
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    Map<String, dynamic> ctx = initContext();
+    Interpreter(ctx).evaluate(arr);
+    expect(ctx['sortedList'][2],3);
+    expect(ctx['strList'][2],"3");
+  });
 }
