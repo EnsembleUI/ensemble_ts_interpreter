@@ -94,7 +94,14 @@ void main() {
       'users':[{'name':'John'},{'name':'Mary'}],
       'this': ThisObject(),
       'age':3,
-      'apiChart':{'data':[]}
+      'apiChart':{'data':[]},
+      'getStringValue': (dynamic value) {
+        String? val = value?.toString();
+        if ( val != null && val.startsWith('r@') ) {
+          return 'Translated $val';
+        }
+        return val;
+      },
     };
   }
   test('MapTest', () async {
@@ -318,16 +325,15 @@ void main() {
       var uniqueList = list.unique();
       var sortedList = uniqueList.sort();
       var strList = ["2","4","4","1","3"];
-      strList.unique().sort((a,b)=> {
+      strList = strList.unique().sort((a,b)=> {
         var intA = a.tryParseInt();
         var intB = b.tryParseInt();
         if ( intA < intB ) {
           return -1;
         } else if ( intA > intB ) {
           return 1;
-        } else {
-          return 0;
-      }
+        }
+        return 0;
       });
      */
     final file = File('test_resources/listsortunique.json');
@@ -337,5 +343,26 @@ void main() {
     Interpreter(ctx).evaluate(arr);
     expect(ctx['sortedList'][2],3);
     expect(ctx['strList'][2],"3");
+  });
+  test('getstringvaluetest', () async {
+    /*
+      var stringToBeTranslated = 'r@kpn.signin';
+      ensemble.navigateScreen('r@navigateScreen');
+      response.name = response.name;
+      users[0]['name'] = 'r@John';
+      users[1]['name'] = 'Untranslated Mary';
+     */
+    final file = File('test_resources/getstringvalue.json');
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    Map<String, dynamic> ctx = initContext();
+    String origStr = 'r@kpn.signin';
+    ctx['response']['name'] = 'r@Peter Parker';
+    ctx['users'][0]['name'] = 'r@John';
+    Interpreter(ctx).evaluate(arr);
+    expect(ctx['stringToBeTranslated'],'Translated $origStr');
+    expect(ctx['response']['name'],'r@Peter Parker');
+    expect(ctx['users'][0]['name'],'Translated r@John');
+    expect(ctx['users'][1]['name'],'Untranslated Mary');
   });
 }

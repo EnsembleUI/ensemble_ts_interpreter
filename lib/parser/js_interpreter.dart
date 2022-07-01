@@ -224,6 +224,13 @@ class Interpreter implements JSASTVisitor {
   }
   @override
   dynamic visitLiteral(Literal stmt) {
+    if ( stmt.value is String ) {
+      Function? getStringFunc = getValue('getStringValue');
+      if (getStringFunc != null) {
+        //this takes care of translating strings into different languages
+        return Function.apply(getStringFunc, [stmt.value]);
+      }
+    }
     return stmt.value;
   }
   @override
