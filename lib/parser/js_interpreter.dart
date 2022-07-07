@@ -14,7 +14,7 @@ class Stack<E> {
   @override
   String toString() => _list.toString();
 }
-class Interpreter implements JSASTVisitor {
+class Interpreter extends JSASTVisitor {
   Stack<Map> contexts = Stack();
   Interpreter(Map globalContext) {
     contexts.push(globalContext);
@@ -313,38 +313,6 @@ class Interpreter implements JSASTVisitor {
 
   }
 
-  @override
-  dynamic visitExpression(Expression stmt) {
-    if ( stmt is BinaryExpression ) {
-      return visitBinaryExpression(stmt);
-    } else if ( stmt is LogicalExpression ) {
-      return visitLogicalExpression(stmt);
-    } else if ( stmt is CallExpression ) {
-      return visitCallExpression(stmt);
-    } else if ( stmt is MemberExpr ) {
-      return visitMemberExpression(stmt);
-    } else if ( stmt is AssignmentExpression ) {
-      return visitAssignmentExpression(stmt);
-    } else if ( stmt is Identifier ) {
-      return visitIdentifier(stmt);
-    } else if ( stmt is Literal ) {
-      return visitLiteral(stmt);
-    } else if ( stmt is UnaryExpression ) {
-      return visitUnaryExpression(stmt);
-    } else if ( stmt is ArrowFunctionExpression ) {
-      return visitArrowFunctionExpression(stmt);
-    } else if (stmt is ThisExpr) {
-      return visitThisExpression(stmt);
-    } else if (stmt is ConditionalExpression) {
-      return visitConditionalExpression(stmt);
-    } else if ( stmt is ArrayExpression ) {
-      return visitArrayExpression(stmt);
-    } else if ( stmt is ObjectExpr ) {
-      return visitObjectExpression(stmt);
-    } else {
-      throw Exception("This type of expression is not currently supported. Expression="+stmt.toString());
-    }
-  }
 
   @override
   dynamic visitUnaryExpression(UnaryExpression stmt) {
@@ -448,6 +416,7 @@ class Interpreter implements JSASTVisitor {
     }
     throw ControlFlowReturnException(returnValue);
   }
+
 }
 class ControlFlowReturnException implements Exception {
   dynamic returnValue;

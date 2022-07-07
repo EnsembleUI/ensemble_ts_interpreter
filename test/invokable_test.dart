@@ -1,11 +1,10 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
-import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
 import 'package:ensemble_ts_interpreter/parser/ast.dart';
+import 'package:ensemble_ts_interpreter/parser/find_bindables.dart';
 import 'package:json_path/json_path.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:test/test.dart';
-
 import 'package:ensemble_ts_interpreter/parser/js_interpreter.dart';
 class Ensemble extends Object with Invokable {
   String? name;
@@ -365,4 +364,76 @@ void main() {
     expect(ctx['users'][0]['name'],'Translated r@John');
     expect(ctx['users'][1]['name'],'Untranslated Mary');
   });
+  test('highcharts1test', () async {
+    /*
+    too big to show here
+     */
+    final file = File('test_resources/highcharts1.json');
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    Map<String, dynamic> ctx = initContext();
+    var rtn = Interpreter(ctx).evaluate(arr);
+    print(rtn.toString());
+  });
+  test('es121', () async {
+    /*
+      ${getPrivWiFi.body.status.wlanvap.vap5g0priv.VAPStatus == 'Up' ? true : false }
+     */
+    final file = File('test_resources/es121.json');
+    final json = jsonDecode(await file.readAsString());
+    ASTBuilder builder = ASTBuilder();
+    List<ASTNode> arr = builder.buildArray(json['body']);
+    Map<String, dynamic> ctx = initContext();
+    Map getPrivWiFi = {
+      'body': {
+        'status': {
+          'wlanvap': {
+            'vap5g0priv': {
+              'VAPStatus': 'down'
+            }
+          }
+        }
+      }
+    };
+    ctx['getPrivWiFi'] = getPrivWiFi;
+    dynamic rtn = Interpreter(ctx).evaluate(arr);
+    expect(rtn,false);
+    List<String> exps = BindableExpressionFinder(arr,ctx).findBindables();
+    exps.length;
+  });
+  /*
+  test('flutterjs', () async {
+    WidgetsFlutterBinding.ensureInitialized();
+    final JavascriptRuntime javascriptRuntime = getJavascriptRuntime();
+    javascriptRuntime.dartContext = initContext();
+    javascriptRuntime.localContext = initContext();
+    String jsResult = javascriptRuntime.evaluate("""
+      var arr = [];
+      arr[0] = 'hello';
+      arr[1] = ' ';
+      arr.push('nobody');
+      users.map(user => {
+        arr.push(' ');
+        arr.push('hello '+user.name);
+      });
+      users;
+            """).stringResult;
+    print("result="+jsResult);
+
+  });
+
+  test('jsparser', () async {
+    Program ast = parsejs("""
+      var arr = ['worked!'];
+      users.map(function(user) {
+        arr.push(' ');
+        arr.push('hello '+user.name);
+      });
+      """);
+    JSInterpreter(initContext()).evaluate(ast);
+
+  });
+
+   */
+
 }

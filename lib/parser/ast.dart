@@ -7,7 +7,6 @@ abstract class JSASTVisitor {
   dynamic visitThisExpression(ThisExpr stmt);
   dynamic visitArrayExpression(ArrayExpression stmt);
   dynamic visitMemberExpression(MemberExpr stmt);
-  dynamic visitExpression(Expression stmt);
   void visitIfStatement(IfStatement stmt);
   dynamic visitConditionalExpression(ConditionalExpression stmt);
   dynamic visitBinaryExpression(BinaryExpression stmt);
@@ -23,6 +22,38 @@ abstract class JSASTVisitor {
   Map visitObjectExpression(ObjectExpr stmt);
   Map visitProperty(Property stmt);
   dynamic visitReturnStatement(ReturnStatement stmt);
+  dynamic visitExpression(Expression stmt) {
+    if ( stmt is BinaryExpression ) {
+      return visitBinaryExpression(stmt);
+    } else if ( stmt is LogicalExpression ) {
+      return visitLogicalExpression(stmt);
+    } else if ( stmt is CallExpression ) {
+      return visitCallExpression(stmt);
+    } else if ( stmt is MemberExpr ) {
+      return visitMemberExpression(stmt);
+    } else if ( stmt is AssignmentExpression ) {
+      return visitAssignmentExpression(stmt);
+    } else if ( stmt is Identifier ) {
+      return visitIdentifier(stmt);
+    } else if ( stmt is Literal ) {
+      return visitLiteral(stmt);
+    } else if ( stmt is UnaryExpression ) {
+      return visitUnaryExpression(stmt);
+    } else if ( stmt is ArrowFunctionExpression ) {
+      return visitArrowFunctionExpression(stmt);
+    } else if (stmt is ThisExpr) {
+      return visitThisExpression(stmt);
+    } else if (stmt is ConditionalExpression) {
+      return visitConditionalExpression(stmt);
+    } else if ( stmt is ArrayExpression ) {
+      return visitArrayExpression(stmt);
+    } else if ( stmt is ObjectExpr ) {
+      return visitObjectExpression(stmt);
+    } else {
+      throw Exception("This type of expression is not currently supported. Expression="+stmt.toString());
+    }
+  }
+
 }
 enum BinaryOperator {
   equals,lt,gt,ltEquals,gtEquals,notequals,minus,plus,multiply,divide,inop,instaneof
@@ -43,11 +74,12 @@ abstract class ASTNode {
   dynamic accept(JSASTVisitor visitor);
 }
 class IfStatement implements ASTNode {
-  ASTNode test,consequent;
+  Expression test;
+  ASTNode consequent;
   ASTNode? alternate;
   IfStatement(this.test,this.consequent,this.alternate);
   static IfStatement fromJson(var jsonNode,ASTBuilder builder) {
-    return IfStatement(builder.buildNode(jsonNode['test']),
+    return IfStatement(builder.buildNode(jsonNode['test']) as Expression,
         builder.buildNode(jsonNode['consequent']),
         (jsonNode['alternate']!=null)?builder.buildNode(jsonNode['alternate']):null
       );
@@ -425,8 +457,38 @@ class ASTBuilder {
     });
     return nodes;
   }
+  /*
+  List<String> getBindableExpressionsAsStrings(List<ASTNode> nodes) {
+    List<String> expStrs = [];
+    List<Expression> expressions = getBindableExpressions(nodes);
+    for ( Expression exp : expressions ) {
+      expStrs.add(exp.)
+    }
+  }
+  List<Expression> getBindableExpressionsFromNode(ASTNode node) {
+    List<Expression> exps = [];
+    if ( node is BlockStatement ) {
+      exps.addAll(getBindableExpressions(node.statements));
+    } else if ( node is AssignmentExpression ) {
+      exps.addAll(getBindableExpressionsFromNode(node.right));
+    } else if ( node is BinaryExpression) {
+      exps.addAll(getBindableExpressionsFromNode(node.left));
+      exps.addAll(getBindableExpressionsFromNode(node.right));
+    } else if ( node is LogicalExpression ) {
+      exps.addAll(getBindableExpressionsFromNode(node.left));
+      exps.addAll(getBindableExpressionsFromNode(node.right));
+    } else if ( node is Expression ) {
+      expToTest = node;
+    }
+    if ( expToTest is! Literal ) {
+      exps.add(expToTest as Expression);
+    }
+  }
+
+   */
+
   ASTNode buildNode(var node) {
-    String type = node['type'];
+    String type = (node is Map)?node['type']:node.toString();
     if ( type == 'ExpressionStatement' ) {
       return ExpressionStatement.fromJson(node, this);
     } else if ( type == 'AssignmentExpression' ) {
