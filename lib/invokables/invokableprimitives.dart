@@ -1,7 +1,12 @@
+import 'dart:ffi';
 import 'dart:io';
+import 'dart:ui';
 
+import 'package:duration/locale.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:duration/duration.dart' as lib;
 
 abstract class InvokablePrimitive {
   static Invokable? getPrimitive(dynamic t) {
@@ -35,6 +40,24 @@ abstract class InvokablePrimitive {
       return formatter.format(value);
     }
     return '';
+  }
+  /// input should be # of seconds
+  static String prettyDuration(dynamic input, {Locale? locale}) {
+    if (input == null) {
+      return '';
+    }
+    if (input !is int) {
+      input = int.tryParse(input.toString());
+    }
+
+    String localeString = locale?.languageCode ?? 'nl'; // ?? Intl.getCurrentLocale().substring(0, 2);
+    return lib.prettyDuration(
+      Duration(seconds: input),
+      abbreviated: false,
+      upperTersity: lib.DurationTersity.week,
+      tersity: lib.DurationTersity.minute,
+      locale: DurationLocale.fromLanguageCode(localeString) ?? EnglishDurationLocale()
+    );
   }
   static String prettyDate(dynamic input) {
     DateTime? dateTime = parseDateTime(input)?.toLocal();
@@ -199,6 +222,7 @@ class InvokableNumber extends InvokablePrimitive with Invokable {
       'prettyCurrency': () => InvokablePrimitive.prettyCurrency(val),
       'prettyDate': () => InvokablePrimitive.prettyDate(val),
       'prettyDateTime': () => InvokablePrimitive.prettyDateTime(val),
+      'prettyDuration': () => InvokablePrimitive.prettyDuration(val)
     };
   }
 

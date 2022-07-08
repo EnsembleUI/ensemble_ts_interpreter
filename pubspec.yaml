@@ -38,6 +38,7 @@ dependencies:
   yaml: ^3.1.0
   http: ^0.13.4
   json_path: ^0.4.1
+  duration: ^3.0.11
 
 dev_dependencies:
   flutter_test:
