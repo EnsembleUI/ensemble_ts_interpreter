@@ -146,6 +146,8 @@ class InvokableString extends InvokablePrimitive with Invokable {
   Map<String, Function> methods() {
     return {
       'indexOf': (String str) => val.indexOf(str),
+      'toLowerCase': () => val.toLowerCase(),
+      'toUpperCase': () => val.toUpperCase(),
       'split': (String delimiter) => val.split(delimiter),
       'prettyCurrency': () => InvokablePrimitive.prettyCurrency(val),
       'prettyDate': () => InvokablePrimitive.prettyDate(val),
