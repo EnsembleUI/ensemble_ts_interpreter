@@ -24,7 +24,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   JSInterpreter(this.program, Map<String,dynamic> programContext) {
     contexts[program] = programContext;
   }
-  JSInterpreter.fromCode(String code, Map<String,dynamic> programContext): this.program = parsejs(code);
+  JSInterpreter.fromCode(String code, Map<String,dynamic> programContext): this(parsejs(code),programContext);
 
   Scope enclosingScope(Node node) {
     while (node is! Scope) {

@@ -196,11 +196,8 @@ void main() {
     expect(rtnValue,'quick brown fox jumped over the fence and received 6 dollars');
   });
   test('returnIdentifier', () async {
-    Program ast = parsejs("""
-       age
-      """);
     Map<String, dynamic> context = initContext();
-    dynamic rtn = JSInterpreter(ast,context).evaluate();
+    dynamic rtn = JSInterpreter.fromCode("""age""",context).evaluate();
     expect(rtn,context['age']);
   });
   test('ifstatement', () async {
@@ -266,14 +263,13 @@ void main() {
     expect(pop[3],6.93);
   });
   test('jsonpathintstest', () async {
-    Program ast = parsejs("""
-      var result = response.path('\$..Year',function (match) {match});
-      """);
     final file = File('test_resources/jsonpath.json');
     final json = jsonDecode(await file.readAsString());
     Map<String, dynamic> context = initContext();
     context['response'] = json;
-    dynamic rtn = JSInterpreter(ast,context).evaluate();
+    dynamic rtn = JSInterpreter.fromCode("""
+      var result = response.path('\$..Year',function (match) {match});
+      """,context).evaluate();
     expect(context['result'][1],1910);
   });
   test('listsortuniquetest', () async {
