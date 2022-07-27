@@ -299,46 +299,29 @@ void main() {
     expect(context['strList'][2],"3");
   });
   test('getstringvaluetest', () async {
-    /*
+    Program ast = parsejs("""
       var stringToBeTranslated = 'r@kpn.signin';
       ensemble.navigateScreen('r@navigateScreen');
       response.name = response.name;
       users[0]['name'] = 'r@John';
       users[1]['name'] = 'Untranslated Mary';
-     */
-    final file = File('test_resources/getstringvalue.json');
-    final json = jsonDecode(await file.readAsString());
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    Map<String, dynamic> ctx = initContext();
+      """);
+
+    Map<String, dynamic> context = initContext();
     String origStr = 'r@kpn.signin';
-    ctx['response']['name'] = 'r@Peter Parker';
-    ctx['users'][0]['name'] = 'r@John';
-    Interpreter(ctx).evaluate(arr);
-    expect(ctx['stringToBeTranslated'],'Translated $origStr');
-    expect(ctx['response']['name'],'r@Peter Parker');
-    expect(ctx['users'][0]['name'],'Translated r@John');
-    expect(ctx['users'][1]['name'],'Untranslated Mary');
-  });
-  test('highcharts1test', () async {
-    /*
-    too big to show here
-     */
-    final file = File('test_resources/highcharts1.json');
-    final json = jsonDecode(await file.readAsString());
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    Map<String, dynamic> ctx = initContext();
-    var rtn = Interpreter(ctx).evaluate(arr);
-    print(rtn.toString());
+    context['response']['name'] = 'r@Peter Parker';
+    context['users'][0]['name'] = 'r@John';
+    dynamic rtn = JSInterpreter(ast,context).evaluate();
+    expect(context['stringToBeTranslated'],'Translated $origStr');
+    expect(context['response']['name'],'r@Peter Parker');
+    expect(context['users'][0]['name'],'Translated r@John');
+    expect(context['users'][1]['name'],'Untranslated Mary');
   });
   test('es121', () async {
-    /*
-      ${getPrivWiFi.body.status.wlanvap.vap5g0priv.VAPStatus == 'Up' ? true : false }
-     */
-    final file = File('test_resources/es121.json');
-    final json = jsonDecode(await file.readAsString());
-    ASTBuilder builder = ASTBuilder();
-    List<ASTNode> arr = builder.buildArray(json['body']);
-    Map<String, dynamic> ctx = initContext();
+    Program ast = parsejs("""
+      getPrivWiFi.body.status.wlanvap.vap5g0priv.VAPStatus == 'Up' ? true : false
+      """);
+    Map<String, dynamic> context = initContext();
     Map getPrivWiFi = {
       'body': {
         'status': {
@@ -350,32 +333,10 @@ void main() {
         }
       }
     };
-    ctx['getPrivWiFi'] = getPrivWiFi;
-    dynamic rtn = Interpreter(ctx).evaluate(arr);
+    context['getPrivWiFi'] = getPrivWiFi;
+    dynamic rtn = JSInterpreter(ast,context).evaluate();
     expect(rtn,false);
-    List<String> exps = BindableExpressionFinder(arr,ctx).findBindables();
-    exps.length;
   });
-  /*
-  test('flutterjs', () async {
-    WidgetsFlutterBinding.ensureInitialized();
-    final JavascriptRuntime javascriptRuntime = getJavascriptRuntime();
-    javascriptRuntime.dartContext = initContext();
-    javascriptRuntime.localContext = initContext();
-    String jsResult = javascriptRuntime.evaluate("""
-      var arr = [];
-      arr[0] = 'hello';
-      arr[1] = ' ';
-      arr.push('nobody');
-      users.map(user => {
-        arr.push(' ');
-        arr.push('hello '+user.name);
-      });
-      users;
-            """).stringResult;
-    print("result="+jsResult);
-  });
-*/
   test('jsparser', () async {
     Program ast = parsejs("""
       var arr = ['worked!'];
