@@ -1,13 +1,17 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/parser/ast.dart';
 import 'package:ensemble_ts_interpreter/parser/find_bindables.dart';
+import 'package:ensemble_ts_interpreter/parser/newjs_interpreter.dart';
 import 'package:json_path/json_path.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:test/test.dart';
 import 'package:ensemble_ts_interpreter/parser/js_interpreter.dart';
+import 'package:jsparser/jsparser.dart';
+import 'package:jsparser/src/ast.dart';
 class Ensemble extends Object with Invokable {
   String? name;
+  String? navigateScreenCalledForScreen;
   Ensemble(this.name);
   @override
   Map<String, Function> getters() {
@@ -17,7 +21,7 @@ class Ensemble extends Object with Invokable {
   @override
   Map<String, Function> methods() {
     return {
-      'navigateScreen': (screenName) => print('navigate called for '+screenName)
+      'navigateScreen': (screenName) => navigateScreenCalledForScreen = screenName
     };
   }
 
@@ -38,7 +42,7 @@ class Ensemble extends Object with Invokable {
   void setProperty(dynamic prop, dynamic val) {
 
   }
-  
+
 }
 
 class ThisObject with Invokable {
@@ -108,189 +112,147 @@ void main() {
     ensembleStore.session.login.contextId = response.body.data.contextID;
     ensemble.navigateScreen("KPN Home");
      */
-    final file = File('test_resources/maptest.json');
-    final json = jsonDecode(await file.readAsString());
+    Program ast = parsejs("""
+      ensembleStore.session.login.contextId = response.body.data.contextID;
+      ensemble.navigateScreen("KPN Home");
+      """);
     Map<String, dynamic> context = initContext();
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    Interpreter(context).evaluate(arr);
+    JSInterpreter(ast,context).evaluate();
     expect(context['ensembleStore']['session']['login']['contextId'],'123456');
+    expect((context['ensemble'] as Ensemble).navigateScreenCalledForScreen,'KPN Home');
   });
   test('expressionTest', () async {
-    //ensemble.name
-    final file = File('test_resources/expression.json');
-    final json = jsonDecode(await file.readAsString());
+    Program ast = parsejs("""
+      ensemble.name
+      """);
     Map<String, dynamic> context = initContext();
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    dynamic rtnValue = Interpreter(context).evaluate(arr);
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
     expect(rtnValue,(context['ensemble'] as Ensemble).name);
   });
   test('propsThroughQuotesTest', () async {
-    //ensembleStore.session.login.cookie = response.headers['Set-Cookie'].split(';')[0]
-    final file = File('test_resources/propsthroughquotes.json');
-    final json = jsonDecode(await file.readAsString());
+    Program ast = parsejs("""
+      var a = 0;
+      ensembleStore.session.login.cookie = response.headers['Set-Cookie'].split(';')[a]
+      """);
     Map<String, dynamic> context = initContext();
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    dynamic rtnValue = Interpreter(context).evaluate(arr);
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
     expect(context['ensembleStore']['session']['login']['cookie'],context['response']['headers']['Set-Cookie'].split(';')[0]);
   });
   test('arrayAccessTest', () async {
-    /*
-    users[0] = users[users.length-1];
-    users[0];
-     */
-    final file = File('test_resources/arrayaccesstest.json');
-    final json = jsonDecode(await file.readAsString());
+    Program ast = parsejs("""
+      users[0] = users[users.length-1];
+      users[0];
+      """);
     Map<String, dynamic> context = initContext();
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    dynamic rtnValue = Interpreter(context).evaluate(arr);
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
     expect(rtnValue,context['users'][1]);
   });
-  test('using this', () {
-
-  });
   test('mapTest', () async {
-    /*
-      users.map(user => {
+    Program ast = parsejs("""
+      users.map(function (user) {
         user.name += "NEW";
       });
-     */
-    final file = File('test_resources/arraymaptest.json');
-    final json = jsonDecode(await file.readAsString());
+      """);
     Map<String, dynamic> context = initContext();
     String origValue = context['users'][1]['name'];
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    Interpreter(context).evaluate(arr);
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
     expect(context['users'][1]['name'],origValue+'NEW');
   });
   test('variableDeclarationTest', () async {
-    /*
-      let user = 'John Doe';
+    Program ast = parsejs("""
+      var user = 'John Doe';
       user += ' II';
-      let age;
+      var age;
       age = 12;
       age += 3;
       var curr = 12.9382929;
       curr= curr.prettyCurrency();
-      let str = 'user='+user+' is '+age+' years old and has '+curr;
+      var str = 'user='+user+' is '+age+' years old and has '+curr;
       users[0]['name'] = str;
-     */
-    final file = File('test_resources/variabledecl.json');
-    final json = jsonDecode(await file.readAsString());
+      """);
     Map<String, dynamic> context = initContext();
     context.remove('age');
     String origValue = context['users'][0]['name'];
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    Interpreter(context).evaluate(arr);
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
     expect(context['users'][0]['name'],'user=John Doe II is 15 years old and has \$12.94');
   });
   test('primitives', () async {
-    /*
+    Program ast = parsejs("""
     var curr = '12.3456';
     curr = curr.tryParseDouble().prettyCurrency();
     users[0]['name'] = 'John has '+curr;
-     */
-    final file = File('test_resources/primitives.json');
-    final json = jsonDecode(await file.readAsString());
+      """);
     Map<String, dynamic> context = initContext();
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    Interpreter(context).evaluate(arr);
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
     expect(context['users'][0]['name'],'John has \$12.35');
   });
   test('returnExpression', () async {
-    /*
-      'quick brown fox '+users[0]["name"]+' over the fence and received '+users[0]["name"].length+' dollars'
-     */
-    final file = File('test_resources/returnexpression.json');
-    final json = jsonDecode(await file.readAsString());
+    Program ast = parsejs("""
+       'quick brown fox '+users[0]["name"]+' over the fence and received '+users[0]["name"].length+' dollars'
+      """);
     Map<String, dynamic> context = initContext();
     context['users'][0]["name"] = 'jumped';
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    dynamic rtn = Interpreter(context).evaluate(arr);
-    expect(rtn,'quick brown fox jumped over the fence and received 6 dollars');
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
+    expect(rtnValue,'quick brown fox jumped over the fence and received 6 dollars');
   });
   test('returnIdentifier', () async {
-    /*
-      age
-     */
-    final file = File('test_resources/returnidentifier.json');
-    final json = jsonDecode(await file.readAsString());
+    Program ast = parsejs("""
+       age
+      """);
     Map<String, dynamic> context = initContext();
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    dynamic rtn = Interpreter(context).evaluate(arr);
+    dynamic rtn = JSInterpreter(ast,context).evaluate();
     expect(rtn,context['age']);
   });
   test('ifstatement', () async {
-    /*
+    Program ast = parsejs("""
+      if ( age == 3 ) {
+      }
       if ( age == 2 ) {
         users[0]['age'] = 'Two years old';
       } else {
         users[0]['age'] = 'Over Two years old';
       }
-     */
-    final file = File('test_resources/ifstatement.json');
+      """);
     Map<String, dynamic> context = initContext();
     context['age'] = 3;
-    final json = jsonDecode(await file.readAsString());
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    dynamic rtn = Interpreter(context).evaluate(arr);
+    dynamic rtn = JSInterpreter(ast,context).evaluate();
     expect(context['users'][0]['age'],'Over Two years old');
   });
   test('ternary', () async {
-    /*
-      (age > 2)?users[0]['age']='More than two years old':users[0]['age']='2 and under';
-      }
-     */
-    final file = File('test_resources/ternary.json');
+    Program ast = parsejs("""
+        (age > 2)?users[0]['age']='More than two years old':users[0]['age']='2 and under';
+      """);
     Map<String, dynamic> context = initContext();
     context['age'] = 1;
-    final json = jsonDecode(await file.readAsString());
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    dynamic rtn = Interpreter(context).evaluate(arr);
+    dynamic rtn = JSInterpreter(ast,context).evaluate();
     expect(context['users'][0]['age'],'2 and under');
   });
   test('variableDeclarationWithArrayTest', () async {
-    /*
+    Program ast = parsejs("""
       var arr = [];
       arr[0] = 'hello';
       arr[1] = ' ';
       arr.add('nobody');
-      users.map(user => {
+      users.map(function(user) {
         arr.add(' ');
         arr.add('hello '+user.name);
       });
-     */
-    final file = File('test_resources/varArrDecl.json');
-    final json = jsonDecode(await file.readAsString());
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    Map<String, dynamic> ctx = initContext();
-    Interpreter(ctx).evaluate(arr);
-    expect((ctx['arr']).join(''),'hello nobody hello John hello Mary');
+      """);
+    Map<String, dynamic> context = initContext();
+    dynamic rtn = JSInterpreter(ast,context).evaluate();
+    expect((context['arr']).join(''),'hello nobody hello John hello Mary');
   });
   test('moreArrayTests', () async {
-    /*
-    var a = {};
-    apiChart.data = [{
-        "color": "0xffffcccb",
-        "data": [-97,-33,-57,-56]
-      }];
-     */
-    final file = File('test_resources/morearrays.json');
-    final json = jsonDecode(await file.readAsString());
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    Map<String, dynamic> ctx = initContext();
-    Interpreter(ctx).evaluate(arr);
-    expect(ctx['apiChart']['data'][0]['data'][1],-33);
-  });
-  test('jsonobjecttest', () async {
-    /*
-    a large json object. See jsonpath.json for the actual object
-     */
-    final file = File('test_resources/jsonobject.json');
-    final json = jsonDecode(await file.readAsString());
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    Map<String, dynamic> ctx = initContext();
-    dynamic m = Interpreter(ctx).evaluate(arr);
-    expect(ctx['body']['records'][2]['fields']['Year'],"1920");
+    Program ast = parsejs("""
+      var a = {};
+      apiChart.data = [{
+          "color": "0xffffcccb",
+          "data": [-97,-33,-57,-56]
+        }];
+      """);
+    Map<String, dynamic> context = initContext();
+    dynamic rtn = JSInterpreter(ast,context).evaluate();
+    expect(context['apiChart']['data'][0]['data'][1],-33);
   });
   test('jsonpathtest', () async {
     /*
@@ -304,27 +266,23 @@ void main() {
     expect(pop[3],6.93);
   });
   test('jsonpathintstest', () async {
-    /*
-    var result = response.path('$..Year',(match)=>match);
-     */
+    Program ast = parsejs("""
+      var result = response.path('\$..Year',function (match) {match});
+      """);
     final file = File('test_resources/jsonpath.json');
     final json = jsonDecode(await file.readAsString());
-    Map<String, dynamic> ctx = initContext();
-    ctx['response'] = json;
-
-    final astFile = File('test_resources/jsonpathints.json');
-    final ast = jsonDecode(await astFile.readAsString());
-    List<ASTNode> arr = ASTBuilder().buildArray(ast['body']);
-    Interpreter(ctx).evaluate(arr);
-    expect(ctx['result'][1],1910);
+    Map<String, dynamic> context = initContext();
+    context['response'] = json;
+    dynamic rtn = JSInterpreter(ast,context).evaluate();
+    expect(context['result'][1],1910);
   });
   test('listsortuniquetest', () async {
-    /*
+    Program ast = parsejs("""
       var list = [10,4,2,4,1,3,8,4,5,6,2,4,8,7,2,9,9,1];
       var uniqueList = list.unique();
       var sortedList = uniqueList.sort();
       var strList = ["2","4","4","1","3"];
-      strList = strList.unique().sort((a,b)=> {
+      strList = strList.unique().sort(function (a,b) {
         var intA = a.tryParseInt();
         var intB = b.tryParseInt();
         if ( intA < intB ) {
@@ -334,14 +292,11 @@ void main() {
         }
         return 0;
       });
-     */
-    final file = File('test_resources/listsortunique.json');
-    final json = jsonDecode(await file.readAsString());
-    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-    Map<String, dynamic> ctx = initContext();
-    Interpreter(ctx).evaluate(arr);
-    expect(ctx['sortedList'][2],3);
-    expect(ctx['strList'][2],"3");
+      """);
+    Map<String, dynamic> context = initContext();
+    dynamic rtn = JSInterpreter(ast,context).evaluate();
+    expect(context['sortedList'][2],3);
+    expect(context['strList'][2],"3");
   });
   test('getstringvaluetest', () async {
     /*
@@ -400,6 +355,38 @@ void main() {
     expect(rtn,false);
     List<String> exps = BindableExpressionFinder(arr,ctx).findBindables();
     exps.length;
+  });
+  /*
+  test('flutterjs', () async {
+    WidgetsFlutterBinding.ensureInitialized();
+    final JavascriptRuntime javascriptRuntime = getJavascriptRuntime();
+    javascriptRuntime.dartContext = initContext();
+    javascriptRuntime.localContext = initContext();
+    String jsResult = javascriptRuntime.evaluate("""
+      var arr = [];
+      arr[0] = 'hello';
+      arr[1] = ' ';
+      arr.push('nobody');
+      users.map(user => {
+        arr.push(' ');
+        arr.push('hello '+user.name);
+      });
+      users;
+            """).stringResult;
+    print("result="+jsResult);
+  });
+*/
+  test('jsparser', () async {
+    Program ast = parsejs("""
+      var arr = ['worked!'];
+      users.map(function(user) {
+        arr.push(' ');
+        arr.push('hello '+user.name);
+      });
+      """);
+    Map<String, dynamic> context = initContext();
+    JSInterpreter(ast,context).evaluate();
+    expect(context['arr'][0],'worked!');
   });
 
 

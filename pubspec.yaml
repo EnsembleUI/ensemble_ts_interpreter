@@ -39,7 +39,9 @@ dependencies:
   http: ^0.13.4
   json_path: ^0.4.1
   duration: ^3.0.11
-
+  #flutter_js: ^0.5.0+6
+  #dartjsengine: ^1.0.1
+  jsparser: ^2.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
