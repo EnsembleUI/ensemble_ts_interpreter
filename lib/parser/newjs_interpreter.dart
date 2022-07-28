@@ -69,7 +69,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   dynamic getValueFromNode(Node node) {
     dynamic value = node.visitBy(this);
-    if ( value is Name ) {
+    if ( value is Name || node is ThisExpression ) {
       value = getValue(value);
     }
     return value;
@@ -110,6 +110,10 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       }
     }
     return rtn;
+  }
+  @override
+  visitThis(ThisExpression node) {
+    return 'this';
   }
   @override
   visitConditional(ConditionalExpression node) {
@@ -388,11 +392,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return node;
   }
   dynamic getValueFromExpression(Expression exp) {
-    dynamic val = exp.visitBy(this);
-    if ( val is Name ) {
-      val = getValue(val);
-    }
-    return val;
+    return getValueFromNode(exp);
   }
 }
 enum BinaryOperator {

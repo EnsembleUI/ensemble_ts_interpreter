@@ -1,12 +1,9 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
-import 'package:ensemble_ts_interpreter/parser/ast.dart';
-import 'package:ensemble_ts_interpreter/parser/find_bindables.dart';
 import 'package:ensemble_ts_interpreter/parser/newjs_interpreter.dart';
 import 'package:json_path/json_path.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:test/test.dart';
-import 'package:ensemble_ts_interpreter/parser/js_interpreter.dart';
 import 'package:jsparser/jsparser.dart';
 import 'package:jsparser/src/ast.dart';
 class Ensemble extends Object with Invokable {
