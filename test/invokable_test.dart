@@ -416,4 +416,19 @@ void main() {
     dynamic rtn = Interpreter(context).evaluate(arr);
     expect(rtn,'it worked!');
   });
+  test('notnulltest', () async {
+    /*
+      if ( ensemble.name == null ) {
+        return 'sad face!';
+      } else {
+        return 'it worked!';
+       }
+     */
+    final file = File('test_resources/notnulltest.json');
+    Map<String, dynamic> context = initContext();
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    dynamic rtn = Interpreter(context).evaluate(arr);
+    expect(rtn,'it worked!');
+  });
 }

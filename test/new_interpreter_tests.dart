@@ -356,10 +356,10 @@ void main() {
   });
   test('notNullTest', () async {
     Program ast = parsejs("""
-      if ( ensemble.name != null ) {
-        return 'it worked!';
+      if ( ensemble.name == null ) {
+        return 'sad face!';
       } else {
-        return 'sad face';
+        return 'it worked!';
        }
       """);
     Map<String, dynamic> context = initContext();
