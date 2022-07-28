@@ -81,15 +81,19 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   evaluate({Node? node}) {
     dynamic rtn;
-    if ( node != null ) {
-      return visit(node);
-    } else {
-      dynamic rtn = visit(program);
-      if ( rtn is Name ) {
-        rtn = getValue(rtn);
+    try {
+      if (node != null) {
+        rtn = visit(node);
+      } else {
+        dynamic rtn = visit(program);
+        if (rtn is Name) {
+          rtn = getValue(rtn);
+        }
       }
-      return rtn;
+    } on ControlFlowReturnException catch(e) {
+      rtn = e.returnValue;
     }
+    return rtn;
   }
   dynamic executeConditional(Expression testExp,Node consequent,Node? alternate) {
     dynamic condition = testExp.visitBy(this);

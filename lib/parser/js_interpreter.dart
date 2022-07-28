@@ -64,8 +64,12 @@ class Interpreter extends JSASTVisitor {
   }
   dynamic evaluate(List<ASTNode> json) {
     dynamic rtnValue;
-    for (ASTNode node in json) {
-      rtnValue = node.accept(this);
+    try {
+      for (ASTNode node in json) {
+        rtnValue = node.accept(this);
+      }
+    } on ControlFlowReturnException catch(e) {
+      rtnValue = e.returnValue;
     }
     return rtnValue;
   }

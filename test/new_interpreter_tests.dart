@@ -342,6 +342,29 @@ void main() {
     JSInterpreter(ast,context).evaluate();
     expect(context['arr'][0],'worked!');
   });
-
+  test('nullTest', () async {
+    Program ast = parsejs("""
+      if ( ensemble.test == null ) {
+        return 'it worked!';
+      } else {
+        return 'sad face';
+       }
+      """);
+    Map<String, dynamic> context = initContext();
+    dynamic rtn = JSInterpreter(ast,context).evaluate();
+    expect(rtn,'it worked!');
+  });
+  test('notNullTest', () async {
+    Program ast = parsejs("""
+      if ( ensemble.name != null ) {
+        return 'it worked!';
+      } else {
+        return 'sad face';
+       }
+      """);
+    Map<String, dynamic> context = initContext();
+    dynamic rtn = JSInterpreter(ast,context).evaluate();
+    expect(rtn,'it worked!');
+  });
 
 }

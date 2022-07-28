@@ -401,6 +401,19 @@ void main() {
     List<String> exps = BindableExpressionFinder(arr,ctx).findBindables();
     exps.length;
   });
-
-
+  test('nulltest', () async {
+    /*
+      if ( ensemble.test == null ) {
+        return 'it worked!';
+      } else {
+        return 'sad face';
+       }
+     */
+    final file = File('test_resources/nulltest.json');
+    Map<String, dynamic> context = initContext();
+    final json = jsonDecode(await file.readAsString());
+    List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    dynamic rtn = Interpreter(context).evaluate(arr);
+    expect(rtn,'it worked!');
+  });
 }
