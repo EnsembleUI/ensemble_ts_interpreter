@@ -85,7 +85,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       if (node != null) {
         rtn = visit(node);
       } else {
-        dynamic rtn = visit(program);
+        rtn = visit(program);
         if (rtn is Name) {
           rtn = getValue(rtn);
         }
