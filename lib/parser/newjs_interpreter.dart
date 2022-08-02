@@ -97,7 +97,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   dynamic executeConditional(Expression testExp,Node consequent,Node? alternate) {
     dynamic condition = testExp.visitBy(this);
-    bool test = (condition)?true:false;
+    bool test = (condition != null && condition)?true:false;
     /* if ( stmt.test is! BooleanExpression ) {
       dynamic rtn = visitExpression(stmt.test as Expression);
       throw Exception('only boolean expression is supported as test for if stmt '+stmt.toString());
