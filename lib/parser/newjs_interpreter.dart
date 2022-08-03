@@ -69,10 +69,19 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   dynamic getValueFromNode(Node node) {
     dynamic value = node.visitBy(this);
-    if ( value is Name || node is ThisExpression ) {
+    if ( value is Name ) {
       value = getValue(value);
+    } else if ( node is ThisExpression ) {
+      value = getValueFromString(value);
     }
     return value;
+  }
+  dynamic getValueFromString(String name) {
+    Map m = getContextForScope(program);
+    if ( m.containsKey(name) ) {
+      return m[name];
+    }
+    return null;
   }
   dynamic getValue(Name node) {
     Scope scope = findScope(node);
