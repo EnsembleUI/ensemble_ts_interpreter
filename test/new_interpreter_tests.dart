@@ -380,15 +380,16 @@ void main() {
   test('bindingconditionaltests', () async {
     Program ast = parsejs("""
       myText.text.toLowerCase();
-      abc.text = myWidgets.widget.text;
       ( myText.text == 'hello' ) ? 'Hey' : 'nope';
       ( myWidgets.collection.widgets.text == myAPI.response.body.text ) ? myWidget.text : myDD.value;
       ( myWidgets.collection.widgets.text == '1' ) ? myWidget.text : myDD.value;
       myText.value != 'hello' 
       myWidgets.collection.widgets.text != myAPI.response.body['text'] 
-      myWidgets.collection.widgets.text != myAPI.response.body[1] 
+      myWidgets.collection.widgets.text != myAPI.response.body[1];
+      abc.text = myWidgets.widget.text;
       """);
     List<String> bindings = Bindings().resolve(ast);
+    expect(bindings.length,10);
     expect(bindings[0],'myText.text');
     expect(bindings[1],'myWidgets.collection.widgets.text');
     expect(bindings[2],'myAPI.response.body.text');
@@ -398,6 +399,7 @@ void main() {
     expect(bindings[6],"myAPI.response.body['text']");
     expect(bindings[7],"myWidgets.collection.widgets.text");
     expect(bindings[8],"myAPI.response.body[1]");
+    expect(bindings[9],"myWidgets.widget.text");
   });
   test('bindingdirecttests', () async {
     Program ast = parsejs("""
@@ -407,8 +409,26 @@ void main() {
 
       """);
     List<String> bindings = Bindings().resolve(ast);
+    expect(bindings.length,3);
     expect(bindings[0],'myWidgets');
     expect(bindings[1],'myAPI.response');
     expect(bindings[2],'myAPI.response.body.text');
+  });
+  test('bindingfunctionargumenttests', () async {
+    Program ast = parsejs("""
+      utils.translate(myText.text);
+      utils.translate(myText.getProperty(allProperties.textProps.property(widget.text)));
+      abc.text = utils.translate(myText.getProperty(allProperties.textProps.property(widget.text2)));
+      utils.translate(myText.text('myText'));
+      utils.translate('myText');
+      abc.text = utils.translate(myText.getProperty(allProperties.textProps.property('text')));
+      abc.text = utils.translate(myText.getProperty(allProperties.textProps.property('text'+myWidget.text)));
+      """);
+    List<String> bindings = Bindings().resolve(ast);
+    expect(bindings.length,4);
+    expect(bindings[0],'myText.text');
+    expect(bindings[1],'widget.text');
+    expect(bindings[2],'widget.text2');
+    expect(bindings[3],'myWidget.text');
   });
 }
