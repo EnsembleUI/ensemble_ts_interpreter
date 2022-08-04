@@ -11,7 +11,78 @@ import 'package:jsparser/src/annotations.dart';
 import 'package:jsparser/src/noise.dart';
 
 import 'package:jsparser/src/ast.dart';
+class Bindings extends RecursiveVisitor<dynamic> {
+  List<String> bindings = [];
+  List<String> resolve(Program program) {
+    visit(program);
+    return bindings;
+  }
+  String convertToString(List<String> list) {
+    String rtn = '';
+    list.forEach((element) {rtn += '.'+element;});
+    return rtn;
+  }
+  @override
+  visitBinary(BinaryExpression node) {
+    dynamic left = node.left.visitBy(this);
+    dynamic right = node.right.visitBy(this);
+    if ( left is String ) {
+      bindings.add(left);
+    }
+    if ( right is String ) {
+      bindings.add(right);
+    }
+    return bindings;
+  }
+  @override
+  visitMember(MemberExpression node) {
+    dynamic obj = node.object.visitBy(this);
+    return obj + '.' + node.property.visitBy(this);
+  }
+  @override
+  visitName(Name node) {
+    return node.value;
+  }
+  @override
+  visitNameExpression(NameExpression node) {
+    return node.name.visitBy(this);
+  }
+  @override
+  visitExpressionStatement(ExpressionStatement node) {
+    dynamic rtn = node.expression.visitBy(this);
+    if ( rtn is String ) {
+      bindings.add(rtn);
+    }
+  }
+  @override
+  visitIndex(IndexExpression node, {bool computeAsPattern=false}) {
+    dynamic obj = node.object.visitBy(this);
+    dynamic prop;
+    if ( node.property is LiteralExpression ) {
+      prop = (node.property as LiteralExpression).value;
+    }
+    if ( obj is String ) {
+      if ( prop is num ) {
+        return obj + '['+prop.toString()+']';
+      } else if ( prop is String ) {
+        return obj + "['"+prop+"']";
+      }
+    }
+  }
 
+  @override
+  visitConditional(ConditionalExpression node) {
+    return node.condition.visitBy(this);
+  }
+
+  defaultNode(Node node) {
+    dynamic rtn;
+    node.forEach((node) {
+      rtn = visit(node);
+    });
+    return rtn;
+  }
+}
 class JSInterpreter extends RecursiveVisitor<dynamic> {
   Program program;
   Map<Scope,Map<String,dynamic>> contexts= {};
@@ -25,7 +96,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     contexts[program] = programContext;
   }
   JSInterpreter.fromCode(String code, Map<String,dynamic> programContext): this(parsejs(code),programContext);
-
+  static Program parseCode(String code) {
+    return parsejs(code);
+  }
   Scope enclosingScope(Node node) {
     while (node is! Scope) {
       node = node.parent;
@@ -107,13 +180,6 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   dynamic executeConditional(Expression testExp,Node consequent,Node? alternate) {
     dynamic condition = testExp.visitBy(this);
     bool test = (condition != null && condition)?true:false;
-    /* if ( stmt.test is! BooleanExpression ) {
-      dynamic rtn = visitExpression(stmt.test as Expression);
-      throw Exception('only boolean expression is supported as test for if stmt '+stmt.toString());
-    }
-    bool test = evaluateBooleanExpression(stmt.test as BooleanExpression);
-
-    */
     dynamic rtn;
     if ( test ) {
       rtn = consequent.visitBy(this);

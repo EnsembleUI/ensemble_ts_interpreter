@@ -366,5 +366,47 @@ void main() {
     dynamic rtn = JSInterpreter(ast,context).evaluate();
     expect(rtn,'it worked!');
   });
+  test('arrowFunctionTest', () async {
+    Program ast = parsejs("""
+      users.map( (user,loser) => {
+        user.name += "NEW";
+      });
+      """);
+    Map<String, dynamic> context = initContext();
+    String origValue = context['users'][1]['name'];
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
+    expect(context['users'][1]['name'],origValue+'NEW');
+  });
+  test('bindingconditionaltests', () async {
+    Program ast = parsejs("""
+      ( myText.text == 'hello' ) ? 'Hey' : 'nope';
+      ( myWidgets.collection.widgets.text == myAPI.response.body.text ) ? myWidget.text : myDD.value;
+      ( myWidgets.collection.widgets.text == '1' ) ? myWidget.text : myDD.value;
+      myText.value != 'hello' 
+      myWidgets.collection.widgets.text != myAPI.response.body['text'] 
+      myWidgets.collection.widgets.text != myAPI.response.body[1] 
+      """);
+    List<String> bindings = Bindings().resolve(ast);
+    expect(bindings[0],'myText.text');
+    expect(bindings[1],'myWidgets.collection.widgets.text');
+    expect(bindings[2],'myAPI.response.body.text');
+    expect(bindings[3],'myWidgets.collection.widgets.text');
+    expect(bindings[4],'myText.value');
+    expect(bindings[5],'myWidgets.collection.widgets.text');
+    expect(bindings[6],"myAPI.response.body['text']");
+    expect(bindings[7],"myWidgets.collection.widgets.text");
+    expect(bindings[8],"myAPI.response.body[1]");
+  });
+  test('bindingdirecttests', () async {
+    Program ast = parsejs("""
+      myWidgets;
+      myAPI.response;
+      myAPI.response.body.text;
 
+      """);
+    List<String> bindings = Bindings().resolve(ast);
+    expect(bindings[0],'myWidgets');
+    expect(bindings[1],'myAPI.response');
+    expect(bindings[2],'myAPI.response.body.text');
+  });
 }
