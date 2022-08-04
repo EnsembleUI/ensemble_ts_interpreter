@@ -48,6 +48,12 @@ class Bindings extends RecursiveVisitor<dynamic> {
     return node.name.visitBy(this);
   }
   @override
+  visitCall(CallExpression node) {
+  }
+  @override
+  visitAssignment(AssignmentExpression node) {
+  }
+  @override
   visitExpressionStatement(ExpressionStatement node) {
     dynamic rtn = node.expression.visitBy(this);
     if ( rtn is String ) {

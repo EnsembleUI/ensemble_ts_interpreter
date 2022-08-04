@@ -379,6 +379,8 @@ void main() {
   });
   test('bindingconditionaltests', () async {
     Program ast = parsejs("""
+      myText.text.toLowerCase();
+      abc.text = myWidgets.widget.text;
       ( myText.text == 'hello' ) ? 'Hey' : 'nope';
       ( myWidgets.collection.widgets.text == myAPI.response.body.text ) ? myWidget.text : myDD.value;
       ( myWidgets.collection.widgets.text == '1' ) ? myWidget.text : myDD.value;
