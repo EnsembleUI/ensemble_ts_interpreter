@@ -255,6 +255,38 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return val;
   }
   @override
+  visitUpdateExpression(UpdateExpression node) {
+    dynamic name = node.argument.visitBy(this);
+    dynamic val = getValue(name);
+    num number;
+    if ( val is num ) {
+      number = val;
+    } else if ( val is InvokableNumber ) {
+      number = val.val;
+    } else {
+      throw Exception(
+          'The operator ' + node.operator + ' is only valid for numbers and ' +
+              node.argument.toString() + ' is not a number');
+    }
+    if ( node.isPrefix ) {
+      switch (node.operator) {
+        case '++': ++number;break;
+        case '--': --number;break;
+      }
+    } else {
+      switch (node.operator) {
+        case '++': number++;break;
+        case '--': number++;break;
+      }
+    }
+    if ( val is InvokableNumber ) {
+      val.val = number;
+    } else {
+      addToContext(name, number);
+    }
+    return number;
+  }
+  @override
   visitFunctionExpression(FunctionExpression node) {
     final List<dynamic> args = computeArguments(node.function.params);
     return (List<dynamic> params) {

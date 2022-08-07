@@ -431,4 +431,25 @@ void main() {
     expect(bindings[2],'widget.text2');
     expect(bindings[3],'myWidget.text');
   });
+  test('overridecontexttest', () async {
+    Program ast = parsejs("""
+      var i = 0;
+      var users = [{'name':'Khurram'},{'name':'Mahmood'}];
+      var salaries = [10000,200000];
+      
+      //function updateSalary(users,salaries) {
+        users.map(function(user) {
+          user['salary'] = salaries[i];
+          user['age'] = age;
+          i++;
+        });
+       //}
+        
+      """);
+    Map<String, dynamic> context = initContext();
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
+    expect(context['users'][0]['name'],'Khurram');
+    expect(context['users'][0]['salary'],10000);
+    expect(context['users'][1]['salary'],200000);
+  });
 }
