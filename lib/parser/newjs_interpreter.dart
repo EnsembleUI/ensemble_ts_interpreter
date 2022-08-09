@@ -5,12 +5,6 @@ import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
 import 'package:jsparser/jsparser.dart';
 import 'package:jsparser/src/ast.dart';
-import 'package:jsparser/src/lexer.dart';
-import 'package:jsparser/src/parser.dart';
-import 'package:jsparser/src/annotations.dart';
-import 'package:jsparser/src/noise.dart';
-
-import 'package:jsparser/src/ast.dart';
 class Bindings extends RecursiveVisitor<dynamic> {
   List<String> bindings = [];
   List<String> resolve(Program program) {
@@ -132,8 +126,13 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     }
     return getContextForScope(scope);
   }
-  JSInterpreter cloneForContext(Scope scope,Map<String,dynamic> ctx) {
+  JSInterpreter cloneForContext(Scope scope,Map<String,dynamic> ctx,bool inheritContexts) {
     JSInterpreter i = JSInterpreter(this.program,getContextForScope(this.program));
+    if ( inheritContexts ) {
+      contexts.keys.forEach((key) {
+        i.contexts[key] = contexts[key]!;
+      });
+    }
     i.contexts[scope] = ctx;
     return i;
   }
@@ -287,8 +286,14 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return number;
   }
   @override
-  visitFunctionExpression(FunctionExpression node) {
-    final List<dynamic> args = computeArguments(node.function.params);
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    Function f = visitFunctionNode(node.function);
+    addToContext(node.function.name, f);
+    return f;
+  }
+  @override
+  visitFunctionNode(FunctionNode node, {bool? inheritContext}) {
+    final List<dynamic> args = computeArguments(node.params);
     return (List<dynamic> params) {
       /*
         1. create a map, parmValueMap
@@ -300,16 +305,16 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         throw Exception("visitFunctionExpression: args.length != params.length. They must be equal");
       }
       Map<String,dynamic> ctx = {};
-      if ( node.function.params != null ) {
-        for (int i = 0; i < node.function.params.length; i++) {
-          ctx[node.function.params[i].value] = params.elementAt(i);
+      if ( node.params != null ) {
+        for (int i = 0; i < node.params.length; i++) {
+          ctx[node.params[i].value] = params.elementAt(i);
         }
       }
-      JSInterpreter i = cloneForContext(node.function,ctx);
+      JSInterpreter i = cloneForContext(node,ctx,inheritContext??false);
       dynamic rtn;
       try {
-        if (node.function.body != null) {
-          rtn = node.function.body.visitBy(i);
+        if (node.body != null) {
+          rtn = node.body.visitBy(i);
         }
       } on ControlFlowReturnException catch(e) {
         rtn = e.returnValue;
@@ -321,17 +326,16 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     };
   }
   @override
+  visitFunctionExpression(FunctionExpression node) {
+    return visitFunctionNode(node.function,inheritContext:true);
+  }
+  @override
   visitBlock(BlockStatement node) {
     dynamic rtn;
     for ( Node stmt in node.body ) {
       rtn = stmt.visitBy(this);
     }
     return rtn;
-  }
-  @override
-  visitFunctionNode(FunctionNode node) {
-    // TODO: implement visitFunctionNode
-    return super.visitFunctionNode(node);
   }
   @override
   visitVariableDeclarator(VariableDeclarator node) {
@@ -405,21 +409,35 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     }
     return l;
   }
+  executeMethod(Function method,List<Expression> declaredArguments) {
+    List arguments = computeArguments(declaredArguments,resolveNames:true);
+    if ( arguments.length == 0 ) {
+      return Function.apply(method, [[]]);
+    } else if ( arguments.length == 1 ) {
+      return Function.apply(method, arguments);
+    } else {
+      return Function.apply(method, [arguments]);
+    }
+  }
   @override
   visitCall(CallExpression node) {
     dynamic val;
-    if ( node.callee is MemberExpression ) {
+    if ( node.callee is NameExpression ) {
+      Function? method = getValue((node.callee as NameExpression).name);
+      if ( method == null ) {
+        throw Exception('function by the name '+(node.callee as NameExpression).name.value+' not found');
+      }
+      val = executeMethod(method, node.arguments);
+    } else if ( node.callee is MemberExpression ) {
       ObjectPattern pattern = visitMember(node.callee as MemberExpression,computeAsPattern:true);
       var obj = pattern.obj;
       Function? method = obj.methods()[pattern.property];
-      List? arguments = computeArguments(node.arguments,resolveNames:true);
-      if ( method != null ) {
-        val = Function.apply(method, arguments);
-      } else {
+      if ( method == null ) {
         throw Exception("cannot compute statement="+node.toString()+" as no method found for property="+pattern.property.toString());
       }
-      return val;
+      val = executeMethod(method, node.arguments);
     }
+    return val;
   }
   @override
   visitAssignment(AssignmentExpression node) {
