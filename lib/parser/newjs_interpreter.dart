@@ -354,9 +354,14 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     if ( left is String || right is String ) {
       //let's say left is a string and right is an integer. Dart does not allow an operation like
       //concatenation on different types, javascript etc do allow that
-      left = left.toString();
-      right = right.toString();
+      if ( left != null ) {
+        left = left.toString();
+      }
+      if ( right != null ) {
+        right = right.toString();
+      }
     }
+    bool done = true;
     switch (node.operator) {
       case '==': rtn = left == right;break;
       case '!=': rtn = left != right;break;
@@ -366,7 +371,31 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       case '>=': rtn = left >= right;break;
       case '-': rtn = left - right;break;
       case '+': rtn = left + right;break;
-      default: throw Exception(node.operator + ' is not yet supported');
+      default: done = false;break;
+    }
+    if ( node.operator == '||' ) {
+      if ( left == true || left != null ) {
+        rtn = left;
+      } else if ( right == true || right != null ) {
+        rtn = right;
+      } else if ( left == null || right == null ) {
+        rtn = null;
+      } else {
+        rtn = false;
+      }
+      done = true;
+    } else if ( node.operator == '&&' ) {
+      if ( left == false || right == false ) {
+        rtn = false;
+      } else if ( left == null || right == null ) {
+        rtn = null;
+      } else {
+        rtn = right;
+      }
+      done = true;
+    }
+    if ( !done ) {
+      throw Exception(node.operator + ' is not yet supported');
     }
     return rtn;
   }
@@ -412,11 +441,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   executeMethod(Function method,List<Expression> declaredArguments) {
     List arguments = computeArguments(declaredArguments,resolveNames:true);
     if ( arguments.length == 0 ) {
-      return Function.apply(method, [[]]);
-    } else if ( arguments.length == 1 ) {
-      return Function.apply(method, arguments);
+      return Function.apply(method, null);
     } else {
-      return Function.apply(method, [arguments]);
+      return Function.apply(method, arguments);
     }
   }
   @override

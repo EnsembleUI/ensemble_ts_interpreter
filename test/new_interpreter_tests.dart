@@ -7,37 +7,36 @@ import 'package:test/test.dart';
 import 'package:jsparser/jsparser.dart';
 import 'package:jsparser/src/ast.dart';
 class Ensemble extends Object with Invokable {
-  String? name;
+  String? name,date,firstName,lastName;
   String? navigateScreenCalledForScreen;
   Ensemble(this.name);
   @override
   Map<String, Function> getters() {
-    return {};
+    return {
+      'date': () => date,
+      'firstName':() => firstName,
+      'lastName':() => lastName,
+      'name':() => name
+    };
   }
 
   @override
   Map<String, Function> methods() {
     return {
-      'navigateScreen': (screenName) => navigateScreenCalledForScreen = screenName
+      'navigateScreen': (screenName) => navigateScreenCalledForScreen = screenName,
+      'setNames': (firstName,lastName) { this.firstName = firstName; this.lastName = lastName;},
+      'setDate': (date) => this.date = date,
+      'setNamesAndDate': (firstName,lastName,date) {methods()['setNames']!(firstName,lastName);methods()['setDate']!(date);},
+      'getDate': () => date
     };
   }
 
   @override
   Map<String, Function> setters() {
-    return {};
-  }
+    return {
 
-  @override
-  dynamic getProperty(dynamic prop) {
-    if ( prop == 'name' ) {
-      return name;
-    }
-    return null;
-  }
 
-  @override
-  void setProperty(dynamic prop, dynamic val) {
-
+    };
   }
 
 }
@@ -458,4 +457,31 @@ void main() {
     expect(context['users'][1]['salary'],900000);
     expect(context['users'][1]['age'],3);
   });
+  test('andorexpressionstest', () async {
+    Program ast = parsejs("""
+        var date = null || '2022-08-08'
+        date += ':00:00';
+        var _false = 123 == 234 && null;
+        var _date = abcdef || date;
+      """);
+    Map<String, dynamic> context = initContext();
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
+    expect(context['date'],'2022-08-08:00:00');
+    expect(context['_false'],false);
+    expect(context['_date'],context['date']);
+  });
+  test('functiondecalltest', () async {
+    Program ast = parsejs("""
+       ensemble.setNames('Khurram','Mahmood');
+       ensemble.setDate('8-09-2022');
+       ensemble.setNamesAndDate(ensemble.firstName+'!',ensemble.lastName+'!',ensemble.getDate()+'!');
+       return ensemble.firstName == 'Khurram!' && ensemble.lastName == 'Mahmood!' && ensemble.date == '8-09-2022!';
+      """);
+    Map<String, dynamic> context = initContext();
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
+    expect(context['ensemble'].firstName,'Khurram!');
+    expect(context['ensemble'].date,'8-09-2022!');
+    expect(rtnValue,true);
+  });
+
 }
