@@ -432,6 +432,10 @@ void main() {
   });
   test('functiondeclarationtext', () async {
     Program ast = parsejs("""
+      var i = 0;
+      var users = [{'name':'Khurram'},{'name':'Mahmood'}];
+      updateSalary(users,noArgFunction());
+      return manyParms(users[0],noArgFunction()[0],'Hello','How','are','you','today,');
       function noArgFunction() {
         var salaries = [10000,200000];
         salaries[1] = 900000;
@@ -444,10 +448,9 @@ void main() {
           i++;
         });
       }
-      var i = 0;
-      var users = [{'name':'Khurram'},{'name':'Mahmood'}];
-      updateSalary(users,noArgFunction());
-
+      function manyParms(user,salary,a,b,c,d,e) {
+        return a+' '+b+' '+c+' '+d+' '+e+' '+user.name+'. You made \$'+salary;
+      }
         
       """);
     Map<String, dynamic> context = initContext();
@@ -456,6 +459,7 @@ void main() {
     expect(context['users'][0]['salary'],10000);
     expect(context['users'][1]['salary'],900000);
     expect(context['users'][1]['age'],3);
+    expect(rtnValue,'Hello How are you today, Khurram. You made \$10000');
   });
   test('andorexpressionstest', () async {
     Program ast = parsejs("""
@@ -483,5 +487,14 @@ void main() {
     expect(context['ensemble'].date,'8-09-2022!');
     expect(rtnValue,true);
   });
-
+  test('binaryoperatortest', () async {
+    Program ast = parsejs("""
+       var a = 20;
+       var b = 10;
+       return (a/b)*50 + 100 - 100;
+       """);
+    Map<String, dynamic> context = initContext();
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
+    expect(rtnValue,100);
+  });
 }

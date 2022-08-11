@@ -186,6 +186,13 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       if (node != null) {
         rtn = visit(node);
       } else {
+        //first visit all the function declarations
+        for ( int i=program.body.length-1;i>=0;i-- ) {
+          Statement stmt = program.body[i];
+          if ( stmt is FunctionDeclaration ) {
+            stmt.visitBy(this);
+          }
+        }
         rtn = visit(program);
         if (rtn is Name) {
           rtn = getValue(rtn);
@@ -287,22 +294,27 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    Function f = visitFunctionNode(node.function);
-    addToContext(node.function.name, f);
-    return f;
+    JavascriptFunction? func = getValue(node.function.name);
+    if ( func == null ) {
+      dynamic Function(List<dynamic>) f = visitFunctionNode(node.function);
+      func = JavascriptFunction(f);
+      addToContext(node.function.name, func);
+    }
+    return func;
   }
   @override
   visitFunctionNode(FunctionNode node, {bool? inheritContext}) {
     final List<dynamic> args = computeArguments(node.params);
-    return (List<dynamic> params) {
+    return (List<dynamic>? _params) {
       /*
         1. create a map, parmValueMap
         2. go through params and create a args[i]: parm[i] entry in the map
         3. push the map to the context stack
         4. execute the blockstatement or expression
        */
+      List<dynamic> params = _params??[];
       if ( args.length != params.length ) {
-        throw Exception("visitFunctionExpression: args.length != params.length. They must be equal");
+        throw Exception("visitFunctionNode: args.length ($args.length)  != params.length ($params.length). They must be equal. ");
       }
       Map<String,dynamic> ctx = {};
       if ( node.params != null ) {
@@ -371,6 +383,14 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       case '>=': rtn = left >= right;break;
       case '-': rtn = left - right;break;
       case '+': rtn = left + right;break;
+      case '/': rtn = left / right;break;
+      case '*': rtn = left * right;break;
+      case '%': rtn = left % right;break;
+      case '|': rtn = left | right;break;
+      case '^': rtn = left ^ right;break;
+      case '<<': rtn = left << right;break;
+      case '>>': rtn = left >> right;break;
+      case '&': rtn = left & right;break;
       default: done = false;break;
     }
     if ( node.operator == '||' ) {
@@ -439,8 +459,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return l;
   }
   executeMethod(Function method,List<Expression> declaredArguments) {
-    List arguments = computeArguments(declaredArguments,resolveNames:true);
-    if ( arguments.length == 0 ) {
+    List<dynamic> arguments = computeArguments(declaredArguments,resolveNames:true);
+    //functions being called from js to dart
+    if (arguments.length == 0) {
       return Function.apply(method, null);
     } else {
       return Function.apply(method, arguments);
@@ -450,11 +471,19 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   visitCall(CallExpression node) {
     dynamic val;
     if ( node.callee is NameExpression ) {
-      Function? method = getValue((node.callee as NameExpression).name);
-      if ( method == null ) {
-        throw Exception('function by the name '+(node.callee as NameExpression).name.value+' not found');
+      final method = getValue((node.callee as NameExpression).name);
+      if ( method is Function ) {
+        val = executeMethod(method, node.arguments);
+      } else {
+        List<dynamic> arguments = computeArguments(
+            node.arguments, resolveNames: true);
+        if (arguments.length == 0) {
+          val = method();
+        } else {
+          val = method(arguments);
+        }
       }
-      val = executeMethod(method, node.arguments);
+
     } else if ( node.callee is MemberExpression ) {
       ObjectPattern pattern = visitMember(node.callee as MemberExpression,computeAsPattern:true);
       var obj = pattern.obj;
@@ -570,6 +599,12 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   dynamic getValueFromExpression(Expression exp) {
     return getValueFromNode(exp);
   }
+  noSuchMethod(Invocation invocation) {
+    if (!invocation.isMethod || invocation.namedArguments.isNotEmpty)
+      super.noSuchMethod(invocation);
+    final arguments = invocation.positionalArguments;
+    return null;
+  }
 }
 enum BinaryOperator {
   equals,lt,gt,ltEquals,gtEquals,notequals,minus,plus,multiply,divide,inop,instaneof
@@ -594,4 +629,21 @@ class ObjectPattern {
   Invokable obj;
   dynamic property;
   ObjectPattern(this.obj,this.property);
+}
+typedef OnCall = dynamic Function(List arguments);
+class JavascriptFunction {
+  JavascriptFunction(this._onCall);
+
+  final OnCall _onCall;
+
+  noSuchMethod(Invocation invocation) {
+    if (!invocation.isMethod || invocation.namedArguments.isNotEmpty)
+      super.noSuchMethod(invocation);
+    final arguments = invocation.positionalArguments;
+    if ( arguments.length > 0 ) {
+      return _onCall(arguments[0]);
+    } else {
+      return _onCall(arguments);
+    }
+  }
 }
