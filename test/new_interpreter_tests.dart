@@ -497,4 +497,28 @@ void main() {
     dynamic rtnValue = JSInterpreter(ast,context).evaluate();
     expect(rtnValue,100);
   });
+  test('forinoperatortest', () async {
+    Program ast = parsejs("""
+      var i =0;
+      for ( person in people ) {
+        people[person]['last_name'] += people[person]['first_name'];
+        i++;
+        if ( i == 2 ) {
+          break;
+        }
+      }
+      return 'worked!'
+       """);
+    Map<String, dynamic> context = initContext();
+    context['people'] = {
+      'p1': {'first_name':'jon','last_name':'adams'},
+      'p2': {'first_name':'jane','last_name':'doe'},
+      'p3': {'first_name':'mick','last_name':'jagger'},
+    };
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
+    expect(rtnValue,'worked!');
+    expect(context['people']['p1']['last_name'],'adamsjon');
+    expect(context['people']['p2']['last_name'],'doejane');
+    expect(context['people']['p3']['last_name'],'jagger');
+  });
 }

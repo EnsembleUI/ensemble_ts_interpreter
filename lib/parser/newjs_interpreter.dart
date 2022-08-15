@@ -159,6 +159,10 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     Map m = getContextForScope(node.scope);
     m[node.value] = value;
   }
+  dynamic removeFromContext(Name node) {
+    Map m = getContextForScope(node.scope);
+    return m.remove(node.value);
+  }
   dynamic getValueFromNode(Node node) {
     dynamic value = node.visitBy(this);
     if ( value is Name ) {
@@ -420,6 +424,33 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return rtn;
   }
   @override
+  visitBreak(BreakStatement node) {
+    throw ControlFlowBreakException();
+  }
+  @override
+  visitForIn(ForInStatement node) {
+    dynamic right = getValueFromNode(node.right);
+    dynamic left = node.left.visitBy(this);
+    if ( right is InvokableMap ) {
+      right = right.map;
+    } else if ( right is! Map ) {
+      throw Exception('for...in is only allowed for js objects or maps. $right is not a map');
+    }
+    if ( left is! Name ) {
+      throw Exception('left side in the for...in expression must be a name node. $node.left is not name');
+    }
+    Map map = right as Map;
+    for ( dynamic key in map.keys ) {
+      addToContext(left, key);
+      try {
+        node.body.visitBy(this);
+      } on ControlFlowBreakException catch(e) {
+        break;
+      }
+    }
+    removeFromContext(left);
+  }
+  @override
   visitLiteral(LiteralExpression node) {
     Map<String,dynamic> programContext = findProgramContext(node);
     if ( node.value is String ) {
@@ -624,6 +655,8 @@ enum VariableDeclarationKind {
 class ControlFlowReturnException implements Exception {
   dynamic returnValue;
   ControlFlowReturnException(this.returnValue);
+}
+class ControlFlowBreakException implements Exception {
 }
 class ObjectPattern {
   Invokable obj;
