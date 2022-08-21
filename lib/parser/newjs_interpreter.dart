@@ -17,6 +17,12 @@ class Bindings extends RecursiveVisitor<dynamic> {
     return rtn;
   }
   @override
+  visitVariableDeclarator(VariableDeclarator node) {
+    String name = visitName(node.name);
+    bindings.add(name);
+    return name;
+  }
+  @override
   visitBinary(BinaryExpression node) {
     dynamic left = node.left.visitBy(this);
     dynamic right = node.right.visitBy(this);
@@ -34,7 +40,7 @@ class Bindings extends RecursiveVisitor<dynamic> {
     return obj + '.' + node.property.visitBy(this);
   }
   @override
-  visitName(Name node) {
+  String visitName(Name node) {
     return node.value;
   }
   @override

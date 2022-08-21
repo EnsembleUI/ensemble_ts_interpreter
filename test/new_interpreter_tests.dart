@@ -422,13 +422,15 @@ void main() {
       utils.translate('myText');
       abc.text = utils.translate(myText.getProperty(allProperties.textProps.property('text')));
       abc.text = utils.translate(myText.getProperty(allProperties.textProps.property('text'+myWidget.text)));
+      var abc = myAPI.body.status;
       """);
     List<String> bindings = Bindings().resolve(ast);
-    expect(bindings.length,4);
+    expect(bindings.length,5);
     expect(bindings[0],'myText.text');
     expect(bindings[1],'widget.text');
     expect(bindings[2],'widget.text2');
     expect(bindings[3],'myWidget.text');
+    expect(bindings[4],'abc');
   });
   test('functiondeclarationtext', () async {
     Program ast = parsejs("""
@@ -520,5 +522,19 @@ void main() {
     expect(context['people']['p1']['last_name'],'adamsjon');
     expect(context['people']['p2']['last_name'],'doejane');
     expect(context['people']['p3']['last_name'],'jagger');
+  });
+  test('functiontest', () async {
+    Program ast = parsejs("""
+        var original = 5;
+        //myText.text = "It's changed";
+        
+        function addMe(num) {
+          original = original + num;
+        }
+        //addMe(10);
+       """);
+    Map<String, dynamic> context = initContext();
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
+    expect(context['original'],5);
   });
 }
