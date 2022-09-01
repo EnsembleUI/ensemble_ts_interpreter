@@ -16,6 +16,9 @@ class InvokableList extends Object with Invokable {
       'map': (Function f) =>  {
         list.map((e) => f([e])).toList()
       },
+      'forEach': (Function f) =>  {
+        list.forEach((e) => f([e]))
+      },
       'add': (dynamic val) => list.add(val),
       'push': (dynamic val) => list.add(val),
       'indexOf': (dynamic val) => list.indexOf(val),

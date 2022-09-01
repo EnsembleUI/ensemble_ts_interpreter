@@ -1,4 +1,5 @@
 
+import 'package:ensemble_ts_interpreter/invokables/InvokableRegExp.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
@@ -112,8 +113,13 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     node.forEach((node)=> rtn = visit(node));
     return rtn;
   }
+  RegExp regExp(String regex,String options) {
+    RegExp r =  RegExp(regex);
+    return r;
+  }
   JSInterpreter(this.program, Map<String,dynamic> programContext) {
     contexts[program] = programContext;
+    programContext['regExp']= regExp;
   }
   JSInterpreter.fromCode(String code, Map<String,dynamic> programContext): this(parsejs(code),programContext);
   static Program parseCode(String code) {
@@ -591,6 +597,40 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       addToContext(n, value);
     }
   }
+  @override
+  visitRegexp(RegexpExpression node) {
+    bool allMatches = false, dotAll = false, multiline = false, ignoreCase = false,unicode = false;
+
+    int index = node.regexp.lastIndexOf('/');
+    if ( index != -1 ) {
+      String options = node.regexp.substring(index);
+      if ( options.contains('i') ) {
+        ignoreCase = true;
+      }
+      if ( options.contains('g') ) {
+        allMatches = true;
+      }
+      if ( options.contains('m') ) {
+        multiline = true;
+      }
+      if ( options.contains('s') ) {
+        dotAll = true;
+      }
+      if ( options.contains('u') ) {
+        unicode = true;
+      }
+    }
+    RegExp regExp = RegExp(node.regexp.substring(0,index).replaceAll('/', ''),
+        multiLine: multiline,
+        caseSensitive: !ignoreCase,
+        dotAll: dotAll,
+        unicode: unicode
+    );
+    return InvokableRegExp(regExp);
+  }
+
+
+
   @override
   visitIndex(IndexExpression node, {bool computeAsPattern=false}) {
     return visitObjectPropertyExpression(node.object,getValueFromExpression(node.property),computeAsPattern: computeAsPattern);
