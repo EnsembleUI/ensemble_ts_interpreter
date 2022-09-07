@@ -537,4 +537,45 @@ void main() {
     dynamic rtnValue = JSInterpreter(ast,context).evaluate();
     expect(context['original'],5);
   });
+  test('regextest', () async {
+    String strExp = r'(\w+)';
+    RegExp exp = RegExp('$strExp');
+    String str = 'Parse my string';
+    Iterable<RegExpMatch> matches = exp.allMatches(str);
+    for (final m in matches) {
+      print(m[0]);
+    }
+    String blah = "'\d+'";
+    strExp = r''+blah;
+    bool a = RegExp(blah).hasMatch("'123'");
+    print('matched='+a.toString());
+    var email = r'(\w)\1{2,}';
+    exp = RegExp('$email');
+    bool hasMatch = exp.hasMatch('1233344');
+    print('hasMatch=$hasMatch');
+    Program ast = parsejs(r'var a = /\d+/');
+    Map<String, dynamic> context = initContext();
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
+    expect(context['a'],true);
+  });
+  test('mathtest', () async {
+    Program ast = parsejs("""
+      var a = Math.floor(5.85);
+      var b = parseDouble("1.543");
+      var c = parseInt("12");
+      var d = parseFloat("12.3456");
+      var e = Math.pow(2,2);
+      var f = Math.trunc(Math.log(5));
+      var g = 5.7767.toFixed(2);
+       """);
+    Map<String, dynamic> context = initContext();
+    dynamic rtnValue = JSInterpreter(ast,context).evaluate();
+    expect(context['a'],5);
+    expect(context['b'],1.543);
+    expect(context['c'],12);
+    expect(context['d'],12.3456);
+    expect(context['e'],4);
+    expect(context['f'],1);
+    expect(context['g'],'5.78');
+  });
 }

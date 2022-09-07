@@ -223,7 +223,8 @@ class InvokableNumber extends InvokablePrimitive with Invokable {
       'prettyCurrency': () => InvokablePrimitive.prettyCurrency(val),
       'prettyDate': () => InvokablePrimitive.prettyDate(val),
       'prettyDateTime': () => InvokablePrimitive.prettyDateTime(val),
-      'prettyDuration': () => InvokablePrimitive.prettyDuration(val)
+      'prettyDuration': () => InvokablePrimitive.prettyDuration(val),
+      'toFixed': (int fractionDigits) => val.toStringAsFixed(fractionDigits)
     };
   }
 
