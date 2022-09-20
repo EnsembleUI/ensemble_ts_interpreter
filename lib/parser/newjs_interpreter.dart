@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 import 'package:ensemble_ts_interpreter/invokables/InvokableRegExp.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
@@ -7,6 +9,7 @@ import 'package:ensemble_ts_interpreter/invokables/invokablemath.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
 import 'package:jsparser/jsparser.dart';
 import 'package:jsparser/src/ast.dart';
+
 class Bindings extends RecursiveVisitor<dynamic> {
   List<String> bindings = [];
   List<String> resolve(Program program) {
@@ -106,7 +109,8 @@ class Bindings extends RecursiveVisitor<dynamic> {
   }
 }
 class JSInterpreter extends RecursiveVisitor<dynamic> {
-  Program program;
+  late String code;
+  late Program program;
   Map<Scope,Map<String,dynamic>> contexts= {};
   @override
   defaultNode(Node node) {
@@ -125,13 +129,31 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     context['parseInt'] = (String s) => int.parse(s);
     context['parseDouble'] = (String s) => double.parse(s);
   }
-  JSInterpreter(this.program, Map<String,dynamic> programContext) {
+  JSInterpreter(this.code, this.program, Map<String,dynamic> programContext) {
     contexts[program] = programContext;
     addGlobals(programContext);
   }
-  JSInterpreter.fromCode(String code, Map<String,dynamic> programContext): this(parsejs(code),programContext);
+  JSInterpreter.fromCode(String code, Map<String,dynamic> programContext): this(code,parseCode(code),programContext);
   static Program parseCode(String code) {
     return parsejs(code);
+  }
+  static String toJSString(Map map) {
+    int i = 0;
+    Map placeHolders = {};
+    String keyPrefix = '__ensemble_placeholder__';
+    var encoded = jsonEncode(map, toEncodable: (value) {
+      if (value is JavascriptFunction) {
+        String key = keyPrefix + i.toString();
+        placeHolders[key] = value.functionCode;
+        i++;
+        return key;
+      }
+      throw UnsupportedError('Cannot convert to JSON: $value');
+    });
+    placeHolders.forEach((key, value) {
+      encoded = encoded.replaceFirst('\"$key\"', value);
+    });
+    return encoded;
   }
   Scope enclosingScope(Node node) {
     while (node is! Scope) {
@@ -147,7 +169,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return getContextForScope(scope);
   }
   JSInterpreter cloneForContext(Scope scope,Map<String,dynamic> ctx,bool inheritContexts) {
-    JSInterpreter i = JSInterpreter(this.program,getContextForScope(this.program));
+    JSInterpreter i = JSInterpreter(this.code, this.program,getContextForScope(this.program));
     if ( inheritContexts ) {
       contexts.keys.forEach((key) {
         i.contexts[key] = contexts[key]!;
@@ -320,16 +342,14 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   visitFunctionDeclaration(FunctionDeclaration node) {
     JavascriptFunction? func = getValue(node.function.name);
     if ( func == null ) {
-      dynamic Function(List<dynamic>) f = visitFunctionNode(node.function);
-      func = JavascriptFunction(f);
-      addToContext(node.function.name, func);
+      addToContext(node.function.name, visitFunctionNode(node.function));
     }
     return func;
   }
   @override
   visitFunctionNode(FunctionNode node, {bool? inheritContext}) {
     final List<dynamic> args = computeArguments(node.params);
-    return (List<dynamic>? _params) {
+    return JavascriptFunction((List<dynamic>? _params) {
       /*
         1. create a map, parmValueMap
         2. go through params and create a args[i]: parm[i] entry in the map
@@ -359,7 +379,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         rtn = i.getValueFromNode(rtn);
       }
       return rtn;
-    };
+    },code!.substring(node.start,node.end));
   }
   @override
   visitFunctionExpression(FunctionExpression node) {
@@ -499,7 +519,12 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     for ( Node node in args ) {
       if ( resolveNames ) {
         if ( node is Expression ) {
-          l.add(getValueFromExpression(node));
+          dynamic v = getValueFromExpression(node);
+          if ( v is JavascriptFunction ) {
+            l.add(v._onCall);
+          } else {
+            l.add(v);
+          }
         } else if ( node is Name ) {
           l.add(getValue(node));
         }
@@ -509,13 +534,21 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     }
     return l;
   }
-  executeMethod(Function method,List<Expression> declaredArguments) {
+  executeMethod(dynamic method,List<Expression> declaredArguments) {
     List<dynamic> arguments = computeArguments(declaredArguments,resolveNames:true);
-    //functions being called from js to dart
-    if (arguments.length == 0) {
-      return Function.apply(method, null);
+    if ( method is Function ) {
+      //functions being called from js to dart
+      if (arguments.length == 0) {
+        return Function.apply(method, null);
+      } else {
+        return Function.apply(method, arguments);
+      }
     } else {
-      return Function.apply(method, arguments);
+      if (arguments.length == 0) {
+        return method();
+      } else {
+        return method(arguments);
+      }
     }
   }
   @override
@@ -523,27 +556,24 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     dynamic val;
     if ( node.callee is NameExpression ) {
       final method = getValue((node.callee as NameExpression).name);
-      if ( method is Function ) {
-        val = executeMethod(method, node.arguments);
-      } else {
-        List<dynamic> arguments = computeArguments(
-            node.arguments, resolveNames: true);
-        if (arguments.length == 0) {
-          val = method();
-        } else {
-          val = method(arguments);
-        }
-      }
-
-    } else if ( node.callee is MemberExpression ) {
-      ObjectPattern pattern = visitMember(node.callee as MemberExpression,computeAsPattern:true);
-      var obj = pattern.obj;
-      Function? method = obj.methods()[pattern.property];
-      if ( method == null ) {
-        throw Exception("cannot compute statement="+node.toString()+" as no method found for property="+pattern.property.toString());
-      }
       val = executeMethod(method, node.arguments);
-    }
+    } else if ( node.callee is MemberExpression || node.callee is IndexExpression ) {
+        ObjectPattern? pattern;
+        dynamic method;
+        if (node.callee is MemberExpression) {
+          pattern = visitMember(
+              node.callee as MemberExpression, computeAsPattern: true);
+          method = pattern!.obj.methods()[pattern.property];
+        } else if ( node.callee is IndexExpression ) {
+          pattern = visitIndex(
+              node.callee as IndexExpression, computeAsPattern: true);
+          method = pattern!.obj.getProperty(pattern.property);
+        }
+        if ( method == null ) {
+          throw Exception("cannot compute statement="+node.toString()+" as no method found for property="+((pattern != null)?pattern.property.toString():''));
+        }
+        val = executeMethod(method, node.arguments);
+      }
     return val;
   }
   @override
@@ -571,7 +601,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         case '&=': obj.setProperty(pattern.property, obj.getProperty(pattern.property) & val);break;
         default: throw Exception(
             "AssignentOperator=" + node.operator + " in stmt=" +
-                node.toString() + " is not yet supported");break;
+                node.toString() + " is not yet supported");
       }
     } else if ( node.left is Name || node.left is NameExpression ) {
       Name n;
@@ -596,7 +626,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           case '&=': value &= val;break;
           default: throw Exception(
               "AssignentOperator=" + node.operator + " in stmt=" +
-                  node.toString() + " is not yet supported");break;
+                  node.toString() + " is not yet supported");
           }
 
         } else {
@@ -719,9 +749,10 @@ class ObjectPattern {
 }
 typedef OnCall = dynamic Function(List arguments);
 class JavascriptFunction {
-  JavascriptFunction(this._onCall);
+  JavascriptFunction(this._onCall,this.functionCode);
 
   final OnCall _onCall;
+  final String functionCode;
 
   noSuchMethod(Invocation invocation) {
     if (!invocation.isMethod || invocation.namedArguments.isNotEmpty)
