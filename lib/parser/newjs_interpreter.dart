@@ -243,6 +243,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         if (rtn is Name) {
           rtn = getValue(rtn);
         }
+        if ( rtn is InvokablePrimitive ) {
+          rtn = rtn.getValue();
+        }
       }
     } on ControlFlowReturnException catch(e) {
       rtn = e.returnValue;

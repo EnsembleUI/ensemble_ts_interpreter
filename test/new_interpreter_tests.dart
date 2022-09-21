@@ -1,4 +1,5 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
 import 'package:ensemble_ts_interpreter/parser/newjs_interpreter.dart';
 import 'package:json_path/json_path.dart';
 import 'dart:convert';
@@ -7,7 +8,7 @@ import 'package:test/test.dart';
 import 'package:jsparser/jsparser.dart';
 import 'package:jsparser/src/ast.dart';
 class Ensemble extends Object with Invokable {
-  String? name,date,firstName,lastName;
+  String? name,date,firstName,lastName,text;
   String? navigateScreenCalledForScreen;
   Ensemble(this.name);
   @override
@@ -16,7 +17,8 @@ class Ensemble extends Object with Invokable {
       'date': () => date,
       'firstName':() => firstName,
       'lastName':() => lastName,
-      'name':() => name
+      'name':() => name,
+      'text':() => text
     };
   }
 
@@ -34,8 +36,7 @@ class Ensemble extends Object with Invokable {
   @override
   Map<String, Function> setters() {
     return {
-
-
+      'text': (v) => text = v
     };
   }
 
@@ -603,5 +604,20 @@ void main() {
 
 
     expect(map['label']['abc'](['hello']),'hello');
+  });
+  test('Primitive in code', () {
+    Map<String, dynamic> context = initContext();
+
+    Invokable myText = Ensemble('whatever');
+    myText.setProperty('text', 'Hi');
+    context["text1"] = myText;
+
+    Invokable myString = InvokableString("World");
+    context["text2"] = myString;
+
+    expect(JSInterpreter.fromCode('text1.text', context).evaluate(), 'Hi');
+    expect('Hello '+JSInterpreter.fromCode('text2', context).evaluate(), 'Hello World');
+
+
   });
 }
