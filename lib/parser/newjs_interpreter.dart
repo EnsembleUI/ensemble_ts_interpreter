@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:ensemble_ts_interpreter/invokables/InvokableRegExp.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokablecommons.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablemath.dart';
@@ -128,6 +129,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     context['parseFloat'] = (String s) => double.parse(s);
     context['parseInt'] = (String s) => int.parse(s);
     context['parseDouble'] = (String s) => double.parse(s);
+    context['JSON'] = JSON();
   }
   JSInterpreter(this.code, this.program, Map<String,dynamic> programContext) {
     contexts[program] = programContext;
