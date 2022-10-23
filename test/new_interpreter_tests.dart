@@ -1,4 +1,5 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokablecontroller.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
 import 'package:ensemble_ts_interpreter/parser/newjs_interpreter.dart';
 import 'package:json_path/json_path.dart';
@@ -252,7 +253,7 @@ void main() {
     dynamic rtn = JSInterpreter.fromCode("""
       var result = response.path('\$..Year',function (match) {match});
       """,context).evaluate();
-    expect(context['result'][1],1910);
+    expect(context['result'][1],'1910');
   });
   test('listsortuniquetest', () async {
     String codeToEvaluate = """
@@ -476,7 +477,7 @@ void main() {
     bool hasMatch = exp.hasMatch('1233344');
     print('hasMatch=$hasMatch');
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(r'var a = /\d+/',context).evaluate();
+    dynamic rtnValue = JSInterpreter.fromCode(r'var a = /\d+/;a = a.test("123");',context).evaluate();
     expect(context['a'],true);
   });
   test('mathtest', () async {
@@ -609,11 +610,9 @@ void main() {
     Map<String, dynamic> context = initContext();
 
     Invokable myText = Ensemble('whatever');
-    myText.setProperty('text', 'Hi');
+    InvokableController.setProperty(myText,'text', 'Hi');
     context["text1"] = myText;
-
-    Invokable myString = InvokableString("World");
-    context["text2"] = myString;
+    context["text2"] = "World";
 
     expect(JSInterpreter.fromCode('text1.text', context).evaluate(), 'Hi');
     expect('Hello '+JSInterpreter.fromCode('text2', context).evaluate(), 'Hello World');

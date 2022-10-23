@@ -2,9 +2,6 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:ensemble_ts_interpreter/api.dart';
-import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
-import 'package:ensemble_ts_interpreter/parser/ast.dart';
-import 'package:ensemble_ts_interpreter/parser/js_interpreter.dart';
 import 'package:ensemble_ts_interpreter/view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -137,22 +134,17 @@ class APIHandler extends Handler {
     Map<String,String> values = HashMap();
     var context = prepareContext(action);
     Future<Response> response = api.call(values);
-    response.then((res) {
-      if ( success != null ) {
-        var decodedResponse = jsonDecode(utf8.decode(res.bodyBytes)) as Map;
-        InvokableMap m = InvokableMap(decodedResponse);
-        context["response"] = m;
-        var json = jsonDecode(success!);
-        List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
-        Interpreter(context).evaluate(arr);
-        /*
-        var expression = Expression.parse(success!);
-        const evaluator = MyEvaluator();
-        var r = evaluator.eval(expression,context);
-         */
-      }
-
-    });
+    // response.then((res) {
+    //   if ( success != null ) {
+    //     var decodedResponse = jsonDecode(utf8.decode(res.bodyBytes)) as Map;
+    //     InvokableMap m = InvokableMap(decodedResponse);
+    //     context["response"] = m;
+    //     var json = jsonDecode(success!);
+    //     List<ASTNode> arr = ASTBuilder().buildArray(json['body']);
+    //     Interpreter(context).evaluate(arr);
+    //   }
+    //
+    // });
   }
 
 }

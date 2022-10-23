@@ -1,5 +1,3 @@
-import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
-import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
 import 'package:flutter/widgets.dart';
 
@@ -17,27 +15,20 @@ mixin Invokable {
   ///     for changes, enabling the listeners (widget state) to redraw.
   ///
   /// Use getProperty/setProperty/callMethod instead of these.
-  @protected
   Map<String, Function> getters();
-  @protected
   Map<String, Function> setters();
-  @protected
   Map<String, Function> methods();
 
   List? getList(Object obj) {
     List? l;
-    if ( obj is InvokableList ) {
-      l = obj.list;
-    } else if ( obj is List ) {
+    if ( obj is List ) {
       l = obj;
     }
     return l;
   }
   String? getString(Object obj) {
     String? str;
-    if ( obj is InvokableString ) {
-      str = obj.val;
-    } else if ( obj is String ) {
+    if ( obj is String ) {
       str = obj;
     } else if ( obj is Map && obj.containsKey('value') ) {
       str = obj['value'] as String;
@@ -46,33 +37,31 @@ mixin Invokable {
   }
   Map? getMap(Object obj) {
     Map? m;
-    if ( obj is InvokableMap ) {
-      m = obj.map;
-    } else if ( obj is Map ) {
+    if ( obj is Map ) {
       m = obj;
     }
     return m;
   }
-  List<String> getGettableProperties() {
-    List<String> rtn = getters().keys.toList();
-    if (this is HasController) {
-      rtn.addAll((this as HasController).controller.getBaseGetters().keys);
+  static List<String> getGettableProperties(Invokable obj) {
+    List<String> rtn = obj.getters().keys.toList();
+    if (obj is HasController) {
+      rtn.addAll((obj as HasController).controller.getBaseGetters().keys);
     }
     return rtn;
   }
 
-  List<String> getSettableProperties() {
-    List<String> rtn = setters().keys.toList();
-    if (this is HasController) {
-      rtn.addAll((this as HasController).controller.getBaseSetters().keys);
+  static List<String> getSettableProperties(Invokable obj) {
+    List<String> rtn = obj.setters().keys.toList();
+    if (obj is HasController) {
+      rtn.addAll((obj as HasController).controller.getBaseSetters().keys);
     }
     return rtn;
   }
 
-  Map<String, Function> getMethods() {
-    Map<String, Function> rtn = methods();
-    if (this is HasController) {
-      rtn.addAll((this as HasController).controller.getBaseMethods());
+  static Map<String, Function> getMethods(Invokable obj) {
+    Map<String, Function> rtn = obj.methods();
+    if (obj is HasController) {
+      rtn.addAll((obj as HasController).controller.getBaseMethods());
     }
     return rtn;
   }

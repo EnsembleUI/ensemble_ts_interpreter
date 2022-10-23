@@ -1,8 +1,8 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:json_path/json_path.dart';
-class InvokableMap extends Object with Invokable {
+class _InvokableMap extends Object with Invokable {
   Map map;
-  InvokableMap(this.map);
+  _InvokableMap(this.map);
   @override
   Map<String, Function> getters() {
     return {};

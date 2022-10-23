@@ -2,12 +2,9 @@
 import 'dart:convert';
 
 import 'package:ensemble_ts_interpreter/invokables/InvokableRegExp.dart';
-import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablecommons.dart';
-import 'package:ensemble_ts_interpreter/invokables/invokablelist.dart';
-import 'package:ensemble_ts_interpreter/invokables/invokablemap.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablemath.dart';
-import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokablecontroller.dart';
 import 'package:jsparser/jsparser.dart';
 import 'package:jsparser/src/ast.dart';
 
@@ -245,12 +242,11 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         if (rtn is Name) {
           rtn = getValue(rtn);
         }
-        if ( rtn is InvokablePrimitive ) {
-          rtn = rtn.getValue();
-        }
       }
     } on ControlFlowReturnException catch(e) {
       rtn = e.returnValue;
+    } catch (error) {
+      throw Exception("Error: ${error.toString()} while executing $code");
     }
     return rtn;
   }
@@ -318,8 +314,6 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     num number;
     if ( val is num ) {
       number = val;
-    } else if ( val is InvokableNumber ) {
-      number = val.val;
     } else {
       throw Exception(
           'The operator ' + node.operator + ' is only valid for numbers and ' +
@@ -336,11 +330,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         case '--': number++;break;
       }
     }
-    if ( val is InvokableNumber ) {
-      val.val = number;
-    } else {
-      addToContext(name, number);
-    }
+    addToContext(name, number);
     return number;
   }
   @override
@@ -476,15 +466,13 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   visitForIn(ForInStatement node) {
     dynamic right = getValueFromNode(node.right);
     dynamic left = node.left.visitBy(this);
-    if ( right is InvokableMap ) {
-      right = right.map;
-    } else if ( right is! Map ) {
+    if ( right is! Map ) {
       throw Exception('for...in is only allowed for js objects or maps. $right is not a map');
     }
     if ( left is! Name ) {
       throw Exception('left side in the for...in expression must be a name node. $node.left is not name');
     }
-    Map map = right as Map;
+    Map map = right;
     for ( dynamic key in map.keys ) {
       addToContext(left, key);
       try {
@@ -568,11 +556,13 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         if (node.callee is MemberExpression) {
           pattern = visitMember(
               node.callee as MemberExpression, computeAsPattern: true);
-          method = pattern!.obj.methods()[pattern.property];
+          method = InvokableController.methods(pattern!.obj)[pattern.property];
+          //old: method = pattern!.obj.methods()[pattern.property];
         } else if ( node.callee is IndexExpression ) {
           pattern = visitIndex(
               node.callee as IndexExpression, computeAsPattern: true);
-          method = pattern!.obj.getProperty(pattern.property);
+          method = InvokableController.getProperty(pattern!.obj,pattern.property);
+          //old: method = pattern!.obj.getProperty(pattern.property);
         }
         if ( method == null ) {
           throw Exception("cannot compute statement="+node.toString()+" as no method found for property="+((pattern != null)?pattern.property.toString():''));
@@ -593,17 +583,17 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     if ( pattern != null ) {
       var obj = pattern.obj;
       switch (node.operator) {
-        case '=': obj.setProperty(pattern.property, val);break;
-        case '+=': obj.setProperty(pattern.property, obj.getProperty(pattern.property) + val);break;
-        case '-=': obj.setProperty(pattern.property, obj.getProperty(pattern.property) - val);break;
-        case '*=': obj.setProperty(pattern.property, obj.getProperty(pattern.property) * val);break;
-        case '/=': obj.setProperty(pattern.property, obj.getProperty(pattern.property) / val);break;
-        case '%=': obj.setProperty(pattern.property, obj.getProperty(pattern.property) % val);break;
-        case '<<=': obj.setProperty(pattern.property, obj.getProperty(pattern.property) << val);break;
-        case '>>=': obj.setProperty(pattern.property, obj.getProperty(pattern.property) >> val);break;
-        case '|=': obj.setProperty(pattern.property, obj.getProperty(pattern.property) | val);break;
-        case '^=': obj.setProperty(pattern.property, obj.getProperty(pattern.property) ^ val);break;
-        case '&=': obj.setProperty(pattern.property, obj.getProperty(pattern.property) & val);break;
+        case '=': InvokableController.setProperty(obj, pattern.property, val);break;
+        case '+=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) + val);break;
+        case '-=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) - val);break;
+        case '*=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) * val);break;
+        case '/=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) / val);break;
+        case '%=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) % val);break;
+        case '<<=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) << val);break;
+        case '>>=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) >> val);break;
+        case '|=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) | val);break;
+        case '^=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) ^ val);break;
+        case '&=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) & val);break;
         default: throw Exception(
             "AssignentOperator=" + node.operator + " in stmt=" +
                 node.toString() + " is not yet supported");
@@ -663,13 +653,12 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         unicode = true;
       }
     }
-    RegExp regExp = RegExp(node.regexp.substring(0,index).replaceAll('/', ''),
+    return RegExp(node.regexp.substring(0,index).replaceAll('/', ''),
         multiLine: multiline,
         caseSensitive: !ignoreCase,
         dotAll: dotAll,
         unicode: unicode
     );
-    return InvokableRegExp(regExp);
   }
 
 
@@ -679,32 +668,13 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return visitObjectPropertyExpression(node.object,getValueFromExpression(node.property),computeAsPattern: computeAsPattern);
   }
   visitObjectPropertyExpression(Expression object, dynamic property, {bool computeAsPattern=false}) {
-    var exp = getValueFromExpression(object);
-    dynamic obj;
-    if (InvokablePrimitive.isPrimitive(exp)) {
-      obj = InvokablePrimitive.getPrimitive(exp);
-    } else if (exp is Invokable) {
-      obj = exp;
-    } else if (exp is Map) {
-      obj = InvokableMap(exp);
-    } else if ( exp is List ) {
-      obj = InvokableList(exp);
-    } else {
-      throw Exception('unable to compute obj='+object.toString()+' for expression='+object.parent.toString());
-    }
-    if ( obj is Map ) {
-      obj = InvokableMap(obj);
-    } else if ( obj is List ) {
-      obj = InvokableList(obj);
-    }
-    if ( obj is! Invokable ) {
-      throw Exception("unknown object.; obj must be of type Invokable but is "+obj.toString());
-    }
+    dynamic obj = getValueFromExpression(object);
     dynamic val;
     if ( computeAsPattern ) {
       val = ObjectPattern(obj, property);
     } else {
-      val = obj.getProperty(property);
+      val = InvokableController.getProperty(obj, property);
+      //old: val = obj.getProperty(property);
     }
     return val;
   }
@@ -748,7 +718,7 @@ class ControlFlowReturnException implements Exception {
 class ControlFlowBreakException implements Exception {
 }
 class ObjectPattern {
-  Invokable obj;
+  Object obj;
   dynamic property;
   ObjectPattern(this.obj,this.property);
 }

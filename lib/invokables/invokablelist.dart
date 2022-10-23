@@ -1,8 +1,8 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 
-class InvokableList extends Object with Invokable {
+class _InvokableList extends Object with Invokable {
   List list;
-  InvokableList(this.list);
+  _InvokableList(this.list);
   @override
   Map<String, Function> getters() {
     return {
