@@ -283,6 +283,7 @@ class _List {
       'map': (Function f) =>  {
         list.map((e) => f([e])).toList()
       },
+      'filter': (Function f) => list.where((e) => f([e])).toList(),
       'forEach': (Function f) =>  {
         list.forEach((e) => f([e]))
       },

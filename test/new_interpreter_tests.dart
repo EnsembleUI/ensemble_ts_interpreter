@@ -619,4 +619,50 @@ void main() {
 
 
   });
+
+  test('filter function', () async {
+    Map<String, dynamic> context = {
+      'items': ['one', 'two', 'three'],
+      'nested': [
+        {'id': 1, 'label': 'eggs', 'type': ''},
+        {'id': 2, 'label': 'strawberry', 'type': 'fruit'},
+        {'id': 3, 'label': 'nut'}
+      ]
+    };
+
+    String code = """
+      var flatList = items.filter(function(e) {
+        return e != 'two';
+      });
+      
+      var nestedList = nested.filter(function(e) {
+        return e['type'] == 'fruit'
+      });
+    """;
+    
+    JSInterpreter.fromCode(code, context).evaluate();
+
+    // simple object
+    expect(context['flatList'].length, 2);
+    expect(context['flatList'][0], context['items'][0]);
+    expect(context['flatList'][1], context['items'][2]);
+
+    // nested object
+    expect(context['nestedList'].length, 1);
+    expect(context['nestedList'][0]['label'], 'strawberry');
+
+  });
+
+  test('mapTest', () async {
+    String codeToEvaluate = """
+      users.map(function (user) {
+        user.name += "NEW";
+      });
+      """;
+    Map<String, dynamic> context = initContext();
+    String origValue = context['users'][1]['name'];
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    expect(context['users'][1]['name'],origValue+'NEW');
+  });
+
 }
