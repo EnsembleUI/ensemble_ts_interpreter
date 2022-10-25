@@ -651,6 +651,10 @@ void main() {
     expect(context['nestedList'].length, 1);
     expect(context['nestedList'][0]['label'], 'strawberry');
 
+    // ensure original values have not changed
+    expect(context['items'].length, 3);
+    expect(context['nested'].length, 3);
+
   });
 
   test('mapTest', () async {
