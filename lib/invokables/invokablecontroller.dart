@@ -164,8 +164,18 @@ class _String {
   static Map<String, Function> methods(String val) {
     return {
       'indexOf': (String str) => val.indexOf(str),
+      'lastIndexOf': (String str,[start=-1]) => (start == -1)?val.lastIndexOf(str):val.lastIndexOf(str,start),
+      'charAt': (index)=> val[index],
+      'startsWith': (str) => val.startsWith(str),
+      'endsWith': (str) => val.endsWith(str),
+      'includes': (str) => val.contains(str),
       'toLowerCase': () => val.toLowerCase(),
       'toUpperCase': () => val.toUpperCase(),
+      'match': (regexp) => (regexp as RegExp).firstMatch(val),
+      'matchAll': (regexp) => (regexp as RegExp).allMatches(val),
+      'padStart': (n,[str=' ']) => val.padLeft(n,str),
+      'padEnd': (n,[str=' ']) => val.padRight(n,str),
+      'substring': (start,[end=-1]) => (end == -1)?val.substring(start):val.substring(start,end),
       'split': (String delimiter) => val.split(delimiter),
       'prettyCurrency': () => InvokablePrimitive.prettyCurrency(val),
       'prettyDate': () => InvokablePrimitive.prettyDate(val),
