@@ -656,17 +656,28 @@ void main() {
     expect(context['nested'].length, 3);
 
   });
-
-  test('mapTest', () async {
-    String codeToEvaluate = """
-      users.map(function (user) {
-        user.name += "NEW";
-      });
-      """;
+  test('string_functions', () {
     Map<String, dynamic> context = initContext();
-    String origValue = context['users'][1]['name'];
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
-    expect(context['users'][1]['name'],origValue+'NEW');
+
+    String code = """
+        var str = 'the ensemble is GREAT';
+        var ensembleStr = str.substring(4,4+'ensemble'.length);
+        var isGreat = str.substring(4);
+        var four = str.indexOf('ensemble');
+        var minusOne = str.indexOf('whatever');
+        var upperCase = str.toUpperCase();
+        var lowerCase = str.toLowerCase();
+        """;
+
+    JSInterpreter.fromCode(code, context).evaluate();
+    expect(context['ensembleStr'],'ensemble');
+    expect(context['isGreat'],'ensemble is GREAT');
+    expect(context['four'],4);
+    expect(context['minusOne'],-1);
+    expect(context['upperCase'],'the ensemble is great'.toUpperCase());
+    expect(context['lowerCase'],'the ensemble is great'.toLowerCase());
+
+
   });
 
 }
