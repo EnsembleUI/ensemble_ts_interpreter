@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokablecommons.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokablemath.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
-import 'package:ensemble_ts_interpreter/parser/ast.dart';
 import 'package:json_path/json_path.dart';
 
 class InvokableController {
@@ -17,6 +20,20 @@ class InvokableController {
       rtn = val is Map || val is List || val is RegExp;
     }
     return rtn;
+  }
+  static RegExp regExp(String regex,String options) {
+    RegExp r =  RegExp(regex);
+    return r;
+  }
+  static void addGlobals(Map<String,dynamic> context) {
+    context['regExp']= regExp;
+    context['Math'] = InvokableMath();
+    context['parseFloat'] = (String s) => double.parse(s);
+    context['parseInt'] = (String s) => int.parse(s);
+    context['parseDouble'] = (String s) => double.parse(s);
+    context['JSON'] = JSON();
+    context['btoa'] = _String.btoa;
+    context['atob'] = _String.atob;
   }
   static Map<String, Function> methods(dynamic val) {
     if ( val == null ) {
@@ -143,6 +160,13 @@ class InvokableController {
 }
 
 class _String {
+  //encodes string to base64 string
+  static String btoa(String s) {
+    final List<int> bytes = utf8.encode(s);
+    return base64.encode(bytes);
+  }
+  //decodes a base64 string
+  static String atob(String s) => utf8.decode(base64.decode(s));
   static Map<String, Function> getters(String val) {
     return {
       'length': () => val.length
@@ -181,7 +205,9 @@ class _String {
       'prettyDate': () => InvokablePrimitive.prettyDate(val),
       'prettyDateTime': () => InvokablePrimitive.prettyDateTime(val),
       'tryParseInt':() => int.tryParse(val),
-      'tryParseDouble':() => double.tryParse(val)
+      'tryParseDouble':() => double.tryParse(val),
+      'btoa': () => btoa(val),
+      'atob': () => atob(val),
     };
   }
   static Map<String, Function> setters(String val) {

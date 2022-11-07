@@ -1,9 +1,6 @@
 
 import 'dart:convert';
 
-import 'package:ensemble_ts_interpreter/invokables/InvokableRegExp.dart';
-import 'package:ensemble_ts_interpreter/invokables/invokablecommons.dart';
-import 'package:ensemble_ts_interpreter/invokables/invokablemath.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablecontroller.dart';
 import 'package:jsparser/jsparser.dart';
 import 'package:jsparser/src/ast.dart';
@@ -116,21 +113,11 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     node.forEach((node)=> rtn = visit(node));
     return rtn;
   }
-  RegExp regExp(String regex,String options) {
-    RegExp r =  RegExp(regex);
-    return r;
-  }
-  void addGlobals(Map<String,dynamic> context) {
-    context['regExp']= regExp;
-    context['Math'] = InvokableMath();
-    context['parseFloat'] = (String s) => double.parse(s);
-    context['parseInt'] = (String s) => int.parse(s);
-    context['parseDouble'] = (String s) => double.parse(s);
-    context['JSON'] = JSON();
-  }
+
+
   JSInterpreter(this.code, this.program, Map<String,dynamic> programContext) {
     contexts[program] = programContext;
-    addGlobals(programContext);
+    InvokableController.addGlobals(programContext);
   }
   JSInterpreter.fromCode(String code, Map<String,dynamic> programContext): this(code,parseCode(code),programContext);
   static Program parseCode(String code) {

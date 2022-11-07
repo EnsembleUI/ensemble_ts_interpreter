@@ -667,6 +667,10 @@ void main() {
         var minusOne = str.indexOf('whatever');
         var upperCase = str.toUpperCase();
         var lowerCase = str.toLowerCase();
+        var base64 = str.btoa();
+        var equalsEncoded = base64 == btoa(str);
+        var decoded = atob(base64);
+        var equalsDecoded = decoded == base64.atob();
         """;
 
     JSInterpreter.fromCode(code, context).evaluate();
@@ -676,7 +680,10 @@ void main() {
     expect(context['minusOne'],-1);
     expect(context['upperCase'],'the ensemble is great'.toUpperCase());
     expect(context['lowerCase'],'the ensemble is great'.toLowerCase());
-
+    expect(context['base64'],'dGhlIGVuc2VtYmxlIGlzIEdSRUFU');
+    expect(context['equalsEncoded'],true);
+    expect(context['decoded'],'the ensemble is GREAT');
+    expect(context['equalsDecoded'],true);
 
   });
 
