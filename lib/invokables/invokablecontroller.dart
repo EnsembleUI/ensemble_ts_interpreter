@@ -303,19 +303,20 @@ class _List {
       'length':() => list.length
     };
   }
-
+  static List filter(List list,Function f) {
+    return list.where((e) => f([e])).toList();
+  }
   static Map<String, Function> methods(List list) {
     return {
       'map': (Function f) =>  {
         list.map((e) => f([e])).toList()
       },
-      'filter': (Function f) => list.where((e) => f([e])).toList(),
-      'forEach': (Function f) =>  {
-        list.forEach((e) => f([e]))
-      },
+      'filter': (Function f) => filter(list,f),
+      'forEach': (Function f) =>  list.forEach((e) => f([e])),
       'add': (dynamic val) => list.add(val),
       'push': (dynamic val) => list.add(val),
       'indexOf': (dynamic val) => list.indexOf(val),
+      'lastIndexOf': (dynamic val) => list.lastIndexOf(val),
       'unique': () => list.toSet().toList(),
       'sort': ([Function? f]) {
         if ( f == null ) {
@@ -333,7 +334,16 @@ class _List {
           list.sort((a,b)=> f([a,b]));
         }
         return list;
-      }
+      },
+      'at': (int index) => list[index],
+      'concat': (List arr) => list + arr,
+      'find': (Function f) => list.firstWhere((e) => f([e])),
+      'includes': (dynamic v) => list.contains(v),
+      'contains': (dynamic v) => list.contains(v),
+      'join': ([String str=',']) => list.join(str),
+      'pop': () => (list.isNotEmpty)? list.removeLast(): null,
+      'reduce': (Function f) =>  list.reduce((value, element) => f([value,element])),
+      'reverse': () => list.reversed.toList(),
     };
   }
 

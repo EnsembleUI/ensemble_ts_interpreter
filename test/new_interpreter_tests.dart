@@ -215,7 +215,7 @@ void main() {
   });
   test('ternary', () async {
     String codeToEvaluate = """
-        (age > 2)?users[0]['age']='More than two years old':users[0]['age']='2 and under';
+          (age > 2)?users[0]['age']='More than two years old':users[0]['age']='2 and under';
       """;
     Map<String, dynamic> context = initContext();
     context['age'] = 1;
@@ -686,5 +686,40 @@ void main() {
     expect(context['equalsDecoded'],true);
 
   });
+  test('array_functions', () {
+    Map<String, dynamic> context = initContext();
 
+    String code = """
+        var arr = ['a','b','c','d'];
+        var b = arr.at(1);
+        var arr2 = arr.concat(['e','f']);
+        var f = arr2.find(function (element)  { 
+              var rtn = ( element == 'f' )? true : false;
+              return rtn;
+         });
+         var includes = arr2.includes('e');
+         var str = arr.join();
+         var str2 = arr.join('-');
+         var str3 = arr.join('');
+         var last = arr2.pop(); 
+         var nums = [1,2,3,4,5];
+         var sum = nums.reduce(function (value, element) {
+            return value + element;
+            });
+         var reversed = arr.reverse();
+        """;
+
+    JSInterpreter.fromCode(code, context).evaluate();
+    expect(context['b'],'b');
+    expect(context['arr2'][4],'e');
+    expect(context['f'],'f');
+    expect(context['includes'],true);
+    expect(context['str'],'a,b,c,d');
+    expect(context['str2'],'a-b-c-d');
+    expect(context['str3'],'abcd');
+    expect(context['last'],'f');
+    expect(context['arr2'].length,5);
+    expect(context['sum'],15);
+    expect(context['reversed'][0],'d');
+  });
 }
