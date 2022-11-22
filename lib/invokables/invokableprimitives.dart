@@ -53,6 +53,13 @@ abstract class InvokablePrimitive {
     }
     return '';
   }
+  static String prettyTime(dynamic input) {
+    DateTime? dateTime = parseDateTime(input)?.toLocal();
+    if (dateTime != null) {
+      return DateFormat.jm().format(dateTime);
+    }
+    return '';
+  }
   /// try to parse the input into a DateTime.
   /// The returned DateTime is in UTC/GMT timezone (not your local DateTime)
   static DateTime? parseDateTime(dynamic input) {

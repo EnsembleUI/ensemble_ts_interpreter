@@ -204,6 +204,7 @@ class _String {
       'prettyCurrency': () => InvokablePrimitive.prettyCurrency(val),
       'prettyDate': () => InvokablePrimitive.prettyDate(val),
       'prettyDateTime': () => InvokablePrimitive.prettyDateTime(val),
+      'prettyTime': () => InvokablePrimitive.prettyTime(val),
       'tryParseInt':() => int.tryParse(val),
       'tryParseDouble':() => double.tryParse(val),
       'btoa': () => btoa(val),
