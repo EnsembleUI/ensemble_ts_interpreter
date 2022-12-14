@@ -41,7 +41,7 @@ class Bindings extends RecursiveVisitor<dynamic> {
   }
   @override
   String visitName(Name node) {
-    return node.value;
+    return node.value!;
   }
   @override
   visitNameExpression(NameExpression node) {
@@ -143,14 +143,14 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   Scope enclosingScope(Node node) {
     while (node is! Scope) {
-      node = node.parent;
+      node = node.parent!;
     }
     return node;
   }
   Map<String,dynamic> findProgramContext(Node node) {
     Scope scope = enclosingScope(node);
     while (scope is! Program) {
-      scope = enclosingScope(scope.parent);
+      scope = enclosingScope(scope.parent!);
     }
     return getContextForScope(scope);
   }
@@ -166,17 +166,17 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   Scope findScope(Name nameNode) {
     String name = nameNode.value;
-    Node parent = nameNode.parent;
+    Node parent = nameNode.parent!;
     Node node = nameNode;
     if (parent is FunctionNode && parent.name == node && !parent.isExpression) {
-      node = parent.parent;
+      node = parent.parent!;
     }
     Scope scope = enclosingScope(node);
     while (scope is! Program) {
       if (scope.environment == null)
         throw "$scope does not have an environment";
-      if (scope.environment.contains(name)) return scope;
-      scope = enclosingScope(scope.parent);
+      if (scope.environment!.contains(name)) return scope;
+      scope = enclosingScope(scope.parent!);
     }
     return scope;
   }
@@ -184,11 +184,11 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return contexts[scope]!;
   }
   void addToContext(Name node, dynamic value) {
-    Map m = getContextForScope(node.scope);
+    Map m = getContextForScope(node.scope!);
     m[node.value] = value;
   }
   dynamic removeFromContext(Name node) {
-    Map m = getContextForScope(node.scope);
+    Map m = getContextForScope(node.scope!);
     return m.remove(node.value);
   }
   dynamic getValueFromNode(Node node) {
@@ -290,7 +290,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       case '-': val = -1 * val;break;
       case 'typeof': val = val.runtimeType;break;
       case '!': val = !val;break;
-      default: throw Exception(node.operator+" not yet implemented. stmt="+node.toString());
+      default: throw Exception(node.operator!+" not yet implemented. stmt="+node.toString());
     }
     return val;
   }
@@ -303,7 +303,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       number = val;
     } else {
       throw Exception(
-          'The operator ' + node.operator + ' is only valid for numbers and ' +
+          'The operator ' + node.operator! + ' is only valid for numbers and ' +
               node.argument.toString() + ' is not a number');
     }
     if ( node.isPrefix ) {
@@ -322,9 +322,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    JavascriptFunction? func = getValue(node.function.name);
+    JavascriptFunction? func = getValue(node.function.name!);
     if ( func == null ) {
-      addToContext(node.function.name, visitFunctionNode(node.function));
+      addToContext(node.function.name!, visitFunctionNode(node.function));
     }
     return func;
   }
@@ -361,7 +361,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         rtn = i.getValueFromNode(rtn);
       }
       return rtn;
-    },code!.substring(node.start,node.end));
+    },code!.substring(node.start!,node.end));
   }
   @override
   visitFunctionExpression(FunctionExpression node) {
@@ -380,7 +380,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     Name name = node.name;
     dynamic value;
     if ( node.init != null ) {
-      value = node.init.visitBy(this);
+      value = node.init!.visitBy(this);
     }
     addToContext(name,value);
   }
@@ -441,7 +441,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       done = true;
     }
     if ( !done ) {
-      throw Exception(node.operator + ' is not yet supported');
+      throw Exception(node.operator! + ' is not yet supported');
     }
     return rtn;
   }
@@ -582,7 +582,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         case '^=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) ^ val);break;
         case '&=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) & val);break;
         default: throw Exception(
-            "AssignentOperator=" + node.operator + " in stmt=" +
+            "AssignentOperator=" + node.operator! + " in stmt=" +
                 node.toString() + " is not yet supported");
       }
     } else if ( node.left is Name || node.left is NameExpression ) {
@@ -607,7 +607,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           case '^=': value ^= val;break;
           case '&=': value &= val;break;
           default: throw Exception(
-              "AssignentOperator=" + node.operator + " in stmt=" +
+              "AssignentOperator=" + node.operator! + " in stmt=" +
                   node.toString() + " is not yet supported");
           }
 
@@ -621,9 +621,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   visitRegexp(RegexpExpression node) {
     bool allMatches = false, dotAll = false, multiline = false, ignoreCase = false,unicode = false;
 
-    int index = node.regexp.lastIndexOf('/');
+    int index = node.regexp!.lastIndexOf('/');
     if ( index != -1 ) {
-      String options = node.regexp.substring(index);
+      String options = node.regexp!.substring(index);
       if ( options.contains('i') ) {
         ignoreCase = true;
       }
@@ -640,7 +640,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         unicode = true;
       }
     }
-    return RegExp(node.regexp.substring(0,index).replaceAll('/', ''),
+    return RegExp(node.regexp!.substring(0,index).replaceAll('/', ''),
         multiLine: multiline,
         caseSensitive: !ignoreCase,
         dotAll: dotAll,

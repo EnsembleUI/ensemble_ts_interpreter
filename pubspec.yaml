@@ -41,7 +41,11 @@ dependencies:
   duration: ^3.0.11
   #flutter_js: ^0.5.0+6
   #dartjsengine: ^1.0.1
-  jsparser: ^2.0.1
+  jsparser:
+    git:
+      url: https://github.com/kmahmood74/parsejs_null_safety.dart.git
+      ref: master
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
