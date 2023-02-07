@@ -722,4 +722,13 @@ void main() {
     expect(context['sum'],15);
     expect(context['reversed'][0],'d');
   });
+  test('console_log_test', () {
+    Map<String, dynamic> context = initContext();
+
+    String code = """
+      var str = 'I am a sample message to be printed on the console';
+      console.log('logging - '+str);
+      """;
+    JSInterpreter.fromCode(code, context).evaluate();
+  });
 }

@@ -4,6 +4,7 @@ import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablecommons.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablemath.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:json_path/json_path.dart';
 
 class InvokableController {
@@ -34,6 +35,7 @@ class InvokableController {
     context['JSON'] = JSON();
     context['btoa'] = _String.btoa;
     context['atob'] = _String.atob;
+    context['console'] = Console();
   }
   static Map<String, Function> methods(dynamic val) {
     if ( val == null ) {
@@ -158,7 +160,25 @@ class InvokableController {
   }
 
 }
+class Console extends Object with Invokable {
+  @override
+  Map<String, Function> getters() {
+    return {};
+  }
 
+  @override
+  Map<String, Function> methods() {
+    return {
+      'log': (val) => debugPrint(val)
+    };
+  }
+
+  @override
+  Map<String, Function> setters() {
+    return {};
+  }
+
+}
 class _String {
   //encodes string to base64 string
   static String btoa(String s) {
