@@ -45,6 +45,7 @@ dependencies:
     git:
       url: https://github.com/kmahmood74/parsejs_null_safety.dart.git
       ref: master
+  source_span: ^1.9.1
 
 dev_dependencies:
   flutter_test:

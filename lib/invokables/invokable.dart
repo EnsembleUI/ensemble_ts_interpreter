@@ -1,10 +1,12 @@
+import 'package:ensemble_ts_interpreter/errors.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
 import 'package:flutter/widgets.dart';
+import 'package:source_span/source_span.dart';
 
 mixin Invokable {
   // optional ID to identify this Invokable
   String? id;
-
+  SourceSpan? definition;
   /// mark these functions as protected as we need the implementations,
   /// but discourage direct usages.
   /// Reasons:
@@ -65,7 +67,15 @@ mixin Invokable {
     }
     return rtn;
   }
-
+  bool hasSettableProperty(dynamic prop) {
+    return getSettableProperties(this).contains(prop);
+  }
+  bool hasGettableProperty(dynamic prop) {
+    return getGettableProperties(this).contains(prop);
+  }
+  bool hasMethod(dynamic method) {
+    return getMethods(this).containsKey(method);
+  }
   dynamic getProperty(dynamic prop) {
     Function? func = getters()[prop];
     if (func == null && this is HasController) {
@@ -75,6 +85,7 @@ mixin Invokable {
     if (func != null) {
       return func();
     }
+    throw InvalidPropertyException('Object with id:${id??''} does not have a gettable property named $prop');
   }
 
   /// update a property. If this is a HasController (i.e. Widget), notify it of changes
@@ -91,6 +102,8 @@ mixin Invokable {
       if (this is HasController) {
         (this as HasController).controller.dispatchChanges(KeyValue(prop.toString(), val));
       }
+    } else {
+      throw InvalidPropertyException('Object with id:${id??''} does not have a settable property named $prop');
     }
   }
 }

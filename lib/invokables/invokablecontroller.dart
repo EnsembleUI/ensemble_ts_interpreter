@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:ensemble_ts_interpreter/errors.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablecommons.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablemath.dart';
@@ -99,7 +100,7 @@ class InvokableController {
   }
   static dynamic getProperty(dynamic val, dynamic prop) {
     if ( val == null ) {
-      return null;
+      throw InvalidPropertyException('Cannot get a property on a null object. Property=$prop');
     } else if ( val is Invokable ) {
       return val.getProperty(prop);
     } else if ( val is String) {
@@ -119,7 +120,7 @@ class InvokableController {
   }
   static dynamic setProperty(dynamic val, dynamic prop, dynamic value) {
     if ( val == null ) {
-      throw Exception('Cannot set a property on a null object. Property=$prop and prop value=$value');
+      throw InvalidPropertyException('Cannot set a property on a null object. Property=$prop and prop value=$value');
     } else if ( val is Invokable ) {
       return val.setProperty(prop,value);
     } else if ( val is String) {
@@ -197,12 +198,14 @@ class _String {
     if ( f != null ) {
       return f();
     }
-    throw Exception('getter by name='+prop+' is not defined on this object='+obj.toString());
+    throw InvalidPropertyException('$obj does not have a gettable property named $prop');
   }
   static void setProperty(String obj, dynamic prop, dynamic val) {
     Function? func = setters(obj)[prop];
     if (func != null) {
       func(val);
+    } else {
+      throw InvalidPropertyException('$obj does not have a settable property named $prop');
     }
   }
   static Map<String, Function> methods(String val) {
@@ -252,12 +255,14 @@ class _Boolean {
     if ( f != null ) {
       return f();
     }
-    throw Exception('getter by name='+prop+' is not defined on this object='+obj.toString());
+    throw InvalidPropertyException('$obj does not have a gettable property named $prop');
   }
   static void setProperty(bool obj, dynamic prop, dynamic val) {
     Function? func = setters(obj)[prop];
     if (func != null) {
       func(val);
+    } else {
+      throw InvalidPropertyException('$obj does not have a settable property named $prop');
     }
   }
 }
@@ -282,12 +287,14 @@ class _Number {
     if ( f != null ) {
       return f();
     }
-    throw Exception('getter by name='+prop+' is not defined on this object='+obj.toString());
+    throw InvalidPropertyException('$obj does not have a gettable property named $prop');
   }
   static void setProperty(num obj, dynamic prop, dynamic val) {
     Function? func = setters(obj)[prop];
     if (func != null) {
       func(val);
+    } else {
+      throw InvalidPropertyException('$obj does not have a settable property named $prop');
     }
   }
 }
@@ -380,7 +387,7 @@ class _List {
     if ( f != null ) {
       return f();
     }
-    throw Exception('getter by name='+prop+' is not defined on this object='+list.toString());
+    throw InvalidPropertyException('List or Array does not have a gettable property named $prop');
   }
 
   static void setProperty(List list, dynamic prop, dynamic val) {
@@ -391,7 +398,7 @@ class _List {
         list.add(val);
       }
     } else {
-      throw Exception('The passed in prop ='+prop.toString()+' is invalid for this array');
+      throw InvalidPropertyException('List or Array does not have a settable property named $prop');
     }
   }
 }
@@ -414,12 +421,14 @@ class _RegExp {
     if ( f != null ) {
       return f();
     }
-    throw Exception('getter by name='+prop+' is not defined on this object='+obj.toString());
+    throw InvalidPropertyException('RegExp does not have a gettable property named $prop');
   }
   static void setProperty(RegExp obj, dynamic prop, dynamic val) {
     Function? func = setters(obj)[prop];
     if (func != null) {
       func(val);
+    } else {
+      throw InvalidPropertyException('RegExp does not have a settable property named $prop');
     }
   }
 }

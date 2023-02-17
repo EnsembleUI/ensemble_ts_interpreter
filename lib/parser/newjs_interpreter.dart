@@ -1,9 +1,7 @@
-
 import 'dart:convert';
-
+import 'package:ensemble_ts_interpreter/errors.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablecontroller.dart';
 import 'package:jsparser/jsparser.dart';
-import 'package:jsparser/src/ast.dart';
 
 class Bindings extends RecursiveVisitor<dynamic> {
   List<String> bindings = [];
@@ -114,14 +112,31 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return rtn;
   }
 
-
+  String getCode(Node node) {
+    String rtn = '';
+    if ( node.start != null && node.end != null ) {
+      rtn = code.substring(node.start!,node.end!);
+    }
+    return rtn;
+  }
   JSInterpreter(this.code, this.program, Map<String,dynamic> programContext) {
     contexts[program] = programContext;
     InvokableController.addGlobals(programContext);
   }
+  static const String parsingErrorAppendage = "Only ES5 is supported. "
+      "Key words such as let, const, operators such as -> and templated strings are not yet supported. "
+      "Here's a full list of features that are only available in ES6 and are therefore NOT supported in Ensemble at this time. https://www.w3schools.com/js/js_es6.asp";
   JSInterpreter.fromCode(String code, Map<String,dynamic> programContext): this(code,parseCode(code),programContext);
   static Program parseCode(String code) {
-    return parsejs(code);
+    try {
+      return parsejs(code);
+    } on ParseError catch(e) {
+      throw JSException(e.line??1, "Parsing error Occurred while parsing javascript code block. "
+          "Error Message: ${e.message}",detailedError: 'Code: $code . FYI: $parsingErrorAppendage');
+    } catch (error) {
+      throw JSException(1, "Parsing error Occurred while parsing javascript code block. "
+          "Error Message: ${error.toString()}",detailedError: 'Code: $code . FYI: $parsingErrorAppendage');
+    }
   }
   static String toJSString(Map map) {
     int i = 0;
@@ -134,7 +149,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         i++;
         return key;
       }
-      throw UnsupportedError('Cannot convert to JSON: $value');
+      throw JSException(1,'Cannot convert to JSON: $value');
     });
     placeHolders.forEach((key, value) {
       encoded = encoded.replaceFirst('\"$key\"', value);
@@ -174,7 +189,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     Scope scope = enclosingScope(node);
     while (scope is! Program) {
       if (scope.environment == null)
-        throw "$scope does not have an environment";
+        throw JSException(scope.line??1, 'Scope does not have an environment. Scope:${getCode(scope)}');
       if (scope.environment!.contains(name)) return scope;
       scope = enclosingScope(scope.parent!);
     }
@@ -232,8 +247,10 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       }
     } on ControlFlowReturnException catch(e) {
       rtn = e.returnValue;
-    } catch (error) {
-      throw Exception("Error: ${error.toString()} while executing $code");
+    } on JSException catch(e) {
+      rethrow;
+    } catch (e) {
+      throw JSException(1, e.toString(), detailedError: 'Code: $code');
     }
     return rtn;
   }
@@ -281,7 +298,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     if ( node.argument != null ) {
       returnValue = getValueFromExpression(node.argument!);
     }
-    throw ControlFlowReturnException(returnValue);
+    throw ControlFlowReturnException(node.line??1,'',returnValue);
   }
   @override
   visitUnary(UnaryExpression node) {
@@ -290,7 +307,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       case '-': val = -1 * val;break;
       case 'typeof': val = val.runtimeType;break;
       case '!': val = !val;break;
-      default: throw Exception(node.operator!+" not yet implemented. stmt="+node.toString());
+      default: throw JSException(node.line??1,node.operator!+" not yet implemented.",detailedError:"Code: "+getCode(node));
     }
     return val;
   }
@@ -302,9 +319,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     if ( val is num ) {
       number = val;
     } else {
-      throw Exception(
+      throw JSException(node.line??1,
           'The operator ' + node.operator! + ' is only valid for numbers and ' +
-              node.argument.toString() + ' is not a number');
+              node.argument.toString() + ' is not a number.', detailedError:'Code: ${getCode(node)}');
     }
     if ( node.isPrefix ) {
       switch (node.operator) {
@@ -340,7 +357,8 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
        */
       List<dynamic> params = _params??[];
       if ( args.length != params.length ) {
-        throw Exception("visitFunctionNode: args.length ($args.length)  != params.length ($params.length). They must be equal. ");
+        throw JSException(node.line??1,"visitFunctionNode: args.length ($args.length)  "
+            "!= params.length ($params.length). They must be equal. ",detailedError:'Code: ${getCode(node)}');
       }
       Map<String,dynamic> ctx = {};
       if ( node.params != null ) {
@@ -386,78 +404,120 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   @override
   visitBinary(BinaryExpression node) {
-    dynamic left = getValueFromExpression(node.left);
-    dynamic right = getValueFromExpression(node.right);
-    dynamic rtn = false;
-    if ( left is String || right is String ) {
-      //let's say left is a string and right is an integer. Dart does not allow an operation like
-      //concatenation on different types, javascript etc do allow that
-      if ( left != null ) {
-        left = left.toString();
+    try {
+      dynamic left = getValueFromExpression(node.left);
+      dynamic right = getValueFromExpression(node.right);
+      dynamic rtn = false;
+      if (left is String || right is String) {
+        //let's say left is a string and right is an integer. Dart does not allow an operation like
+        //concatenation on different types, javascript etc do allow that
+        if (left != null) {
+          left = left.toString();
+        }
+        if (right != null) {
+          right = right.toString();
+        }
       }
-      if ( right != null ) {
-        right = right.toString();
+      bool done = true;
+      switch (node.operator) {
+        case '==':
+          rtn = left == right;
+          break;
+        case '!=':
+          rtn = left != right;
+          break;
+        case '<':
+          rtn = left < right;
+          break;
+        case '<=':
+          rtn = left <= right;
+          break;
+        case '>':
+          rtn = left > right;
+          break;
+        case '>=':
+          rtn = left >= right;
+          break;
+        case '-':
+          rtn = left - right;
+          break;
+        case '+':
+          rtn = left + right;
+          break;
+        case '/':
+          rtn = left / right;
+          break;
+        case '*':
+          rtn = left * right;
+          break;
+        case '%':
+          rtn = left % right;
+          break;
+        case '|':
+          rtn = left | right;
+          break;
+        case '^':
+          rtn = left ^ right;
+          break;
+        case '<<':
+          rtn = left << right;
+          break;
+        case '>>':
+          rtn = left >> right;
+          break;
+        case '&':
+          rtn = left & right;
+          break;
+        default:
+          done = false;
+          break;
       }
-    }
-    bool done = true;
-    switch (node.operator) {
-      case '==': rtn = left == right;break;
-      case '!=': rtn = left != right;break;
-      case '<': rtn = left < right;break;
-      case '<=': rtn = left <= right;break;
-      case '>': rtn = left > right;break;
-      case '>=': rtn = left >= right;break;
-      case '-': rtn = left - right;break;
-      case '+': rtn = left + right;break;
-      case '/': rtn = left / right;break;
-      case '*': rtn = left * right;break;
-      case '%': rtn = left % right;break;
-      case '|': rtn = left | right;break;
-      case '^': rtn = left ^ right;break;
-      case '<<': rtn = left << right;break;
-      case '>>': rtn = left >> right;break;
-      case '&': rtn = left & right;break;
-      default: done = false;break;
-    }
-    if ( node.operator == '||' ) {
-      if ( left == true || left != null ) {
-        rtn = left;
-      } else if ( right == true || right != null ) {
-        rtn = right;
-      } else if ( left == null || right == null ) {
-        rtn = null;
-      } else {
-        rtn = false;
+      if (node.operator == '||') {
+        if (left == true || left != null) {
+          rtn = left;
+        } else if (right == true || right != null) {
+          rtn = right;
+        } else if (left == null || right == null) {
+          rtn = null;
+        } else {
+          rtn = false;
+        }
+        done = true;
+      } else if (node.operator == '&&') {
+        if (left == false || right == false) {
+          rtn = false;
+        } else if (left == null || right == null) {
+          rtn = null;
+        } else {
+          rtn = right;
+        }
+        done = true;
       }
-      done = true;
-    } else if ( node.operator == '&&' ) {
-      if ( left == false || right == false ) {
-        rtn = false;
-      } else if ( left == null || right == null ) {
-        rtn = null;
-      } else {
-        rtn = right;
+      if (!done) {
+        throw JSException(
+            node.line ?? 1, node.operator! + ' is not yet supported',
+            detailedError: 'Code: ${getCode(node)}');
       }
-      done = true;
+      return rtn;
+    } on JSException catch (e) {
+      rethrow;
+    } on InvalidPropertyException catch(e) {
+      throw JSException(node.line??1, '${e.message}. Code: ${getCode(node)}');
     }
-    if ( !done ) {
-      throw Exception(node.operator! + ' is not yet supported');
-    }
-    return rtn;
   }
   @override
   visitBreak(BreakStatement node) {
-    throw ControlFlowBreakException();
+    throw ControlFlowBreakException(node.line??1,'');
   }
   @override
   visitForIn(ForInStatement node) {
     dynamic right = getValueFromNode(node.right);
     dynamic left = node.left.visitBy(this);
     if ( right is! Map ) {
-      throw Exception('for...in is only allowed for js objects or maps. $right is not a map');
+      throw JSException(node.line??1,'for...in is only allowed for js objects or maps. $right is not a map', detailedError:'Code: ${getCode(node)}');
     }
     if ( left is! Name ) {
-      throw Exception('left side in the for...in expression must be a name node. $node.left is not name');
+      throw JSException(node.line??1,'left side in the for...in expression must be a name node. $node.left is not name', detailedError:'Code: ${getCode(node)}');
     }
     Map map = right;
     for ( dynamic key in map.keys ) {
@@ -534,10 +594,17 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   @override
   visitCall(CallExpression node) {
     dynamic val;
-    if ( node.callee is NameExpression ) {
-      final method = getValue((node.callee as NameExpression).name);
-      val = executeMethod(method, node.arguments);
-    } else if ( node.callee is MemberExpression || node.callee is IndexExpression ) {
+    try {
+      if (node.callee is NameExpression) {
+        final method = getValue((node.callee as NameExpression).name);
+        if (method == null) {
+          throw JSException(
+              node.line ?? 1, 'No definition found for ${getCode(node)}.',
+              recovery: 'Check your syntax and try again.');
+        }
+        val = executeMethod(method, node.arguments);
+      } else
+      if (node.callee is MemberExpression || node.callee is IndexExpression) {
         ObjectPattern? pattern;
         dynamic method;
         if (node.callee is MemberExpression) {
@@ -545,76 +612,156 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
               node.callee as MemberExpression, computeAsPattern: true);
           method = InvokableController.methods(pattern!.obj)[pattern.property];
           //old: method = pattern!.obj.methods()[pattern.property];
-        } else if ( node.callee is IndexExpression ) {
+        } else if (node.callee is IndexExpression) {
           pattern = visitIndex(
               node.callee as IndexExpression, computeAsPattern: true);
-          method = InvokableController.getProperty(pattern!.obj,pattern.property);
+          method =
+              InvokableController.getProperty(pattern!.obj, pattern.property);
           //old: method = pattern!.obj.getProperty(pattern.property);
         }
-        if ( method == null ) {
-          throw Exception("cannot compute statement="+node.toString()+" as no method found for property="+((pattern != null)?pattern.property.toString():''));
+        if (method == null) {
+          throw JSException(node.line ?? 1,
+              "cannot compute statement=" + node.toString() + " "
+                  "as no method found for property=" +
+                  ((pattern != null) ? pattern.property.toString() : ''),
+              detailedError: 'Code: ${getCode(node)}');
         }
-        val = executeMethod(method, node.arguments);
+        try {
+          val = executeMethod(method, node.arguments);
+        } on JSException catch (e) {
+          rethrow;
+        } catch (e) {
+          throw JSException(
+              node.line ?? 1, 'Error while executing method: ${getCode(node)}');
+        }
       }
+    } on JSException catch (e) {
+      rethrow;
+    } on InvalidPropertyException catch(e) {
+      throw JSException(node.line??1, '${e.message}. Code: ${getCode(node)}');
+    }
     return val;
   }
   @override
   visitAssignment(AssignmentExpression node) {
-    dynamic val = getValueFromExpression(node.right);
-    ObjectPattern? pattern;
-    if ( node.left is MemberExpression ) {
-      pattern = visitMember(node.left as MemberExpression, computeAsPattern: true);
-    } else if ( node.left is IndexExpression ) {
-      pattern = visitIndex(node.left as IndexExpression, computeAsPattern: true);
-    }
-    if ( pattern != null ) {
-      var obj = pattern.obj;
-      switch (node.operator) {
-        case '=': InvokableController.setProperty(obj, pattern.property, val);break;
-        case '+=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) + val);break;
-        case '-=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) - val);break;
-        case '*=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) * val);break;
-        case '/=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) / val);break;
-        case '%=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) % val);break;
-        case '<<=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) << val);break;
-        case '>>=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) >> val);break;
-        case '|=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) | val);break;
-        case '^=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) ^ val);break;
-        case '&=': InvokableController.setProperty(obj,pattern.property, InvokableController.getProperty(obj,pattern.property) & val);break;
-        default: throw Exception(
-            "AssignentOperator=" + node.operator! + " in stmt=" +
-                node.toString() + " is not yet supported");
+    try {
+      dynamic val = getValueFromExpression(node.right);
+      ObjectPattern? pattern;
+      if (node.left is MemberExpression) {
+        pattern =
+            visitMember(node.left as MemberExpression, computeAsPattern: true);
+      } else if (node.left is IndexExpression) {
+        pattern =
+            visitIndex(node.left as IndexExpression, computeAsPattern: true);
       }
-    } else if ( node.left is Name || node.left is NameExpression ) {
-      Name n;
-      if ( node.left is NameExpression ) {
-        n = (node.left as NameExpression).name;
-      } else {
-        n = node.left as Name;
-      }
-      dynamic value = getValue(n);
-      if ( value != null ) {
-        switch(node.operator) {
-          case '=': value = val;break;
-          case '+=': value += val;break;
-          case '-=': value -= val;break;
-          case '*=': value *= val;break;
-          case '/=': value /= val;break;
-          case '%=': value %= val;break;
-          case '<<=': value <<= val;break;
-          case '>>=': value >>= val;break;
-          case '|=': value |= val;break;
-          case '^=': value ^= val;break;
-          case '&=': value &= val;break;
-          default: throw Exception(
-              "AssignentOperator=" + node.operator! + " in stmt=" +
-                  node.toString() + " is not yet supported");
-          }
-
+      if (pattern != null) {
+        var obj = pattern.obj;
+        switch (node.operator) {
+          case '=':
+            InvokableController.setProperty(obj, pattern.property, val);
+            break;
+          case '+=':
+            InvokableController.setProperty(obj, pattern.property,
+                InvokableController.getProperty(obj, pattern.property) + val);
+            break;
+          case '-=':
+            InvokableController.setProperty(obj, pattern.property,
+                InvokableController.getProperty(obj, pattern.property) - val);
+            break;
+          case '*=':
+            InvokableController.setProperty(obj, pattern.property,
+                InvokableController.getProperty(obj, pattern.property) * val);
+            break;
+          case '/=':
+            InvokableController.setProperty(obj, pattern.property,
+                InvokableController.getProperty(obj, pattern.property) / val);
+            break;
+          case '%=':
+            InvokableController.setProperty(obj, pattern.property,
+                InvokableController.getProperty(obj, pattern.property) % val);
+            break;
+          case '<<=':
+            InvokableController.setProperty(obj, pattern.property,
+                InvokableController.getProperty(obj, pattern.property) << val);
+            break;
+          case '>>=':
+            InvokableController.setProperty(obj, pattern.property,
+                InvokableController.getProperty(obj, pattern.property) >> val);
+            break;
+          case '|=':
+            InvokableController.setProperty(obj, pattern.property,
+                InvokableController.getProperty(obj, pattern.property) | val);
+            break;
+          case '^=':
+            InvokableController.setProperty(obj, pattern.property,
+                InvokableController.getProperty(obj, pattern.property) ^ val);
+            break;
+          case '&=':
+            InvokableController.setProperty(obj, pattern.property,
+                InvokableController.getProperty(obj, pattern.property) & val);
+            break;
+          default:
+            throw JSException(node.line ?? 1,
+                "${node.operator!} in Code: ${getCode(
+                    node)} is not yet supported");
+        }
+      } else if (node.left is Name || node.left is NameExpression) {
+        Name n;
+        if (node.left is NameExpression) {
+          n = (node.left as NameExpression).name;
         } else {
-        value = val;
+          n = node.left as Name;
+        }
+        dynamic value = getValue(n);
+        if (value != null) {
+          switch (node.operator) {
+            case '=':
+              value = val;
+              break;
+            case '+=':
+              value += val;
+              break;
+            case '-=':
+              value -= val;
+              break;
+            case '*=':
+              value *= val;
+              break;
+            case '/=':
+              value /= val;
+              break;
+            case '%=':
+              value %= val;
+              break;
+            case '<<=':
+              value <<= val;
+              break;
+            case '>>=':
+              value >>= val;
+              break;
+            case '|=':
+              value |= val;
+              break;
+            case '^=':
+              value ^= val;
+              break;
+            case '&=':
+              value &= val;
+              break;
+            default:
+              throw JSException(node.line ?? 1,
+                  "${node.operator!} in Code: ${getCode(
+                      node)} is not yet supported");
+          }
+        } else {
+          value = val;
+        }
+        addToContext(n, value);
       }
-      addToContext(n, value);
+    } on JSException catch (e) {
+      rethrow;
+    } on InvalidPropertyException catch(e) {
+      throw JSException(node.line??1, '${e.message}. Code: ${getCode(node)}');
     }
   }
   @override
@@ -657,6 +804,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   visitObjectPropertyExpression(Expression object, dynamic property, {bool computeAsPattern=false}) {
     dynamic obj = getValueFromExpression(object);
     dynamic val;
+    if ( obj == null ) {
+      throw InvalidPropertyException('${getCode(object)} is undefined. Check your syntax.');
+    }
     if ( computeAsPattern ) {
       val = ObjectPattern(obj, property);
     } else {
@@ -698,11 +848,12 @@ enum UnaryOperator {
 enum VariableDeclarationKind {
   constant,let,variable
 }
-class ControlFlowReturnException implements Exception {
+class ControlFlowReturnException extends JSException {
   dynamic returnValue;
-  ControlFlowReturnException(this.returnValue);
+  ControlFlowReturnException(int line, String message,this.returnValue): super(line,message);
 }
-class ControlFlowBreakException implements Exception {
+class ControlFlowBreakException extends JSException {
+  ControlFlowBreakException(int line, String message):super(line,message);
 }
 class ObjectPattern {
   Object obj;
