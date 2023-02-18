@@ -128,6 +128,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       "Here's a full list of features that are only available in ES6 and are therefore NOT supported in Ensemble at this time. https://www.w3schools.com/js/js_es6.asp";
   JSInterpreter.fromCode(String code, Map<String,dynamic> programContext): this(code,parseCode(code),programContext);
   static Program parseCode(String code) {
+    if ( code.isEmpty ) {
+      throw JSException(1,"Empty string is being passed as javascript code to parse. Please check your javascript code and fix it");
+    }
     try {
       return parsejs(code);
     } on ParseError catch(e) {
