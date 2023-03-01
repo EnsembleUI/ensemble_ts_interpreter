@@ -724,9 +724,11 @@ void main() {
   });
   test('console_log_test', () {
     Map<String, dynamic> context = initContext();
-
+    context['json'] = json.decode('{"abc":"xyz"}');
     String code = """
       var str = 'I am a sample message to be printed on the console';
+      console.log('Logging jsonmap - '+json);
+      console.log(json);
       console.log('logging - '+str);
       """;
     JSInterpreter.fromCode(code, context).evaluate();

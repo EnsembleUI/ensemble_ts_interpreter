@@ -635,7 +635,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           rethrow;
         } catch (e) {
           throw JSException(
-              node.line ?? 1, 'Error while executing method: ${getCode(node)}');
+              node.line ?? 1, 'Error while executing method: ${getCode(node)}. Underlying error:${e.toString()}');
         }
       }
     } on JSException catch (e) {

@@ -170,7 +170,7 @@ class Console extends Object with Invokable {
   @override
   Map<String, Function> methods() {
     return {
-      'log': (val) => debugPrint(val)
+      'log': (val) => debugPrint(val?.toString())
     };
   }
 
