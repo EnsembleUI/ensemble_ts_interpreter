@@ -277,7 +277,13 @@ class _Number {
       'prettyDate': () => InvokablePrimitive.prettyDate(val),
       'prettyDateTime': () => InvokablePrimitive.prettyDateTime(val),
       'prettyDuration': () => InvokablePrimitive.prettyDuration(val),
-      'toFixed': (int fractionDigits) => val.toStringAsFixed(fractionDigits)
+      'toFixed': (int fractionDigits) => val.toStringAsFixed(fractionDigits),
+      'toString': ([int? radix]) {
+        if ( radix != null ) {
+          return val.toInt().toRadixString(radix);
+        }
+        return val.toString();
+      }
     };
   }
   static Map<String, Function> setters(num val) {

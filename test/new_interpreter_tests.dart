@@ -490,6 +490,8 @@ void main() {
       var f = Math.trunc(Math.log(5));
       var g = 5.7767.toFixed(2);
       var i = parseInt('300');
+      var j = i.toString(16);
+      var k = i.toString();
        """;
     Map<String, dynamic> context = initContext();
     dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
@@ -501,6 +503,8 @@ void main() {
     expect(context['f'],1);
     expect(context['g'],'5.78');
     expect(context['i'],300);
+    expect(context['j'],'12c');
+    expect(context['k'],'300');
   });
   //function tests
   test('variableDeclarationWithArrayTest', () async {
