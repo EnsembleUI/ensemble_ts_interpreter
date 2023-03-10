@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:core';
 
 import 'package:ensemble_ts_interpreter/errors.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
@@ -31,7 +32,7 @@ class InvokableController {
     context['regExp']= regExp;
     context['Math'] = InvokableMath();
     context['parseFloat'] = (String s) => double.parse(s);
-    context['parseInt'] = (String s) => int.parse(s);
+    context['parseInt'] = (String s,[int? radix]) => int.parse(s,radix:radix);
     context['parseDouble'] = (String s) => double.parse(s);
     context['JSON'] = JSON();
     context['btoa'] = _String.btoa;

@@ -484,21 +484,23 @@ void main() {
     String codeToEvaluate = """
       var a = Math.floor(5.85);
       var b = parseDouble("1.543");
-      var c = parseInt("12");
+      var c = parseInt('F0',16);
       var d = parseFloat("12.3456");
       var e = Math.pow(2,2);
       var f = Math.trunc(Math.log(5));
       var g = 5.7767.toFixed(2);
+      var i = parseInt('300');
        """;
     Map<String, dynamic> context = initContext();
     dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['a'],5);
     expect(context['b'],1.543);
-    expect(context['c'],12);
+    expect(context['c'],240);
     expect(context['d'],12.3456);
     expect(context['e'],4);
     expect(context['f'],1);
     expect(context['g'],'5.78');
+    expect(context['i'],300);
   });
   //function tests
   test('variableDeclarationWithArrayTest', () async {
