@@ -1,5 +1,5 @@
 
-This is a javascript [ES5] (https://www.geeksforgeeks.org/difference-between-es5-and-es6/) parser and interpreter written entirely in dart. 
+This is a javascript [ES5](https://www.geeksforgeeks.org/difference-between-es5-and-es6/) parser and interpreter written entirely in dart. 
 
 ### What it is
 - Primary use case is to let users type in simple js that you want to execute inline. This should be not used as a general replacement for dart in flutter
@@ -13,10 +13,10 @@ Simply call the ```JSInterpreter``` with the code you want to evaluate while pas
 
 ```JSInterpreter.fromCode(code, context).evaluate();```
 
-```context``` is the key object here. You can pass json as context (see examples below) or pass an instance of [Invokable] (https://github.com/EnsembleUI/ensemble_ts_interpreter/blob/master/lib/invokables/invokable.dart) which could be any Dart object. 
+```context``` is the key object here. You can pass json as context (see examples below) or pass an instance of [Invokable](https://github.com/EnsembleUI/ensemble_ts_interpreter/blob/master/lib/invokables/invokable.dart) which could be any Dart object. 
 
 ### Examples
-All the examples are in the unit test suite - [new_interpreter_tests] (https://github.com/EnsembleUI/ensemble_ts_interpreter/blob/master/test/new_interpreter_tests.dart)
+All the examples are in the unit test suite - [new_interpreter_tests](https://github.com/EnsembleUI/ensemble_ts_interpreter/blob/master/test/new_interpreter_tests.dart)
 
 Listing some here. 
 
