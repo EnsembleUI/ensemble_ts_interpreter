@@ -9,7 +9,16 @@ This is a javascript [ES5](https://www.geeksforgeeks.org/difference-between-es5-
 - Highly extensible. The context object could be json or any dart object enhanced with the Invokable mixin (see below)
 
 ### How to use
-Simply call the ```JSInterpreter``` with the code you want to evaluate while passing it the context. 
+
+- in your pubspec.yaml, add the following line under dependencies - 
+```
+  ensemble_ts_interpreter:
+    git:
+      url: https://github.com/EnsembleUI/ensemble_ts_interpreter.git
+      ref: master
+```
+- run ```flutter pub upgrade```
+- Simply call the ```JSInterpreter``` with the code you want to evaluate while passing it the context. 
 
 ```JSInterpreter.fromCode(code, context).evaluate();```
 
