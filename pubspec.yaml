@@ -1,5 +1,5 @@
 name: ensemble_ts_interpreter
-description: Javascript Interpreter for Ensemble.
+description: Javascript (ES5) Interpreter written entirely in Dart. Can be used in any Dart program or a Flutter app. 
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
