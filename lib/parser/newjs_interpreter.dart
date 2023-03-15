@@ -802,7 +802,15 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
 
   @override
   visitIndex(IndexExpression node, {bool computeAsPattern=false}) {
-    return visitObjectPropertyExpression(node.object,getValueFromExpression(node.property),computeAsPattern: computeAsPattern);
+    dynamic val;
+    try {
+      val = visitObjectPropertyExpression(
+          node.object, getValueFromExpression(node.property),
+          computeAsPattern: computeAsPattern);
+    } on InvalidPropertyException catch(e) {
+      //ignore since obj['prop'] is fine even when prop does not exist. We just return null in that case
+    }
+    return val;
   }
   visitObjectPropertyExpression(Expression object, dynamic property, {bool computeAsPattern=false}) {
     dynamic obj = getValueFromExpression(object);
@@ -814,7 +822,6 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       val = ObjectPattern(obj, property);
     } else {
       val = InvokableController.getProperty(obj, property);
-      //old: val = obj.getProperty(property);
     }
     return val;
   }

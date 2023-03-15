@@ -330,13 +330,14 @@ void main() {
   });
   test('nullTest', () async {
     String codeToEvaluate = """
-      if ( ensemble.test == null ) {
+      if ( ensemble['test'] == null ) {
         return 'it worked!';
       } else {
         return 'sad face';
        }
       """;
     Map<String, dynamic> context = initContext();
+
     dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(rtn,'it worked!');
   });
