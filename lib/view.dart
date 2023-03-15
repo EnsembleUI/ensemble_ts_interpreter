@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokabletext.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokabletextformfield.dart';
 import 'package:yaml/yaml.dart';
-import 'package:flutter/cupertino.dart';
-import 'extensions.dart';
 
 class View {
   static const String PROPERTIES = "properties";

@@ -1,14 +1,9 @@
 import 'dart:collection';
-import 'dart:convert';
 
 import 'package:ensemble_ts_interpreter/api.dart';
 import 'package:ensemble_ts_interpreter/view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:http/http.dart';
 import 'package:yaml/yaml.dart';
-import 'package:flutter/cupertino.dart';
-import 'extensions.dart';
 
 enum Event {
   click,longPress
@@ -132,8 +127,8 @@ class APIHandler extends Handler {
   @override
   void handle(WidgetAction action) {
     Map<String,String> values = HashMap();
-    var context = prepareContext(action);
-    Future<Response> response = api.call(values);
+    prepareContext(action);
+    api.call(values);
     // response.then((res) {
     //   if ( success != null ) {
     //     var decodedResponse = jsonDecode(utf8.decode(res.bodyBytes)) as Map;
@@ -151,7 +146,6 @@ class APIHandler extends Handler {
 class MyEvaluator {
   const MyEvaluator();
 
-  @override
   dynamic evalMemberExpression() {
 
   }

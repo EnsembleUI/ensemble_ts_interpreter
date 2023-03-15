@@ -1,13 +1,11 @@
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablecontroller.dart';
-import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
 import 'package:ensemble_ts_interpreter/parser/newjs_interpreter.dart';
 import 'package:json_path/json_path.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:test/test.dart';
 import 'package:jsparser/jsparser.dart';
-import 'package:jsparser/src/ast.dart';
 class Ensemble extends Object with Invokable {
   String? name,date,firstName,lastName,text;
   String? navigateScreenCalledForScreen;
@@ -133,7 +131,7 @@ void main() {
       ensembleStore.session.login.cookie = response.headers['Set-Cookie'].split(';')[a]
       """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['ensembleStore']['session']['login']['cookie'],context['response']['headers']['Set-Cookie'].split(';')[0]);
   });
   test('arrayAccessTest', () async {
@@ -153,7 +151,7 @@ void main() {
       """;
     Map<String, dynamic> context = initContext();
     String origValue = context['users'][1]['name'];
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['users'][1]['name'],origValue+'NEW');
   });
   test('variableDeclarationTest', () async {
@@ -170,8 +168,7 @@ void main() {
       """;
     Map<String, dynamic> context = initContext();
     context.remove('age');
-    String origValue = context['users'][0]['name'];
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['users'][0]['name'],'user=John Doe II is 15 years old and has \$12.94');
   });
   test('primitives', () async {
@@ -181,7 +178,7 @@ void main() {
     users[0]['name'] = 'John has '+curr;
       """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['users'][0]['name'],'John has \$12.35');
   });
   test('returnExpression', () async {
@@ -210,7 +207,7 @@ void main() {
       """;
     Map<String, dynamic> context = initContext();
     context['age'] = 3;
-    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['users'][0]['age'],'Over Two years old');
   });
   test('ternary', () async {
@@ -219,7 +216,7 @@ void main() {
       """;
     Map<String, dynamic> context = initContext();
     context['age'] = 1;
-    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['users'][0]['age'],'2 and under');
   });
   test('moreArrayTests', () async {
@@ -231,7 +228,7 @@ void main() {
         }];
       """;
     Map<String, dynamic> context = initContext();
-    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['apiChart']['data'][0]['data'][1],-33);
   });
   test('jsonpathtest', () async {
@@ -250,7 +247,7 @@ void main() {
     final json = jsonDecode(await file.readAsString());
     Map<String, dynamic> context = initContext();
     context['response'] = json;
-    dynamic rtn = JSInterpreter.fromCode("""
+    JSInterpreter.fromCode("""
       var result = response.path('\$..Year',function (match) {match});
       """,context).evaluate();
     expect(context['result'][1],'1910');
@@ -273,7 +270,7 @@ void main() {
       });
       """;
     Map<String, dynamic> context = initContext();
-    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['sortedList'][2],3);
     expect(context['strList'][2],"3");
   });
@@ -290,7 +287,7 @@ void main() {
     String origStr = 'r@kpn.signin';
     context['response']['name'] = 'r@Peter Parker';
     context['users'][0]['name'] = 'r@John';
-    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['stringToBeTranslated'],'Translated $origStr');
     expect(context['response']['name'],'r@Peter Parker');
     expect(context['users'][0]['name'],'Translated r@John');
@@ -421,7 +418,7 @@ void main() {
         var _date = abcdef || date;
       """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['date'],'2022-08-08:00:00');
     expect(context['_false'],false);
     expect(context['_date'],context['date']);
@@ -478,7 +475,7 @@ void main() {
     bool hasMatch = exp.hasMatch('1233344');
     print('hasMatch=$hasMatch');
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(r'var a = /\d+/;a = a.test("123");',context).evaluate();
+    JSInterpreter.fromCode(r'var a = /\d+/;a = a.test("123");',context).evaluate();
     expect(context['a'],true);
   });
   test('mathtest', () async {
@@ -495,7 +492,7 @@ void main() {
       var k = i.toString();
        """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['a'],5);
     expect(context['b'],1.543);
     expect(context['c'],240);
@@ -520,7 +517,7 @@ void main() {
       });
       """;
     Map<String, dynamic> context = initContext();
-    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect((context['arr']).join(''),'hello nobody hello John hello Mary');
   });
   test('functiondeclarationtext', () async {
@@ -565,7 +562,7 @@ void main() {
         //addMe(10);
        """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['original'],5);
   });
   test('functiondecalltest', () async {
@@ -608,9 +605,7 @@ void main() {
        """;
     Map<String, dynamic> context = initContext();
     dynamic map = JSInterpreter.fromCode(code, context).evaluate();
-    String encoded = JSInterpreter.toJSString(map);
-
-
+    JSInterpreter.toJSString(map);
     expect(map['label']['abc'](['hello']),'hello');
   });
   test('Primitive in code', () {

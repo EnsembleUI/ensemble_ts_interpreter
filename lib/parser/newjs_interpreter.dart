@@ -39,7 +39,7 @@ class Bindings extends RecursiveVisitor<dynamic> {
   }
   @override
   String visitName(Name node) {
-    return node.value!;
+    return node.value;
   }
   @override
   visitNameExpression(NameExpression node) {
@@ -382,7 +382,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         rtn = i.getValueFromNode(rtn);
       }
       return rtn;
-    },code!.substring(node.start!,node.end));
+    },code.substring(node.start!,node.end));
   }
   @override
   visitFunctionExpression(FunctionExpression node) {
@@ -839,7 +839,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   noSuchMethod(Invocation invocation) {
     if (!invocation.isMethod || invocation.namedArguments.isNotEmpty)
       super.noSuchMethod(invocation);
-    final arguments = invocation.positionalArguments;
+    invocation.positionalArguments;
     return null;
   }
 }

@@ -1,9 +1,15 @@
 name: ensemble_ts_interpreter
-description: Javascript (ES5) Interpreter written entirely in Dart. Can be used in any Dart program or a Flutter app. 
-
+description: >-
+  Javascript (ES5) Interpreter written entirely in Dart.
+  Can be used in any Dart program or a Flutter app.
+  Support basic javascript including primitive types, maps, lists and declaring and executing functions
+homepage: https://ensembleui.com
+repository: https://github.com/EnsembleUI/ensemble_ts_interpreter
+issue_tracker: https://github.com/EnsembleUI/ensemble_ts_interpreter/issues
+documentation: https://github.com/EnsembleUI/ensemble_ts_interpreter
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+# publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -46,6 +52,7 @@ dependencies:
       url: https://github.com/kmahmood74/parsejs_null_safety.dart.git
       ref: master
   source_span: ^1.9.1
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:
