@@ -81,6 +81,38 @@ Listing some here.
     JSInterpreter.fromCode(code, context).evaluate();
 ```
 
-
-
+#### Function Declaration and then calling the functions
+```
+  test('functiondeclarationtext', () async {
+    String codeToEvaluate = """
+      var i = 0;
+      var users = [{'name':'Khurram'},{'name':'Mahmood'}];
+      updateSalary(users,noArgFunction());
+      return manyParms(users[0],noArgFunction()[0],'Hello','How','are','you','today,');
+      function noArgFunction() {
+        var salaries = [10000,200000];
+        salaries[1] = 900000;
+        return salaries;
+      }
+      function updateSalary(users,salaries) {
+        users.map(function(user) {
+          user['salary'] = salaries[i];
+          user['age'] = age;
+          i++;
+        });
+      }
+      function manyParms(user,salary,a,b,c,d,e) {
+        return a+' '+b+' '+c+' '+d+' '+e+' '+user.name+'. You made \$'+salary;
+      }
+        
+      """;
+    Map<String, dynamic> context = initContext();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    expect(context['users'][0]['name'],'Khurram');
+    expect(context['users'][0]['salary'],10000);
+    expect(context['users'][1]['salary'],900000);
+    expect(context['users'][1]['age'],3);
+    expect(rtnValue,'Hello How are you today, Khurram. You made \$10000');
+  });
+```
 
