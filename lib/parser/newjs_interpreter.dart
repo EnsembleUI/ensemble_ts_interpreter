@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:ensemble_ts_interpreter/errors.dart';
+import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablecontroller.dart';
 import 'package:jsparser/jsparser.dart';
 
@@ -411,6 +412,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       dynamic left = getValueFromExpression(node.left);
       dynamic right = getValueFromExpression(node.right);
       dynamic rtn = false;
+      if ( left is SupportsPrimitiveOperations ) {
+        return left.runOperation(node.operator!, right);
+      }
       if (left is String || right is String) {
         //let's say left is a string and right is an integer. Dart does not allow an operation like
         //concatenation on different types, javascript etc do allow that
@@ -553,6 +557,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     });
     return arr;
   }
+
   @override
   visitNameExpression(NameExpression node) {
     return node.name.visitBy(this);
@@ -598,12 +603,34 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   visitCall(CallExpression node) {
     dynamic val;
     try {
+      dynamic method;
       if (node.callee is NameExpression) {
-        final method = getValue((node.callee as NameExpression).name);
-        if (method == null) {
-          throw JSException(
-              node.line ?? 1, 'No definition found for ${getCode(node)}.',
-              recovery: 'Check your syntax and try again.');
+        if ( node.isNew ) {
+          //a new object is being instantiated
+          final dynamic _class = getValue((node.callee as NameExpression).name);
+          if ( _class == null ) {
+            throw JSException(
+                node.line ?? 1, 'Cannot instantiate object of class ${(node.callee as NameExpression).name} No definition found for class in code ${getCode(node)}.',
+                recovery: 'Check your syntax and try again.');
+          }
+          if ( !( _class is Invokable) ) {
+            throw JSException(
+                node.line ?? 1, 'Cannot instantiate object of class ${(node.callee as NameExpression).name} Class is not invokable in code ${getCode(node)}.',
+                recovery: 'Check your syntax and try again.');
+          }
+          if ( _class.methods()['init'] == null ) {
+            throw JSException(
+                node.line ?? 1, 'Cannot instantiate object of class ${(node.callee as NameExpression).name} No init method found for class in code ${getCode(node)}. init method is called to construct an instance. It must take List<parms> as argument.',
+                recovery: 'Check your syntax and try again.');
+          }
+          method = _class.methods()['init'];
+        } else {
+          method = getValue((node.callee as NameExpression).name);
+          if (method == null) {
+            throw JSException(
+                node.line ?? 1, 'No definition found for ${getCode(node)}.',
+                recovery: 'Check your syntax and try again.');
+          }
         }
         val = executeMethod(method, node.arguments);
       } else

@@ -28,6 +28,20 @@ class InvokableController {
     RegExp r =  RegExp(regex);
     return r;
   }
+//   // Sample function to simulate a changing condition
+//   static bool isConditionMet() {
+//     // Replace this with your actual condition-checking code
+//     return DateTime.now().second % 10 == 0;
+//   }
+//
+// // Function to wait until the condition is met
+//   static Future<void> waitForCondition() async {
+//     while (!isConditionMet()) {
+//       print('Condition not met, waiting 500ms...');
+//       await Future.delayed(Duration(milliseconds: 500));
+//     }
+//     print('Condition met! Continuing execution...');
+//   }
   static void addGlobals(Map<String,dynamic> context) {
     context['regExp']= regExp;
     context['Math'] = InvokableMath();
@@ -38,6 +52,10 @@ class InvokableController {
     context['btoa'] = _String.btoa;
     context['atob'] = _String.atob;
     context['console'] = Console();
+    context['Date'] = StaticDate();
+    // context['debug'] = () async {
+    //   await waitForCondition();
+    // };
   }
   static Map<String, Function> methods(dynamic val) {
     if ( val == null ) {

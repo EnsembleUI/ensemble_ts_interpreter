@@ -175,3 +175,8 @@ class KeyValue {
   String key;
   dynamic value;
 }
+mixin SupportsPrimitiveOperations {
+  //operator could be any of the primitive operators such as -, + , *, / etc
+  //rhs is the right hand side
+  dynamic runOperation(String operator,dynamic rhs);
+}

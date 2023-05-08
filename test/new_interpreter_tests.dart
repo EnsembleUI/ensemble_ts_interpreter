@@ -735,4 +735,56 @@ void main() {
       """;
     JSInterpreter.fromCode(code, context).evaluate();
   });
+  test('ifthenexpression', () {
+    Map<String, dynamic> context = {
+      'items': ['one', 'two', 'three'],
+      'nested': [
+        {'id': 1, 'label': 'eggs', 'type': ''},
+        {'id': 2, 'label': 'strawberry', 'type': 'fruit'},
+        {'id': 3, 'label': 'nut'}
+      ]
+    };
+    String code = """
+      (items.length > 0 && items.length < 4 ? items.length == 3 || items.length == 1 ? false : true : false)
+      """;
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
+    expect(rtn,false);
+  });
+  test('datefunction', () {
+    Map<String, dynamic> context = {};
+    String code = """
+      var date = new Date();
+
+      // Methods
+      var getTime = date.getTime();
+      var getFullYear = date.getFullYear();
+      var getMonth = date.getMonth();
+      var getDate = date.getDate();
+      var getHours = date.getHours();
+      var getMinutes = date.getMinutes();
+      var getSeconds = date.getSeconds();
+      var getMilliseconds = date.getMilliseconds();
+      var getDay = date.getDay();
+      var setTime = date.setTime(1653318712345);
+      
+      // UTC methods
+      var utc = Date.UTC(2022, 5, 2, 10, 49, 7, 521);
+      
+      var yesterday = date - 1000 * 60 * 60 * 24; 
+      yesterday = new Date(yesterday).getDay();
+      """;
+    JSInterpreter.fromCode(code, context).evaluate();
+    DateTime date = DateTime.now();
+    expect(context['getTime'], isNotNull);
+    expect(context['getFullYear'], date.year);
+    expect(context['getMonth'], date.month - 1);
+    expect(context['getDate'], date.day);
+    expect(context['getHours'], date.hour);
+    expect(context['getMinutes'], date.minute);
+    expect(context['getSeconds'], date.second);
+    expect(context['getDay'], date.day % 7);
+    expect(context['setTime'], 1653318712345);
+    expect(context['utc'], 1654166947521);
+    expect(context['yesterday'], (date.day - 1) % 7);
+  });
 }
