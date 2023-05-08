@@ -212,7 +212,17 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   dynamic getValueFromNode(Node node) {
     dynamic value = node.visitBy(this);
-    if ( value is Name ) {
+    if ( value is List ) {
+      List<dynamic> arr = [];
+      value.forEach((element) {
+        if ( element is Node ) {
+          arr.add(getValueFromNode(element));
+        } else {
+          arr.add(element);
+        }
+      });
+      value = arr;
+    } else if ( value is Name ) {
       value = getValue(value);
     } else if ( node is ThisExpression ) {
       value = getValueFromString(value);

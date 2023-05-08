@@ -787,4 +787,22 @@ void main() {
     expect(context['utc'], 1654166947521);
     expect(context['yesterday'], (date.day - 1) % 7);
   });
+  test('refinarrayorobject', () {
+    Map<String, dynamic> context = {
+      'items': ['one', 'two', 'three'],
+      'nested': [
+        {'id': 1, 'label': 'eggs', 'type': ''},
+        {'id': 2, 'label': 'strawberry', 'type': 'fruit'},
+        {'id': 3, 'label': 'nut'}
+      ]
+    };
+    String code = """
+      var myVar = "abc";
+      var res = [
+              {'1':[myVar,'abc']}];
+      return res[0]['1'][0];
+      """;
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
+    expect(rtn,context['myVar']);
+  });
 }
