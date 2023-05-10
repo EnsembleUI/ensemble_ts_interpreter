@@ -237,8 +237,21 @@ class _String {
       'includes': (str) => val.contains(str),
       'toLowerCase': () => val.toLowerCase(),
       'toUpperCase': () => val.toUpperCase(),
-      'match': (regexp) => (regexp as RegExp).firstMatch(val),
-      'matchAll': (regexp) => (regexp as RegExp).allMatches(val),
+      'match': (regexp) {
+        RegExpMatch? match = (regexp as RegExp).firstMatch(val);
+        if ( match != null ) {
+          return match[0] as String;
+        }
+        return null;
+      },
+      'matchAll': (regexp) {
+        final matches = (regexp as RegExp).allMatches(val);
+        List<String> list = [];
+        for ( final m in matches ) {
+          list.add(m[0]!);
+        }
+        return list;
+      },
       'padStart': (n,[str=' ']) => val.padLeft(n,str),
       'padEnd': (n,[str=' ']) => val.padRight(n,str),
       'substring': (start,[end=-1]) => (end == -1)?val.substring(start):val.substring(start,end),
@@ -390,7 +403,7 @@ class _List {
       },
       'at': (int index) => list[index],
       'concat': (List arr) => list + arr,
-      'find': (Function f) => list.firstWhere((e) => f([e])),
+      'find': (Function f) => list.firstWhere((e) => f([e]),orElse: () => -1),
       'includes': (dynamic v) => list.contains(v),
       'contains': (dynamic v) => list.contains(v),
       'join': ([String str=',']) => list.join(str),

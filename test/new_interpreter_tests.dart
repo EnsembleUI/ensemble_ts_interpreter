@@ -805,4 +805,18 @@ void main() {
     var rtn = JSInterpreter.fromCode(code, context).evaluate();
     expect(rtn,context['myVar']);
   });
+  test('regexmatchandmatchall', () {
+    Map<String, dynamic> context = {};
+    String code = """
+      var regexp = /[A-Z]/g;
+      var matches = 'Hello World'.matchAll(regexp );
+      var match = 'Hello World'.match(/[A-Z]/g);
+      var secondMatch = 'Hello World'.matchAll(/[A-Z]/g)[1];
+      """;
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
+    expect(context['matches'][0],'H');
+    expect(context['matches'][1],'W');
+    expect(context['match'],'H');
+    expect(context['secondMatch'],'W');
+  });
 }
