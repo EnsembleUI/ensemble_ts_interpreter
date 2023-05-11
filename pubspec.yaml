@@ -36,16 +36,17 @@ dependencies:
   flutter:
     sdk: flutter
 
-
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  json_dynamic_widget: ^3.1.0
   yaml: ^3.1.0
   http: ^0.13.4
-  json_path: ^0.4.1
+  json_path: ^0.5.2
   duration: ^3.0.11
-  dart_date: ^1.2.1
+  dart_date:
+    git:
+      url: https://github.com/spaznuski/dart_date.git
+      ref: master
   #flutter_js: ^0.5.0+6
   #dartjsengine: ^1.0.1
   jsparser:
@@ -53,7 +54,7 @@ dependencies:
       url: https://github.com/kmahmood74/parsejs_null_safety.dart.git
       ref: master
   source_span: ^1.9.1
-  intl: ^0.17.0
+  intl: ^0.18.0
 
 dev_dependencies:
   flutter_test:
@@ -64,7 +65,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^1.0.0
+  flutter_lints: ^2.0.1
   test:
 
 # For information on the generic Dart part of this file, see the
@@ -72,15 +73,14 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
   #assets:
-   # - assets/hotel_booking.yaml
-    #- assets/basic.yaml
-    #- assets/basic_conditionals.yaml
+  # - assets/hotel_booking.yaml
+  #- assets/basic.yaml
+  #- assets/basic_conditionals.yaml
 
   # To add assets to your application, add an assets section, like this:
   # assets:

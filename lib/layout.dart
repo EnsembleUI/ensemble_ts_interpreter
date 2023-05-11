@@ -1,5 +1,5 @@
 import 'package:ensemble_ts_interpreter/view.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide View;
 
 class Layout {
   final Map map;

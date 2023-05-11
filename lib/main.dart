@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:ensemble_ts_interpreter/action.dart';
 import 'package:ensemble_ts_interpreter/api.dart';
 import 'package:ensemble_ts_interpreter/layout.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide View;
 import 'package:yaml/yaml.dart';
 import 'view.dart';
 
