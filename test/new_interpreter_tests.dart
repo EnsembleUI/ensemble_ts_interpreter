@@ -237,7 +237,7 @@ void main() {
      */
     final file = File('test_resources/jsonpath.json');
     final json = jsonDecode(await file.readAsString());
-    List years = JsonPath(r'$..Year').read(json).map((match)=>int.parse(match.value)).toList();
+    List years = JsonPath(r'$..Year').read(json).map((match)=>int.parse(match.value as String)).toList();
     List pop = JsonPath(r'$..Population').read(json).map((match)=>match.value).toList();
     expect(years[3],1930);
     expect(pop[3],6.93);
