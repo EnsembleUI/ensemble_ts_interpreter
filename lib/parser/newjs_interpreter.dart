@@ -36,7 +36,10 @@ class Bindings extends RecursiveVisitor<dynamic> {
   @override
   visitMember(MemberExpression node) {
     dynamic obj = node.object.visitBy(this);
-    return obj + '.' + node.property.visitBy(this);
+    if ( obj != null ) {
+      return obj + '.' + node.property.visitBy(this);
+    }
+    return null;
   }
   @override
   String visitName(Name node) {
