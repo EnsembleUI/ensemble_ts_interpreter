@@ -493,22 +493,18 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           break;
       }
       if (node.operator == '||') {
-        if (left == true || left != null) {
+        if (left != false && left != null && left != 0 && left != '' && !(left is num && left.isNaN)) {
           rtn = left;
-        } else if (right == true || right != null) {
-          rtn = right;
-        } else if (left == null || right == null) {
-          rtn = null;
         } else {
-          rtn = false;
+          // if left is not truthy, return right (no matter if it's truthy or falsy)
+          rtn = right;
         }
         done = true;
       } else if (node.operator == '&&') {
-        if (left == false || right == false) {
-          rtn = false;
-        } else if (left == null || right == null) {
-          rtn = null;
+        if (left == false || left == null || left == 0 || left == '' || (left is num && left.isNaN)) {
+          rtn = left;
         } else {
+          // if left is truthy, return right (no matter if it's truthy or falsy)
           rtn = right;
         }
         done = true;

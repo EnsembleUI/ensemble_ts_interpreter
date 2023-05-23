@@ -28,7 +28,16 @@ class Ensemble extends Object with Invokable {
       'setNames': (firstName,lastName) { this.firstName = firstName; this.lastName = lastName;},
       'setDate': (date) => this.date = date,
       'setNamesAndDate': (firstName,lastName,date) {methods()['setNames']!(firstName,lastName);methods()['setDate']!(date);},
-      'getDate': () => date
+      'getDate': () => date,
+      'invokeAPI': (String apiName, [dynamic value]) {
+        if (value is Map) {
+          Map<String, dynamic> results = {};
+          value.forEach((key, value) {
+            results[key.toString()] = value;
+            print('api:$apiName, input:[${key.toString()}, $value]');
+          });
+        }
+      }
     };
   }
 
@@ -663,6 +672,7 @@ void main() {
 
     String code = """
         var str = 'the ensemble is GREAT';
+        var len = 'Hello'.length;
         var ensembleStr = str.substring(4,4+'ensemble'.length);
         var isGreat = str.substring(4);
         var four = str.indexOf('ensemble');
@@ -677,6 +687,7 @@ void main() {
 
     JSInterpreter.fromCode(code, context).evaluate();
     expect(context['ensembleStr'],'ensemble');
+    expect(context['len'],5);
     expect(context['isGreat'],'ensemble is GREAT');
     expect(context['four'],4);
     expect(context['minusOne'],-1);
@@ -745,16 +756,25 @@ void main() {
       ]
     };
     String code = """
-      (items.length > 0 && items.length < 4 ? items.length == 3 || items.length == 1 ? false : true : false)
+      var _null = null;
+      var zero = 0;
+      var a = (items.length > 0 && items.length < 4 ? items.length == 3 || items.length == 1 ? false : true : false);
+      var b = items[0] == 'two' || items[0] == 'one';//see https://github.com/EnsembleUI/ensemble/issues/534
+      var c = _null || zero;
+      var d = zero || _null;
       """;
     var rtn = JSInterpreter.fromCode(code, context).evaluate();
-    expect(rtn,false);
+    expect(context['a'],false);
+    expect(context['b'],true);
+    expect(context['c'],0);
+    expect(context['d'],null);
   });
   test('datefunction', () {
     Map<String, dynamic> context = {};
     String code = """
       var date = new Date();
-
+      var yesterday = date - 1000 * 60 * 60 * 24; 
+      yesterday = new Date(yesterday).getDay();
       // Methods
       var getTime = date.getTime();
       var getFullYear = date.getFullYear();
@@ -769,9 +789,6 @@ void main() {
       
       // UTC methods
       var utc = Date.UTC(2022, 5, 2, 10, 49, 7, 521);
-      
-      var yesterday = date - 1000 * 60 * 60 * 24; 
-      yesterday = new Date(yesterday).getDay();
       """;
     JSInterpreter.fromCode(code, context).evaluate();
     DateTime date = DateTime.now();
@@ -818,5 +835,12 @@ void main() {
     expect(context['matches'][1],'W');
     expect(context['match'],'H');
     expect(context['secondMatch'],'W');
+  });
+  test('invokeapitest', () {
+    Map<String, dynamic> context = initContext();
+    String code = """
+      ensemble.invokeAPI('myAPI',{'input1': 123, 'input2': 'hello'});
+      """;
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
   });
 }
