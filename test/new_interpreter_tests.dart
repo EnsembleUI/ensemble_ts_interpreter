@@ -843,4 +843,18 @@ void main() {
       """;
     var rtn = JSInterpreter.fromCode(code, context).evaluate();
   });
+  test('objectexpressiontext', () {
+    Map<String, dynamic> context = initContext();
+    String code = """
+                            var result = {
+                                'hello': ['how','are','you'],
+                                data: {'abc': [1,2,3,4]},
+                                unsetData: {},
+                                validationErrors: []
+                            };
+                            console.log(JSON.stringify(result));
+      """;
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
+    expect(context['result']['data']['abc'][1],2);
+  });
 }

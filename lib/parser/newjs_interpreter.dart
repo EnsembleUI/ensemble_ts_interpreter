@@ -298,7 +298,15 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   @override
   visitProperty(Property node) {
-    return {'key':getValueFromNode(node.key),'value':getValueFromNode(node.value)};
+    String key;
+    if ( node.key is Name ) {
+      key = (node.key as Name).value;
+    } else if ( node.key is LiteralExpression ) {
+      key = (node.key as LiteralExpression).value;
+    } else {
+      throw JSException(node.line??1, 'Property of object ${node.toString()} is not supported. Only Name or LiteralExpression are supported.');
+    }
+    return {'key':key,'value':getValueFromNode(node.value)};
   }
   @override
   visitObject(ObjectExpression node) {
@@ -848,6 +856,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     }
     return val;
   }
+
   visitObjectPropertyExpression(Expression object, dynamic property, {bool computeAsPattern=false}) {
     dynamic obj = getValueFromExpression(object);
     dynamic val;
