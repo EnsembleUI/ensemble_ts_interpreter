@@ -534,6 +534,10 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     throw ControlFlowBreakException(node.line??1,'');
   }
   @override
+  visitContinue(ContinueStatement node) {
+    throw ControlFlowContinueException(node.line??1,'');
+  }
+  @override
   visitForIn(ForInStatement node) {
     dynamic right = getValueFromNode(node.right);
     dynamic left = node.left.visitBy(this);
@@ -550,6 +554,8 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         node.body.visitBy(this);
       } on ControlFlowBreakException catch(e) {
         break;
+      } on ControlFlowContinueException catch(e) {
+        continue;
       }
     }
     removeFromContext(left);
@@ -909,6 +915,9 @@ class ControlFlowReturnException extends JSException {
 }
 class ControlFlowBreakException extends JSException {
   ControlFlowBreakException(int line, String message):super(line,message);
+}
+class ControlFlowContinueException extends JSException {
+  ControlFlowContinueException(int line, String message):super(line,message);
 }
 class ObjectPattern {
   Object obj;

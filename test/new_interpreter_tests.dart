@@ -446,6 +446,9 @@ void main() {
     String codeToEvaluate = """
       var i =0;
       for ( person in people ) {
+        if ( i == 1 ) {
+          continue;
+        }      
         people[person]['last_name'] += people[person]['first_name'];
         i++;
         if ( i == 2 ) {
@@ -463,7 +466,7 @@ void main() {
     dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(rtnValue,'worked!');
     expect(context['people']['p1']['last_name'],'adamsjon');
-    expect(context['people']['p2']['last_name'],'doejane');
+    expect(context['people']['p2']['last_name'],'doe');
     expect(context['people']['p3']['last_name'],'jagger');
   });
 
