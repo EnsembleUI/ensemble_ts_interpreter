@@ -444,18 +444,91 @@ void main() {
   });
   test('forinoperatortest', () async {
     String codeToEvaluate = """
+      var indices = [];
+      for (var i = 0; i < 5; i++) {
+        console.log('Outer For loop count: ' + i);
+        for (var j = 0; j < 5; j++) {
+            console.log('   Inner For loop count: ' + j);
+            if (j === 2) {
+                indices.push(i);
+                console.log('   Inner For loop break at 2');
+                break;
+            }
+        }
+      }
+      console.log(indices);
+    """;
+    Map<String, dynamic> context = initContext();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    expect(context['indices'][2],2);
+  });
+
+  test('whilelooptest', () async {
+    String codeToEvaluate = """
+      var indices = [];
       var i =0;
+      var j = 0;
+      while (i < 5) {
+        console.log('Outer For loop count: ' + i);
+        while (j < 5) {
+            console.log('   Inner For loop count: ' + j);
+            if (j === 2) {
+                indices.push(i);
+                console.log('   Inner For loop break at 2');
+                break;
+            }
+            j++;
+        }
+        i++;
+      }
+      console.log(indices);
+    """;
+    Map<String, dynamic> context = initContext();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    expect(context['indices'][2],2);
+  });
+
+  test('dowhiletest', () async {
+    String codeToEvaluate = """
+      var indices = [];
+      var i =0;
+      var j = 0;
+      do {
+        console.log('Outer For loop count: ' + i);
+        do {
+            console.log('   Inner For loop count: ' + j);
+            if (j === 2) {
+                indices.push(i);
+                console.log('   Inner For loop break at 2');
+                break;
+            }
+            j++;
+        } while (j < 5);
+        i++;
+      } while (i < 5);
+      console.log(indices);
+    """;
+    Map<String, dynamic> context = initContext();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    expect(context['indices'][2],2);
+  });
+
+  test('forinoperatortest', () async {
+    String codeToEvaluate = """
+      var i =0;
+      var person = 'Khurram'; 
       for ( person in people ) {
         if ( i == 1 ) {
           continue;
         }      
         people[person]['last_name'] += people[person]['first_name'];
+        console.log(people[person].first_name);
         i++;
         if ( i == 2 ) {
           break;
         }
       }
-      return 'worked!'
+      return person;
        """;
     Map<String, dynamic> context = initContext();
     context['people'] = {
@@ -464,10 +537,10 @@ void main() {
       'p3': {'first_name':'mick','last_name':'jagger'},
     };
     dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
-    expect(rtnValue,'worked!');
     expect(context['people']['p1']['last_name'],'adamsjon');
     expect(context['people']['p2']['last_name'],'doe');
     expect(context['people']['p3']['last_name'],'jagger');
+    expect(rtnValue,'p3');
   });
 
   test('regextest', () async {
@@ -859,5 +932,38 @@ void main() {
       """;
     var rtn = JSInterpreter.fromCode(code, context).evaluate();
     expect(context['result']['data']['abc'][1],2);
+  });
+  test('foreach', () {
+    Map<String, dynamic> context = initContext();
+    String code = """
+    var tiles = [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7];
+    var indices = [0,1,2,3,4,5,6,7];
+
+    indices.forEach(function(num,index){
+        console.log('Index :' + index);
+    });
+      """;
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
+    //expect(context['result']['data']['abc'][1],2);
+  });
+  test('nestedforeach', () {
+    Map<String, dynamic> context = initContext();
+    String code = """
+    var tiles = [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7];
+    var indices = [0,1,2,3,4,5,6,7];
+
+    indices.forEach(function(num){
+      var temps = [1,2];
+      temps.forEach(function(num1){
+        var randomIndex = Math.floor(Math.random() * 16);
+        console.log('Random Index :' + randomIndex);
+        if(tiles[randomIndex] == undefined) {
+          tiles[randomIndex] = num;
+        }
+      });
+    });
+      """;
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
+    //expect(context['result']['data']['abc'][1],2);
   });
 }

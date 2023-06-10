@@ -451,6 +451,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         case '==':
           rtn = left == right;
           break;
+        case '===':
+          rtn = left == right;
+          break;
         case '!=':
           rtn = left != right;
           break;
@@ -538,6 +541,48 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     throw ControlFlowContinueException(node.line??1,'');
   }
   @override
+  visitFor(ForStatement node) {
+    if ( node.init != null ) {
+      node.init!.visitBy(this);
+    }
+    while ( node.condition != null && getValueFromNode(node.condition!) ) {
+      try {
+        node.body.visitBy(this);
+        if ( node.update != null ) {
+          node.update!.visitBy(this);
+        }
+      } on ControlFlowBreakException catch(e) {
+        break;
+      } on ControlFlowContinueException catch(e) {
+        continue;
+      }
+    }
+  }
+  @override
+  visitWhile(WhileStatement node) {
+    while ( getValueFromNode(node.condition) ) {
+      try {
+        node.body.visitBy(this);
+      } on ControlFlowBreakException catch(e) {
+        break;
+      } on ControlFlowContinueException catch(e) {
+        continue;
+      }
+    }
+  }
+  @override
+  visitDoWhile(DoWhileStatement node) {
+    do {
+      try {
+        node.body.visitBy(this);
+      } on ControlFlowBreakException catch(e) {
+        break;
+      } on ControlFlowContinueException catch(e) {
+        continue;
+      }
+    } while ( getValueFromNode(node.condition) ) ;
+  }
+  @override
   visitForIn(ForInStatement node) {
     dynamic right = getValueFromNode(node.right);
     dynamic left = node.left.visitBy(this);
@@ -558,7 +603,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         continue;
       }
     }
-    removeFromContext(left);
+    //removeFromContext(left);
   }
   @override
   visitLiteral(LiteralExpression node) {
@@ -895,7 +940,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
 }
 enum BinaryOperator {
-  equals,lt,gt,ltEquals,gtEquals,notequals,minus,plus,multiply,divide,inop,instaneof
+  equals,strictEquals,lt,gt,ltEquals,gtEquals,notequals,minus,plus,multiply,divide,inop,instaneof
 }
 enum AssignmentOperator {
   equal,plusEqual,minusEqual
