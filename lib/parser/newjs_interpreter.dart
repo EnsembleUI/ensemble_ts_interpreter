@@ -267,7 +267,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     } on JSException catch(e) {
       rethrow;
     } catch (e) {
-      throw JSException(1, e.toString(), detailedError: 'Code: $code');
+      throw JSException(1, e.toString(), detailedError: 'Code: $code', originalError: e);
     }
     return rtn;
   }
@@ -730,7 +730,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           rethrow;
         } catch (e) {
           throw JSException(
-              node.line ?? 1, 'Error while executing method: ${getCode(node)}. Underlying error:${e.toString()}');
+              node.line ?? 1,
+              'Error while executing method: ${getCode(node)}. Underlying error:${e.toString()}',
+              originalError: e);
         }
       }
     } on JSException catch (e) {
