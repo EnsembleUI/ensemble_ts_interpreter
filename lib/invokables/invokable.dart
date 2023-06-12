@@ -112,6 +112,13 @@ mixin Invokable {
 /// This works in conjunction with Controller and WidgetState
 mixin HasController<C extends Controller, S extends WidgetStateMixin> on StatefulWidget{
   C get controller;
+
+  /// a widget can tell the framework not to automatically evaluate its value
+  /// while calling the setters can include the passthrough list here.
+  /// This is useful if the widget wants to evaluate the value later (e.g.
+  /// evaluate an Action's variables upon the action execution), or it wants
+  /// to handle the binding listeners itself (e.g. item-template like)
+  List<String> passthroughSetters() => [];
 }
 
 abstract class Controller extends ChangeNotifier {
