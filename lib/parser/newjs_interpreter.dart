@@ -224,7 +224,13 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           arr.add(element);
         }
       });
-      value = arr;
+      //we must not assign the array to a new array as it will be disconnected from the original.
+      //Take the nested array case when you are changing value within the nested array.
+      //see 2darrayissue in unit tests
+      //value = arr;
+      for ( int i=0;i<value.length;i++ ) {
+        value[i] = arr[i];
+      }
     } else if ( value is Name ) {
       value = getValue(value);
     } else if ( node is ThisExpression ) {

@@ -966,4 +966,59 @@ void main() {
     var rtn = JSInterpreter.fromCode(code, context).evaluate();
     //expect(context['result']['data']['abc'][1],2);
   });
+  test('functionscope', () {
+    Map<String, dynamic> context = initContext();
+    String code = """
+      var counter = 0;
+      function increment() {
+        counter++;
+        console.log('inside '+counter);
+      }
+      """;
+    JSInterpreter.fromCode(code, context).evaluate();
+    code = """
+      counter = 0;
+      increment();
+      console.log('outside '+counter);
+      """;
+    JSInterpreter.fromCode(code, context).evaluate();
+    expect(context['counter'],1);
+  });
+  test('2darrayissue', () {
+    Map<String, dynamic> context = initContext();
+    String code = """
+function createRandomizedTiles() {
+
+    var tilesIndexMapping = [[0,-1], [1,-1], [2,-1],[3,-1], [4,-1], [5,-1], [6,-1], [7,-1],[8,-1], [9,-1], [10,-1],[11,-1], [12,-1], [13,-1], [14,-1], [15,-1]]; 
+
+
+      for (var i = 0; i < 8; i++) {
+        //console.log('i is:' + i);
+        //create a random value between 0 and 16 
+        //corersponding to the tile positions
+        var count = 0; 
+        while(count < 2) {
+          var val = Math.floor(Math.random() * 16);
+          console.log('val: ' + val);
+          if(tilesIndexMapping[val][1] == -1) {
+            tilesIndexMapping[val][1] = i;
+            // console.log('val: ' + val);
+            console.log('i: ' + i);
+            console.log('tilesIndexMapping['+ val+'][1] ' + tilesIndexMapping[val][1]);
+            count = count + 1;
+          }
+          //console.log('val: ' + val);
+          //console.log('count: ' + count);
+        }
+      } 
+      return tilesIndexMapping;
+  }
+  var tilesIndexMapping = createRandomizedTiles();
+  tilesIndexMapping.forEach(function (item) {
+    console.log(item[1]);
+  });
+      """;
+    JSInterpreter.fromCode(code, context).evaluate();
+    //expect(context['counter'],1);
+  });
 }
