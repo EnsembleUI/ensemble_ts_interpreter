@@ -933,19 +933,6 @@ void main() {
     var rtn = JSInterpreter.fromCode(code, context).evaluate();
     expect(context['result']['data']['abc'][1],2);
   });
-  test('foreach', () {
-    Map<String, dynamic> context = initContext();
-    String code = """
-    var tiles = [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7];
-    var indices = [0,1,2,3,4,5,6,7];
-
-    indices.forEach(function(num,index){
-        console.log('Index :' + index);
-    });
-      """;
-    var rtn = JSInterpreter.fromCode(code, context).evaluate();
-    //expect(context['result']['data']['abc'][1],2);
-  });
   test('nestedforeach', () {
     Map<String, dynamic> context = initContext();
     String code = """
@@ -1020,5 +1007,21 @@ function createRandomizedTiles() {
       """;
     JSInterpreter.fromCode(code, context).evaluate();
     //expect(context['counter'],1);
+  });
+  test('ORTest', () {
+    Map<String, dynamic> context = initContext();
+    String code = """
+      var name = null;
+      var messages = [];
+        if (name == null) {
+          messages.push('worked');
+        }
+        if (name == null || name.length == 0) {
+          messages.push('worked');
+        }
+      """;
+    JSInterpreter.fromCode(code, context).evaluate();
+    expect(context['messages'][0],'worked');
+    expect(context['messages'][1],'worked');
   });
 }

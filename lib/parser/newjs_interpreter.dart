@@ -437,6 +437,14 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   visitBinary(BinaryExpression node) {
     try {
       dynamic left = getValueFromExpression(node.left);
+      //special check in case of || to avoid evaluating the right expression
+      //https://github.com/EnsembleUI/ensemble/issues/574
+      if (node.operator == '||') {
+        if (left != false && left != null && left != 0 && left != '' &&
+            !(left is num && left.isNaN)) {
+          return left;
+        }
+      }
       dynamic right = getValueFromExpression(node.right);
       dynamic rtn = false;
       if ( left is SupportsPrimitiveOperations ) {
