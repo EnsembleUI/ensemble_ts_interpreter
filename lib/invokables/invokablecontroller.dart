@@ -374,9 +374,7 @@ class _List {
   }
   static Map<String, Function> methods(List list) {
     return {
-      'map': (Function f) =>  {
-        list.map((e) => f([e])).toList()
-      },
+      'map': (Function f) => list.map((e) => f([e])).toList(),
       'filter': (Function f) => filter(list,f),
       'forEach': (Function f) =>  list.forEach((e) => f([e])),
       'add': (dynamic val) => list.add(val),
