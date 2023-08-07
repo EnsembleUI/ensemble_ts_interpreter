@@ -74,10 +74,7 @@ mixin Invokable {
     return getGettableProperties(this).contains(prop);
   }
   Function? getMethod(dynamic method) {
-    Map<String, Function> rtn = this.methods();
-    if (this is HasController) {
-      rtn.addAll((this as HasController).controller.getBaseMethods());
-    }
+    Map<String, Function> rtn = getMethods(this);
     if (rtn.containsKey(method)) {
       return rtn[method];
     }
