@@ -260,6 +260,9 @@ class _String {
       'prettyDate': () => InvokablePrimitive.prettyDate(val),
       'prettyDateTime': () => InvokablePrimitive.prettyDateTime(val),
       'prettyTime': () => InvokablePrimitive.prettyTime(val),
+      'replace': (pattern,replacement) => val.replaceFirst(pattern, replacement),
+      'replaceAll': (pattern,replacement) => val.replaceAll(pattern, replacement),
+
       'tryParseInt':() => int.tryParse(val),
       'tryParseDouble':() => double.tryParse(val),
       'btoa': () => btoa(val),

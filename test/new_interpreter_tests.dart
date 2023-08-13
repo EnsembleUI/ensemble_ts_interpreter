@@ -154,14 +154,15 @@ void main() {
   });
   test('mapTest', () async {
     String codeToEvaluate = """
-      users.map(function (user) {
+      var newUsers = users.map(function (user) {
         user.name += "NEW";
+        return user;
       });
       """;
     Map<String, dynamic> context = initContext();
     String origValue = context['users'][1]['name'];
     JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
-    expect(context['users'][1]['name'],origValue+'NEW');
+    expect(context['newUsers'][1]['name'],origValue+'NEW');
   });
   test('variableDeclarationTest', () async {
     String codeToEvaluate = """
@@ -1023,5 +1024,47 @@ function createRandomizedTiles() {
     JSInterpreter.fromCode(code, context).evaluate();
     expect(context['messages'][0],'worked');
     expect(context['messages'][1],'worked');
+  });
+  test('mapTest - 687', () async {
+    String codeToEvaluate = """
+      var arr = ['Transportation', 'Groceries', 'Investments', 'Shopping', 'Entertainment', 'Dining', 'Healthcare'];
+      var newArr = arr.map(function(value){
+        return value;
+      });
+      console.log(newArr);
+      """;
+    Map<String, dynamic> context = initContext();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    expect(context['newArr'][1],'Groceries');
+  });
+  test('dateFormIssue', () async {
+    DateTime d = DateTime.parse("Wednesday, August 2, 2023");
+    String codeToEvaluate = """
+    // Given date string
+    var givenDateString = "Wednesday August 2, 2023";
+
+    // Convert the given date string to a Date object
+    var givenDate = new Date(givenDateString);
+      console.log(givenDate);
+      """;
+    Map<String, dynamic> context = initContext();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    //expect(context['newArr'][1],'Groceries');
+  });
+  test('stringreplace', () async {
+    String codeToEvaluate = """
+    // Given date string
+    var p = 'The quick brown fox jumps over the lazy dog. If the dog reacted, was it really lazy?';
+    var replacedDog = p.replace('dog', 'monkey');
+    var replacedAllDogs = p.replaceAll('dog', 'monkey');
+    console.log('replacedAllDogs='+replacedAllDogs);
+    var replacedRegex = p.replace(/Dog/i, 'ferret');
+    console.log('replacedRegex='+replacedRegex);
+    var replacedAllRegex = p.replaceAll(/Dog/i, 'ferret');
+    console.log('replacedAllRegex='+replacedAllRegex);
+      """;
+    Map<String, dynamic> context = initContext();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    expect(context['replacedDog'],'The quick brown fox jumps over the lazy monkey. If the dog reacted, was it really lazy?');
   });
 }
