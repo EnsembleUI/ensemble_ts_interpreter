@@ -370,10 +370,11 @@ void main() {
       myWidgets.collection.widgets.text != myAPI.response.body['text'] 
       myWidgets.collection.widgets.text != myAPI.response.body[1];
       abc.text = myWidgets.widget.text;
+      ensemble.storage.merchants[name];
       """;
-    Program ast = parsejs(codeToEvaluate);
+    Program ast = JSInterpreter.parseCode(codeToEvaluate);
     List<String> bindings = Bindings().resolve(ast);
-    expect(bindings.length,10);
+    expect(bindings.length,12);
     expect(bindings[0],'myText.text');
     expect(bindings[1],'myWidgets.collection.widgets.text');
     expect(bindings[2],'myAPI.response.body.text');
@@ -384,6 +385,8 @@ void main() {
     expect(bindings[7],"myWidgets.collection.widgets.text");
     expect(bindings[8],"myAPI.response.body[1]");
     expect(bindings[9],"myWidgets.widget.text");
+    expect(bindings[10],"ensemble.storage.merchants");
+    expect(bindings[11],"name");
   });
   test('bindingdirecttests', () async {
     String codeToEvaluate = """
@@ -517,8 +520,8 @@ void main() {
   test('forinoperatortest', () async {
     String codeToEvaluate = """
       var i =0;
-      var person = 'Khurram'; 
-      for ( person in people ) {
+      var p = 'Khurram'; 
+      for ( var person in people ) {
         if ( i == 1 ) {
           continue;
         }      
@@ -526,10 +529,11 @@ void main() {
         console.log(people[person].first_name);
         i++;
         if ( i == 2 ) {
+          p = person;
           break;
         }
       }
-      return person;
+      return p;
        """;
     Map<String, dynamic> context = initContext();
     context['people'] = {
@@ -1066,5 +1070,36 @@ function createRandomizedTiles() {
     Map<String, dynamic> context = initContext();
     JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['replacedDog'],'The quick brown fox jumps over the lazy monkey. If the dog reacted, was it really lazy?');
+    expect(context['replacedAllDogs'],'The quick brown fox jumps over the lazy monkey. If the monkey reacted, was it really lazy?');
+    expect(context['replacedRegex'],'The quick brown fox jumps over the lazy ferret. If the dog reacted, was it really lazy?');
+    expect(context['replacedAllRegex'],'The quick brown fox jumps over the lazy ferret. If the ferret reacted, was it really lazy?');
+  });
+  test('jsonstringify', () async {
+    var dateTime = DateTime(2006, 0, 2, 15, 4, 5);
+    print('datetime=${jsonEncode(dateTime)}');
+    String codeToEvaluate = """
+      console.log(JSON.stringify({ x: 5, y: 6 }));
+      // Expected output: '{"x":5,"y":6}'
+      
+      console.log(JSON.stringify([3, 'false', false]));
+      // Expected output: '[3,"false",false]'
+      
+      
+      console.log(JSON.stringify(new Date(2006, 0, 2, 15, 4, 5)));
+      // Expected output: '"2006-01-02T15:04:05.000Z"'
+      """;
+    Map<String, dynamic> context = initContext();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
+    //expect(context['newArr'][1],'Groceries');
+  });
+  test('issue:725 - bindingmap', () async {
+    String codeToEvaluate = """
+      ensemble.storage.merchants[name]
+      """;
+    Program ast = JSInterpreter.parseCode(codeToEvaluate);
+    List<String> bindings = Bindings().resolve(ast);
+    expect(bindings.length,2);
+    expect(bindings[0],'ensemble.storage.merchants');
+    expect(bindings[1],'name');
   });
 }

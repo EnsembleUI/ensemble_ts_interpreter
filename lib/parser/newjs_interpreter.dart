@@ -46,8 +46,8 @@ class Bindings extends RecursiveVisitor<dynamic> {
     return node.value;
   }
   @override
-  visitNameExpression(NameExpression node) {
-    return node.name.visitBy(this);
+  String visitNameExpression(NameExpression node) {
+    return node.name.visitBy(this) as String;
   }
   @override
   visitCall(CallExpression node) {
@@ -83,11 +83,16 @@ class Bindings extends RecursiveVisitor<dynamic> {
     if ( node.property is LiteralExpression ) {
       prop = (node.property as LiteralExpression).value;
     }
-    if ( obj is String ) {
+    if ( node.property is NameExpression ) {
+      if ( obj is String ) {
+        bindings.add(obj);
+        bindings.add(node.property.visitBy(this) as String); //we add the name to the bindings as well
+      }
+    } else if ( obj is String ) {
       if ( prop is num ) {
         return obj + '['+prop.toString()+']';
       } else if ( prop is String ) {
-        return obj + "['"+prop+"']";
+        return obj + "['" + prop + "']";
       }
     }
   }
