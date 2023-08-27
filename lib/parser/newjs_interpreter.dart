@@ -448,6 +448,15 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         if (left != false && left != null && left != 0 && left != '' &&
             !(left is num && left.isNaN)) {
           return left;
+        } else {
+          return getValueFromExpression(node.right);
+        }
+      } else if (node.operator == '&&') {
+        if (left == false || left == null || left == 0 || left == '' ||
+            (left is num && left.isNaN)) {
+          return left;
+        } else {
+          return getValueFromExpression(node.right);
         }
       }
       dynamic right = getValueFromExpression(node.right);
@@ -521,23 +530,6 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         default:
           done = false;
           break;
-      }
-      if (node.operator == '||') {
-        if (left != false && left != null && left != 0 && left != '' && !(left is num && left.isNaN)) {
-          rtn = left;
-        } else {
-          // if left is not truthy, return right (no matter if it's truthy or falsy)
-          rtn = right;
-        }
-        done = true;
-      } else if (node.operator == '&&') {
-        if (left == false || left == null || left == 0 || left == '' || (left is num && left.isNaN)) {
-          rtn = left;
-        } else {
-          // if left is truthy, return right (no matter if it's truthy or falsy)
-          rtn = right;
-        }
-        done = true;
       }
       if (!done) {
         throw JSException(

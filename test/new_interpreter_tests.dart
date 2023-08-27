@@ -1094,12 +1094,64 @@ function createRandomizedTiles() {
   });
   test('issue:725 - bindingmap', () async {
     String codeToEvaluate = """
-      ensemble.storage.merchants[name]
+      ensemble.storage.merchants[name].merchantLogo
       """;
     Program ast = JSInterpreter.parseCode(codeToEvaluate);
     List<String> bindings = Bindings().resolve(ast);
     expect(bindings.length,2);
     expect(bindings[0],'ensemble.storage.merchants');
     expect(bindings[1],'name');
+  });
+  test('andorconditionals - 758', () async {
+    String codeToEvaluate = """
+      var cond1 = true;
+      var cond2 = true;
+      var cond3 = false;
+      //left is false in &&
+      if ( response.abc != null && response.abc.lmn == 'abc' ) {
+        cond1 = false;
+      }
+      response.abc = {};
+      //left is true and right is false
+      if ( response.abc != null && response.abc.lmn == 'abc' ) {
+        cond2 = false;
+      }
+      response.abc.lmn = 'abc';
+      //left and right are true
+      if ( response.abc != null && response.abc.lmn == 'abc' ) {
+        cond3 = true;
+      }
+      var cond4 = true;
+      var cond5 = false;
+      var cond6 = false;
+      var cond7 = false;         
+      //left is false and right is false in ||
+      if ( response.xyz != null || response.abc.lmn == 'xyz' ) {
+        cond4 = false;
+      }
+      response.xyz = {};
+      //left is true and right is false
+      if ( response.xyz != null || response.xyz.lmn == 'abc' ) {
+        cond5 = true;
+      }
+      response.xyz.lmn = 'abc';
+      //left and right are true
+      if ( response.xyz != null || response.xyz.lmn == 'abc' ) {
+        cond6 = true;
+      }
+      //left is false and right is true
+      if ( response.jjj != null || response.xyz.lmn == 'abc' ) {
+        cond7 = true;
+      }        
+      """;
+    Map<String, dynamic> context = initContext();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+    expect(context['cond1'],true);
+    expect(context['cond2'],true);
+    expect(context['cond3'],true);
+    expect(context['cond4'],true);
+    expect(context['cond5'],true);
+    expect(context['cond6'],true);
+    expect(context['cond7'],true);
   });
 }
