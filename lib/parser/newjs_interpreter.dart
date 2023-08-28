@@ -437,6 +437,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       value = node.init!.visitBy(this);
     }
     addToContext(name,value);
+    return name;
   }
   @override
   visitBinary(BinaryExpression node) {

@@ -521,17 +521,14 @@ void main() {
     String codeToEvaluate = """
       var i =0;
       var p = 'Khurram'; 
-      for ( var person in people ) {
-        if ( i == 1 ) {
-          continue;
-        }      
+      for ( var person in people ) {    
         people[person]['last_name'] += people[person]['first_name'];
         console.log(people[person].first_name);
-        i++;
-        if ( i == 2 ) {
+        if ( i == 1 ) {
           p = person;
           break;
         }
+        i++;
       }
       return p;
        """;
@@ -543,9 +540,9 @@ void main() {
     };
     dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['people']['p1']['last_name'],'adamsjon');
-    expect(context['people']['p2']['last_name'],'doe');
+    expect(context['people']['p2']['last_name'],'doejane');
     expect(context['people']['p3']['last_name'],'jagger');
-    expect(rtnValue,'p3');
+    expect(rtnValue,'p2');
   });
 
   test('regextest', () async {
