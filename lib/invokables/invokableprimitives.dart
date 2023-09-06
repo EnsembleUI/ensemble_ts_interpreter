@@ -115,36 +115,3 @@ abstract class InvokablePrimitive {
   dynamic getValue();
 
 }
-class InvokableNull extends InvokablePrimitive with Invokable {
-
-  @override
-  dynamic getValue() {
-    return null;
-  }
-
-  @override
-  Map<String, Function> getters() {
-    return {};
-  }
-
-  @override
-  Map<String, Function> methods() {
-    return {};
-  }
-
-  @override
-  Map<String, Function> setters() {
-    return {};
-  }
-
-  @override
-  dynamic getProperty(dynamic prop) {
-    return null;
-  }
-
-  @override
-  void setProperty(dynamic prop, dynamic val) {
-    throw Exception("cannot set property on null. prop="+prop);
-  }
-
-}
