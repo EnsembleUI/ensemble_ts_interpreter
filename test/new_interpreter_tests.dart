@@ -1151,4 +1151,14 @@ function createRandomizedTiles() {
     expect(context['cond6'],true);
     expect(context['cond7'],true);
   });
+  test('issue 34 - assignVarOnDeclaration', () async {
+    String codeToEvaluate = """
+      var var1 = 123;
+      var var2 = var1;
+      
+      """;
+    Map<String, dynamic> context = initContext();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+    expect(context['var2'],123);
+  });
 }

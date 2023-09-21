@@ -434,7 +434,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     Name name = node.name;
     dynamic value;
     if ( node.init != null ) {
-      value = node.init!.visitBy(this);
+      value = getValueFromExpression(node.init!);
     }
     addToContext(name,value);
     return name;
