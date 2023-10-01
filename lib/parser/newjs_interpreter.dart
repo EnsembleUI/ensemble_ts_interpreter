@@ -367,7 +367,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     } else {
       switch (node.operator) {
         case '++': number++;break;
-        case '--': number++;break;
+        case '--': number--;break;
       }
     }
     addToContext(name, number);
