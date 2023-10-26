@@ -108,7 +108,10 @@ mixin Invokable {
       // ask our controller to notify its listeners of changes
       if (this is HasController) {
         (this as HasController).controller.dispatchChanges(KeyValue(prop.toString(), val));
+      } else if (this is EnsembleController) {
+        (this as EnsembleController).notifyListeners();
       }
+
     } else {
       throw InvalidPropertyException('Object with id:${id??''} does not have a settable property named $prop');
     }
@@ -126,6 +129,10 @@ mixin HasController<C extends Controller, S extends WidgetStateMixin> on Statefu
   /// evaluate an Action's variables upon the action execution), or it wants
   /// to handle the binding listeners itself (e.g. item-template like)
   List<String> passthroughSetters() => [];
+}
+
+abstract class EnsembleController extends ChangeNotifier with Invokable {
+
 }
 
 abstract class Controller extends ChangeNotifier {
