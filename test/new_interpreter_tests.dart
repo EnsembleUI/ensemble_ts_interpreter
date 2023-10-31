@@ -1161,4 +1161,32 @@ function createRandomizedTiles() {
     var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['var2'],123);
   });
+  test('iterate_over_object', () async {
+    Map<String, dynamic> headers = {};
+    headers['abc'] = 'xyz';
+    headers['def'] = 123;
+    headers['ghi'] = '456';
+    Map<String, dynamic> context = initContext();
+    context['headers'] = headers;
+
+    String codeToEvaluate = """
+      var myObj = {'abc':'def'};
+      var keys = headers.keys();
+      console.log('keys:');
+      keys.forEach(function(key) {
+        console.log(key + ':' + headers[key]);
+      });
+      console.log('values:');
+      headers.values().forEach(function(val) {
+        console.log(val);
+      });
+      console.log('entries:');
+      headers.entries().forEach(function(entry) {
+        console.log(entry.key + ':' + entry.value);
+      });      
+      """;
+
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+    //expect(context['var2'],123);
+  });
 }

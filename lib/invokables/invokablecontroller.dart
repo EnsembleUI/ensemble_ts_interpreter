@@ -341,7 +341,7 @@ class _Number {
 }
 class _Map {
   static Map<String, Function> getters(Map map) {
-    return {};
+    return { };
   }
   static Map<String, Function> methods(Map map) {
     return {
@@ -350,6 +350,15 @@ class _Map {
             .read(map)
             .map((match)=>(mapFunction!=null)?mapFunction([match.value]):match.value)
             .toList();
+      },
+      'keys': () => map.keys.toList(),
+      'values': () => map.values.toList(),
+      'entries': () {
+        List<Map> list = [];
+        map.forEach((key, value) {
+          list.add({'key': key, 'value':value});
+        });
+        return list;
       }
 
 
