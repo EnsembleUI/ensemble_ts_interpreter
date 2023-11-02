@@ -1167,10 +1167,13 @@ function createRandomizedTiles() {
     headers['def'] = 123;
     headers['ghi'] = '456';
     Map<String, dynamic> context = initContext();
-    context['headers'] = headers;
+    //context['headers'] = headers;
 
     String codeToEvaluate = """
-      var myObj = {'abc':'def'};
+      var headers = {};
+      headers['abc'] = 'xyz';
+      headers['def'] = 123;
+      headers['ghi'] = '456';      
       var keys = headers.keys();
       console.log('keys:');
       keys.forEach(function(key) {
@@ -1188,5 +1191,20 @@ function createRandomizedTiles() {
 
     var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     //expect(context['var2'],123);
+  });
+  test('json-functions', () async {
+    Map<String, dynamic> context = initContext();
+
+    String codeToEvaluate = """
+      var json = {"abc":"xyz","date": new Date() };
+      var str = JSON.stringify(json);
+      console.log(str);    
+      var json2 = JSON.parse(str);
+      console.log(json2);
+      """;
+
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+    expect(context['str'].startsWith('{"abc":"xyz","date":'),true);
+    expect(context['json2']['abc'],'xyz');
   });
 }

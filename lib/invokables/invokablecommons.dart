@@ -150,6 +150,10 @@ class Date extends Object with Invokable, SupportsPrimitiveOperations{
       'utcMilliseconds': () => _dateTime.toUtc().millisecond,
     };
   }
+  @override
+  String toJson() {
+    return _dateTime.toUtc().toIso8601String();
+  }
   Map<String, Function> methods() {
     return {
       'getTime': () => _dateTime.millisecondsSinceEpoch,
