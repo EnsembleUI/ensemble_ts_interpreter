@@ -1201,10 +1201,79 @@ function createRandomizedTiles() {
       console.log(str);    
       var json2 = JSON.parse(str);
       console.log(json2);
+      var date = new Date();
+      console.log(date.toString());
+      var event = new Date('2023-11-02 17:07:35.053068');
+      console.log("event -> "+event.toString());
+      // Expected output: "Wed Oct 05 2011 16:48:00 GMT+0200 (CEST)"
+      // Note: your timezone may vary
+      
+      console.log(event.toISOString());
+      // Expected output: "2011-10-05T14:48:00.000Z"
       """;
 
     var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['str'].startsWith('{"abc":"xyz","date":'),true);
     expect(context['json2']['abc'],'xyz');
+  });
+  test('increment-mac-address', () async {
+    Map<String, dynamic> context = initContext();
+
+    String codeToEvaluate = """
+      function incrementMAC(mac, increment) {
+        var hexParts = mac.split(':');
+        var numericValue = parseInt(hexParts.join(''), 16);
+        var incrementedValue = numericValue + increment;
+        var incrementedHex = incrementedValue.toString(16).padStart(12, '0');
+        
+        var newMac = [];
+        for (var i = 0; i < 12; i += 2) {
+        newMac.push(incrementedHex.substring(i, i + 2));
+        }
+        
+        return newMac.join(':').toUpperCase();
+      }  
+      var macAddresses = [
+          '00:16:3E:2B:6F:FF',
+          '06:00:00:00:00:01',
+          '08:00:27:13:69:AD',
+          '00:0C:29:3D:7B:6E'
+      ];
+      var expectedValues = [];
+      macAddresses.forEach(function(mac) {
+        expectedValues.push(incrementMAC(mac, 1));
+      });
+
+      """;
+
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+    expect(context['expectedValues'][0] == '00:16:3E:2B:70:00',true);
+    expect(context['expectedValues'][1] == '06:00:00:00:00:02',true);
+    expect(context['expectedValues'][2] == '08:00:27:13:69:AE',true);
+    expect(context['expectedValues'][3] == '00:0C:29:3D:7B:6F',true);
+  });
+  test('increment', () async {
+    String codeToEvaluate = """
+      var a = [{player1: {score: 1}}];
+       //a.score++;
+       console.log(a[0].player1.score);
+      a[0]['player1']['score']++;
+      var b = 2;
+      b++;
+      var c = --a[0]['player1']['score'];
+      var d = a[0]['player1']['score']--;
+      
+      var e = ++c;
+      var f = d++;
+      
+      """;
+    Map<String, dynamic> context = initContext();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+    expect(context['a'][0]['player1']['score'],0);
+    expect(context['b'],3);
+    expect(context['c'],2);
+    expect(context['d'],2);
+    expect(context['e'],2);
+    expect(context['f'],1);
   });
 }

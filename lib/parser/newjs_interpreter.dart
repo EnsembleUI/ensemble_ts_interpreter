@@ -349,29 +349,65 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   @override
   visitUpdateExpression(UpdateExpression node) {
-    dynamic name = node.argument.visitBy(this);
-    dynamic val = getValue(name);
+    dynamic val = getValueFromExpression(node.argument!);
+    ObjectPattern? pattern;
     num number;
-    if ( val is num ) {
+    num originalNumber;
+    if (val is num) {
       number = val;
+      originalNumber = number;
     } else {
-      throw JSException(node.line??1,
-          'The operator ' + node.operator! + ' is only valid for numbers and ' +
-              node.argument.toString() + ' is not a number.', detailedError:'Code: ${getCode(node)}');
+      throw JSException(node.line ?? 1,
+          'The operator ' + node.operator! +
+              ' is only valid for numbers and ' +
+              node.argument.toString() + ' is not a number.',
+          detailedError: 'Code: ${getCode(node)}');
+    }
+    if (node.argument is MemberExpression) {
+      pattern =
+          visitMember(node.argument as MemberExpression, computeAsPattern: true);
+    } else if (node.argument is IndexExpression) {
+      pattern =
+          visitIndex(node.argument as IndexExpression, computeAsPattern: true);
+    }
+
+    if (pattern != null) {
+      var obj = pattern.obj;
+      switch (node.operator) {
+        case '++':
+          number++;
+          InvokableController.setProperty(obj, pattern.property, number);
+          break;
+        case '--':
+          number--;
+          InvokableController.setProperty(obj, pattern.property, number);
+          break;
+        default:
+          throw JSException(node.line ?? 1,
+              "${node.operator!} in Code: ${getCode(
+                  node)} is not yet supported");
+      }
+    } else if (node.argument is Name || node.argument is NameExpression) {
+      Name n;
+      if (node.argument is NameExpression) {
+        n = (node.argument as NameExpression).name;
+      } else {
+        n = node.argument as Name;
+      }
+      switch (node.operator) {
+        case '++':
+          number++;
+          break;
+        case '--':
+          number--;
+          break;
+      }
+      addToContext(n, number);
     }
     if ( node.isPrefix ) {
-      switch (node.operator) {
-        case '++': ++number;break;
-        case '--': --number;break;
-      }
-    } else {
-      switch (node.operator) {
-        case '++': number++;break;
-        case '--': number--;break;
-      }
+      return number;
     }
-    addToContext(name, number);
-    return number;
+    return originalNumber;
   }
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
