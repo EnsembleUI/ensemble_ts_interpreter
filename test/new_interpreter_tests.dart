@@ -904,6 +904,9 @@ void main() {
     Map<String, dynamic> context = {};
     String code = """
       var regexp = /[A-Z]/g;
+      var regexp2 = /property\([^)]+\)manage/g;
+      var htmlString = '<html><head></head><body>Sharjeel modified the trip. <a data-ios-target="booking:05a1ead9-cf90-4bcf-8e56-0c469ffa7f4e" data-ios-target-v1="internal:booking:05a1ead9-cf90-4bcf-8e56-0c469ffa7f4e" href="https://myplace.co/app/property/831c18d1-3557-4106-9247-932a4a5c416c/manage?booking=05a1ead9-cf90-4bcf-8e56-0c469ffa7f4e">Review</a></body></html>';
+      var m = htmlString.matchAll(regexp2);
       var matches = 'Hello World'.matchAll(regexp );
       var match = 'Hello World'.match(/[A-Z]/g);
       var secondMatch = 'Hello World'.matchAll(/[A-Z]/g)[1];
@@ -1275,5 +1278,18 @@ function createRandomizedTiles() {
     expect(context['d'],2);
     expect(context['e'],2);
     expect(context['f'],1);
+  });
+  test('regexstringreplace', () async {// Output: (925) 935-1569
+
+    String codeToEvaluate = r"""
+        var numberSt = "9252950000";
+        var formattedResult = numberSt.replaceAll(/^([2-9]\d{2})([2-9]\d{2})(\d{4})$/, 
+                  '($1) $2-$3');
+        console.log(formattedResult);
+        
+      """;
+    Map<String, dynamic> context = initContext();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+    expect(context['formattedResult'],'(925) 295-0000');
   });
 }

@@ -113,7 +113,7 @@ class InvokableController {
     } else if ( val is List ) {
       return _List.getters(val);
     } else if ( val is RegExp ) {
-      return _RegExp.setters(val);
+      return _RegExp.getters(val);
     }
     return {};
   }
@@ -227,6 +227,18 @@ class _String {
       throw InvalidPropertyException('$obj does not have a settable property named $prop');
     }
   }
+  static String replaceWithJsRegex(String input, RegExp regExp, String replacement) {
+    return input.replaceAllMapped(regExp, (Match match) {
+      String result = replacement;
+
+      // Replace all group references in the replacement string
+      for (int i = 0; i <= match.groupCount; i++) {
+        result = result.replaceAll('\$$i', match[i] ?? '');
+      }
+
+      return result;
+    });
+  }
   static Map<String, Function> methods(String val) {
     return {
       'indexOf': (String str) => val.indexOf(str),
@@ -261,8 +273,12 @@ class _String {
       'prettyDateTime': () => InvokablePrimitive.prettyDateTime(val),
       'prettyTime': () => InvokablePrimitive.prettyTime(val),
       'replace': (pattern,replacement) => val.replaceFirst(pattern, replacement),
-      'replaceAll': (pattern,replacement) => val.replaceAll(pattern, replacement),
-
+      'replaceAll': (pattern,replacement) {
+        if ( pattern is String ) {
+          return val.replaceAll(pattern, replacement);
+        }
+        return replaceWithJsRegex(val, pattern, replacement);},
+      'replaceAllMapped': (pattern,replacement) => replaceWithJsRegex(val, pattern, replacement),
       'tryParseInt':() => int.tryParse(val),
       'tryParseDouble':() => double.tryParse(val),
       'btoa': () => btoa(val),
