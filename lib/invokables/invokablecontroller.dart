@@ -227,18 +227,24 @@ class _String {
       throw InvalidPropertyException('$obj does not have a settable property named $prop');
     }
   }
-  static String replaceWithJsRegex(String input, RegExp regExp, String replacement) {
-    return input.replaceAllMapped(regExp, (Match match) {
+
+  static String replaceWithJsRegex(String input, RegExp regExp, String replacement, {bool replaceFirst = false}) {
+    // The replace function takes a Match object and returns the replaced string
+    String replace(Match match) {
       String result = replacement;
 
       // Replace all group references in the replacement string
       for (int i = 0; i <= match.groupCount; i++) {
-        result = result.replaceAll('\$$i', match[i] ?? '');
+          result = result.replaceAll('\$$i', match.group(i) ?? '');
       }
 
       return result;
-    });
+    };
+
+    // Use replaceFirstMapped if replaceFirst is true, otherwise use replaceAllMapped
+    return replaceFirst ? input.replaceFirstMapped(regExp, replace) : input.replaceAllMapped(regExp, replace);
   }
+
   static Map<String, Function> methods(String val) {
     return {
       'indexOf': (String str) => val.indexOf(str),
@@ -250,11 +256,12 @@ class _String {
       'toLowerCase': () => val.toLowerCase(),
       'toUpperCase': () => val.toUpperCase(),
       'match': (regexp) {
-        RegExpMatch? match = (regexp as RegExp).firstMatch(val);
-        if ( match != null ) {
-          return match[0] as String;
+        final matches = (regexp as RegExp).allMatches(val);
+        List<String> list = [];
+        for ( final m in matches ) {
+          list.add(m[0]!);
         }
-        return null;
+        return list;
       },
       'matchAll': (regexp) {
         final matches = (regexp as RegExp).allMatches(val);
@@ -272,12 +279,18 @@ class _String {
       'prettyDate': () => InvokablePrimitive.prettyDate(val),
       'prettyDateTime': () => InvokablePrimitive.prettyDateTime(val),
       'prettyTime': () => InvokablePrimitive.prettyTime(val),
-      'replace': (pattern,replacement) => val.replaceFirst(pattern, replacement),
-      'replaceAll': (pattern,replacement) {
+      'replace': (pattern,replacement) {
         if ( pattern is String ) {
-          return val.replaceAll(pattern, replacement);
+          return val.replaceFirst(pattern, replacement);
         }
-        return replaceWithJsRegex(val, pattern, replacement);},
+        return replaceWithJsRegex(val, pattern, replacement, replaceFirst: true);
+      },
+      'replaceAll': (pattern,replacement) {
+          if ( pattern is String ) {
+            return val.replaceAll(pattern, replacement);
+          }
+          return replaceWithJsRegex(val, pattern, replacement);
+        },
       'replaceAllMapped': (pattern,replacement) => replaceWithJsRegex(val, pattern, replacement),
       'tryParseInt':() => int.tryParse(val),
       'tryParseDouble':() => double.tryParse(val),

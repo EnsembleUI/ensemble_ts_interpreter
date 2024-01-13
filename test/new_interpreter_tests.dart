@@ -1285,11 +1285,18 @@ function createRandomizedTiles() {
         var numberSt = "9252950000";
         var formattedResult = numberSt.replaceAll(/^([2-9]\d{2})([2-9]\d{2})(\d{4})$/, 
                   '($1) $2-$3');
-        console.log(formattedResult);
+        var ssn = "234567890".replace(/^(\d{3})(\d{2})(\d{4})$/, '$1-$2-$3');
+        var unformattedssn = ssn.replaceAll(/-/g, '');
+        
+        var fileExtension = "example.png".match(/(?:\.([0-9a-z]+))$/i)[0];
         
       """;
     Map<String, dynamic> context = initContext();
     var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['formattedResult'],'(925) 295-0000');
+    expect(context['ssn'],'234-56-7890');
+    expect(context['unformattedssn'],'234567890');
+    expect(context['fileExtension'],'.png');
+
   });
 }
