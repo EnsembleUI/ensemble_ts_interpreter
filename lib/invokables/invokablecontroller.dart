@@ -255,6 +255,14 @@ class _String {
       'includes': (str) => val.contains(str),
       'toLowerCase': () => val.toLowerCase(),
       'toUpperCase': () => val.toUpperCase(),
+      'trim': () => val.trim(),
+      'trimStart': () => val.trimLeft(),
+      'trimEnd': () => val.trimRight(),
+      'localeCompare': (String str) => val.compareTo(str),//not locale specific
+      'repeat': (int count) => val * count,
+      'search': (RegExp pattern) => pattern.hasMatch(val) ? pattern.firstMatch(val)?.start : -1,
+      'slice': (int start, [int? end]) => val.substring(start, end ?? val.length),
+      'substr': (int start, [int? length]) => val.substring(start, start + (length ?? val.length - start)),
       'match': (regexp) {
         final matches = (regexp as RegExp).allMatches(val);
         List<String> list = [];
