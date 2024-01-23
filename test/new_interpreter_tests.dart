@@ -1290,6 +1290,9 @@ function createRandomizedTiles() {
         
         var fileExtension = "example.png".match(/(?:\.([0-9a-z]+))$/i)[0];
         
+        var phone = '408-230-6845'.replaceAll(/\D/g, '');
+        console.log(phone);
+        
       """;
     Map<String, dynamic> context = initContext();
     var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
@@ -1297,6 +1300,153 @@ function createRandomizedTiles() {
     expect(context['ssn'],'234-56-7890');
     expect(context['unformattedssn'],'234567890');
     expect(context['fileExtension'],'.png');
+
+  });
+  test('regexpfori18n', () async {// Output: (925) 935-1569
+    final RegExp i18nExpression = RegExp(r'\br@[\w\.]+');
+    expect("abcr@gmail.com".replaceAllMapped(i18nExpression, (match) {
+      return match.input.substring(match.start, match.end);
+    }),'abcr@gmail.com');
+    expect("abc r@gmail.com".replaceAllMapped(i18nExpression, (match) {
+      return match.input.substring(match.start, match.end);
+    }),'r@gmail.com');
+    expect("abc@gmail.com".replaceAllMapped(i18nExpression, (match) {
+      return match.input.substring(match.start, match.end);
+    }),'abc@gmail.com');
+
+  });
+  group('Regex Test for js single expressions in Utils.onlyExpression', () {
+    // Define the RegExp
+    final RegExp onlyExpression = RegExp(
+        r'''^\$\{([^}]+)\}$'''
+    );
+
+    test('should match single expression and extract content', () {
+      var match = onlyExpression.firstMatch(r'''${phone_wdg.value.replaceAll(/\D/g, '')}''');
+      expect(match, isNotNull);
+      expect(match?.group(1), equals('phone_wdg.value.replaceAll(/\\D/g, \'\')'));
+    });
+
+    test('should return null for multiple expressions', () {
+      var match = onlyExpression.firstMatch(r'''${abc.go()} ${efg.hello()}''');
+      expect(match, isNull);
+    });
+
+    test('should return null for no expression', () {
+      var match = onlyExpression.firstMatch('No expression here');
+      expect(match, isNull);
+    });
+
+    test('should handle complex expressions within braces', () {
+      var match = onlyExpression.firstMatch(r'''${complex.expression(with, various_characters)}''');
+      expect(match, isNotNull);
+      expect(match?.group(1), equals('complex.expression(with, various_characters)'));
+    });
+
+    test('should return null for unbalanced braces', () {
+      var match = onlyExpression.firstMatch(r'''${unbalanced.expression''');
+      expect(match, isNull);
+    });
+    // Test for a string with the expression repeated multiple times
+    test('should return null for string with multiple separate expressions', () {
+      var match = onlyExpression.firstMatch(r'''${phone_wdg.value.replaceAll(/\D/g, '')} ${phone_wdg.value.replaceAll(/\D/g, '')}''');
+      expect(match, isNull);
+    });
+
+// Test for a string with a complex expression inside ${...}
+    test('should match a complex single expression within braces', () {
+      var match = onlyExpression.firstMatch(r'''${phone_wdg.value.replaceAll(/\D/g, '') + phone_wdg.value.replaceAll(/\D/g, '') + 'hello'}''');
+      expect(match, isNotNull);
+      expect(match?.group(1), equals('phone_wdg.value.replaceAll(/\\D/g, \'\') + phone_wdg.value.replaceAll(/\\D/g, \'\') + \'hello\''));
+    });
+
+// Test for a string with complex content but not in the correct format
+    test(r'should return null for complex content not enclosed in ${...}', () {
+      var match = onlyExpression.firstMatch(r'''phone_wdg.value.replaceAll(/\D/g, '') + phone_wdg.value.replaceAll(/\D/g, '') + 'hello''');
+          expect(match, isNull);
+    });
+
+// Test for a string with multiple complex expressions
+    test('should return null for multiple complex expressions', () {
+      var match = onlyExpression.firstMatch(r'''${phone_wdg.value.replaceAll(/\D/g, '') + 'something'} ${phone_wdg.value.replaceAll(/\D/g, '') + 'anotherThing'}''');
+      expect(match, isNull);
+    });
+// Test for a string starting with a valid expression followed by additional text
+    test('should return null for valid expression followed by external text', () {
+      var match = onlyExpression.firstMatch(r'''${phone_wdg.value.replaceAll(/\D/g, '')} hello''');
+      expect(match, isNull);
+    });
+
+// Test for a complex expression within braces including concatenation
+    test('should match complex expression with concatenation inside braces', () {
+      var match = onlyExpression.firstMatch(r'''${phone_wdg.value.replaceAll(/\D/g, '') + 'hello'}''');
+      expect(match, isNotNull);
+      expect(match?.group(1), equals('phone_wdg.value.replaceAll(/\\D/g, \'\') + \'hello\''));
+    });
+
+  });
+  group('Contain Expression Tests', () {
+    // Define the RegExp for matching expressions
+    final RegExp containExpression = RegExp(
+        r'''\$\{([^}{]+(?:\{[^}{]*\}[^}{]*)*)\}'''
+    );
+
+
+    test('should match single expression with replaceAll', () {
+      var matches = containExpression.allMatches(r'''${phone_wdg.value.replaceAll(/\D/g, '')}''').map((e) => e.group(0)).toList();
+      expect(matches, hasLength(1));
+      expect(matches[0], equals(r'''${phone_wdg.value.replaceAll(/\D/g, '')}'''));
+    });
+
+    test('should match multiple expressions in a string', () {
+      var matches = containExpression.allMatches(r'''${phone_wdg.value.replaceAll(/\D/g, '')} Hello ${user.name.replaceAll(/\s/g, '_')}''').map((e) => e.group(0)).toList();
+      expect(matches, hasLength(2));
+      expect(matches, containsAll([r'''${phone_wdg.value.replaceAll(/\D/g, '')}''', r'''${user.name.replaceAll(/\s/g, '_')}''']));
+    });
+
+    test('should match expressions with various regex patterns', () {
+      var matches = containExpression.allMatches(r'''${data.format(/x+/g, 'X')} and ${info.replace(/[^a-zA-Z]/g, '')}''').map((e) => e.group(0)).toList();
+      expect(matches, hasLength(2));
+      expect(matches, containsAll([r'''${data.format(/x+/g, 'X')}''', r'''${info.replace(/[^a-zA-Z]/g, '')}''']));
+    });
+
+    test('should not match if no expression present', () {
+      var matches = containExpression.allMatches('Just a regular string').map((e) => e.group(0)).toList();
+      expect(matches, isEmpty);
+    });
+
+    test('should handle nested curly braces correctly', () {
+      var matches = containExpression.allMatches(r'''${compute({x: 1, y: 2})}''').map((e) => e.group(0)).toList();
+      expect(matches, hasLength(1));
+      expect(matches[0], equals(r'''${compute({x: 1, y: 2})}'''));
+    });
+// Test for a string with a complex expression including numbers and symbols
+    test('should match expression with numbers and symbols', () {
+      var matches = containExpression.allMatches(r'''${value.calculate(42, @symbol)}''').map((e) => e.group(0)).toList();
+      expect(matches, hasLength(1));
+      expect(matches[0], equals(r'''${value.calculate(42, @symbol)}'''));
+    });
+
+// Test for a string with a mixture of text and expressions
+    test('should match expressions within text', () {
+      var matches = containExpression.allMatches(r'''Text before ${expr1} and text after ${expr2}''').map((e) => e.group(0)).toList();
+      expect(matches, hasLength(2));
+      expect(matches, containsAll([r'''${expr1}''', r'''${expr2}''']));
+    });
+
+// Test for a string with multiple expressions including function calls and operations
+    test('should match multiple complex expressions', () {
+      var matches = containExpression.allMatches(r'''${func1(arg1)} some text ${func2(arg2) + func3(arg3)}''').map((e) => e.group(0)).toList();
+      expect(matches, hasLength(2));
+      expect(matches, containsAll([r'''${func1(arg1)}''', r'''${func2(arg2) + func3(arg3)}''']));
+    });
+
+// Test for a string with an expression containing special characters
+    test('should match expression with special characters', () {
+      var matches = containExpression.allMatches(r'''${special.chars["<>%$#"]()}''').map((e) => e.group(0)).toList();
+      expect(matches, hasLength(1));
+      expect(matches[0], equals(r'''${special.chars["<>%$#"]()}'''));
+    });
 
   });
 }
