@@ -478,15 +478,13 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         3. push the map to the context stack
         4. execute the blockstatement or expression
        */
-      List<dynamic> params = _params??[];
-      if ( args.length != params.length ) {
-        throw JSException(node.line??1,"visitFunctionNode: args.length ($args.length)  "
-            "!= params.length ($params.length). They must be equal. ",detailedError:'Code: ${getCode(node)}');
-      }
-      Map<String,dynamic> ctx = {};
-      if ( node.params != null ) {
+      List<dynamic> params = _params ?? [];
+      Map<String, dynamic> ctx = {};
+
+      if (node.params != null) {
         for (int i = 0; i < node.params.length; i++) {
-          ctx[node.params[i].value] = params.elementAt(i);
+          // Use the value from params if available, otherwise use null
+          ctx[node.params[i].value] = i < params.length ? params[i] : null;
         }
       }
       JSInterpreter i = cloneForContext(node,ctx,inheritContext??false);

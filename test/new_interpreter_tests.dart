@@ -1450,24 +1450,57 @@ function createRandomizedTiles() {
 
   });
 
-  test('conditionals-for-null', () async {// Output: (925) 935-1569
+  test('OR between empty or null', () async {
     String codeToEvaluate = r"""
-
-      var e = "abc";
-      var f = 1;
-      var g = {};
-      if ( e ) {
-        console.log('e is not null');
-      }
-      if ( f ) {
-        console.log('f is not null');
-      }
-      if ( g ) {
-        console.log('g is not null');
-      }
+      var a = null;
+      var b = a || 'hello';
+      var c = a || '';
+      a = '';
+      var d = a || 'hello';
+      var e = a || '';
+      var f = e || null;
+      var g = null || '';
+      
       """;
     Map<String, dynamic> context = initContext();
     var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+    expect(context['a'],'');
+    expect(context['b'],'hello');
+    expect(context['c'],'');
+    expect(context['d'],'hello');
+    expect(context['e'],'');
+    expect(context['f'],null);
+    expect(context['g'],'');
+  });
+  test('optional arguments unknown argumemts', () async {
+    String codeToEvaluate = r"""
+      var f = function(a,b) {
+        return a+(b || 0);
+      }
+      var a = f(1);
+      var b = f(1,2);
+      var c = f(1,2,3);
+      
+      """;
+    Map<String, dynamic> context = initContext();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+    expect(context['a'],1);
+    expect(context['b'],3);
+    expect(context['c'],3);
+
+  });
+  test('function as variable', () async {
+    String codeToEvaluate = r"""
+      var f = function(a,b) {
+        return a+b;
+      }
+      var a = f(1,2);
+      console.log(a);
+      
+      """;
+    Map<String, dynamic> context = initContext();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+    expect(context['a'],3);
 
   });
   group('Unary Operator Tests', () {
