@@ -283,8 +283,8 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return rtn;
   }
   dynamic executeConditional(Expression testExp,Node consequent,Node? alternate) {
-    dynamic condition = testExp.visitBy(this);
-    bool test = (condition != null && condition)?true:false;
+    dynamic condition = getValueFromExpression(testExp);
+    bool test = toBoolean(condition);
     dynamic rtn;
     if ( test ) {
       rtn = consequent.visitBy(this);
@@ -340,13 +340,64 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   visitUnary(UnaryExpression node) {
     dynamic val = getValueFromNode(node.argument);
     switch(node.operator) {
-      case '-': val = -1 * val;break;
-      case 'typeof': val = val.runtimeType;break;
-      case '!': val = !val;break;
-      default: throw JSException(node.line??1,node.operator!+" not yet implemented.",detailedError:"Code: "+getCode(node));
+      case '-':
+        val = (val is num) ? -val : -toNumber(val);
+        break;
+      case '+':
+        val = toNumber(val);
+        break;
+      case '++':
+        val = (val is num) ? val + 1 : toNumber(val) + 1;
+        break;
+      case '--':
+        val = (val is num) ? val - 1 : toNumber(val) - 1;
+        break;
+      case '~':
+        val = (val is int) ? ~val : ~toNumber(val).toInt();
+        break;
+      case 'typeof':
+        val = _jsTypeOf(val);
+        break;
+      case '!':
+        val = !toBoolean(val);
+        break;
+      default:
+        throw JSException(node.line ?? 1, "${node.operator} not yet implemented.", detailedError: "Code: " + getCode(node));
     }
     return val;
   }
+
+  String _jsTypeOf(dynamic val) {
+    if (val == null) return 'object'; // In JavaScript, typeof null is 'object'
+    if (val is num) return 'number';
+    if (val is String) return 'string';
+    if (val is bool) return 'boolean';
+    // Add other types as necessary, like 'function' for callable objects
+    return 'object';
+  }
+
+  bool toBoolean(dynamic val) {
+    if (val == null || val == 0 || val == false || val == '' || val == 'false') {
+      return false;
+    }
+    if (val is num && val.isNaN) {
+      return false;
+    }
+    return true;
+  }
+
+  num toNumber(dynamic val) {
+    if (val == null) {
+      return 0;
+    } else if (val is num) {
+      return val;
+    } else if (val is String) {
+      return num.tryParse(val) ?? double.nan;
+    }
+    // Add additional type conversions as necessary
+    return 0;
+  }
+
   @override
   visitUpdateExpression(UpdateExpression node) {
     dynamic val = getValueFromExpression(node.argument!);

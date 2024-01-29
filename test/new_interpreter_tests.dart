@@ -1108,17 +1108,17 @@ function createRandomizedTiles() {
       var cond2 = true;
       var cond3 = false;
       //left is false in &&
-      if ( response.abc != null && response.abc.lmn == 'abc' ) {
+      if ( response.abc && response.abc.lmn == 'abc' ) {
         cond1 = false;
       }
       response.abc = {};
       //left is true and right is false
-      if ( response.abc != null && response.abc.lmn == 'abc' ) {
+      if ( response.abc && response.abc.lmn == 'abc' ) {
         cond2 = false;
       }
       response.abc.lmn = 'abc';
       //left and right are true
-      if ( response.abc != null && response.abc.lmn == 'abc' ) {
+      if ( response.abc && response.abc.lmn == 'abc' ) {
         cond3 = true;
       }
       var cond4 = true;
@@ -1126,7 +1126,7 @@ function createRandomizedTiles() {
       var cond6 = false;
       var cond7 = false;         
       //left is false and right is false in ||
-      if ( response.xyz != null || response.abc.lmn == 'xyz' ) {
+      if ( response.xyz || response.abc.lmn == 'xyz' ) {
         cond4 = false;
       }
       response.xyz = {};
@@ -1449,4 +1449,182 @@ function createRandomizedTiles() {
     });
 
   });
+
+  test('conditionals-for-null', () async {// Output: (925) 935-1569
+    String codeToEvaluate = r"""
+
+      var e = "abc";
+      var f = 1;
+      var g = {};
+      if ( e ) {
+        console.log('e is not null');
+      }
+      if ( f ) {
+        console.log('f is not null');
+      }
+      if ( g ) {
+        console.log('g is not null');
+      }
+      """;
+    Map<String, dynamic> context = initContext();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+
+  });
+  group('Unary Operator Tests', () {
+    test('Negation Operator (-)', () {
+      var code = 'var result = -5;';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], -5);
+    });
+
+    test('Unary Plus Operator (+)', () {
+      var code = 'var result = +"3";';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], 3);
+    });
+
+    test('Increment Operator (++)', () {
+      var code = 'var num = 5; var result = ++num;';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['num'], 6);
+      expect(context['result'], 6);
+    });
+
+    test('Decrement Operator (--)', () {
+      var code = 'var num = 5; var result = --num;';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['num'], 4);
+      expect(context['result'], 4);
+    });
+
+    test('Bitwise NOT Operator (~)', () {
+      var code = 'var result = ~5;';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], ~5);
+    });
+
+    test('Typeof Operator', () {
+      var code = 'var result = typeof 5;';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], 'number');
+    });
+
+    test('Logical NOT Operator (!)', () {
+      var code = 'var result = !true;';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], false);
+    });
+
+    // Add more tests as needed
+  });
+  group('Logical NOT Operator (!) Tests', () {
+    test('!null should be true', () {
+      var code = 'var result = !null;';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], true);
+    });
+
+    test('!empty string should be true', () {
+      var code = 'var result = !"";';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], true);
+    });
+
+    test('!non-empty string should be false', () {
+      var code = 'var result = !"hello";';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], false);
+    });
+
+    test('!0 should be true', () {
+      var code = 'var result = !0;';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], true);
+    });
+
+    test('!non-zero number should be false', () {
+      var code = 'var result = !42;';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], false);
+    });
+
+    test('!false should be true', () {
+      var code = 'var result = !false;';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], true);
+    });
+
+    test('!true should be false', () {
+      var code = 'var result = !true;';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], false);
+    });
+  });
+  group('Logical NOT Operator in Control Structures', () {
+    test('! in if condition with true value', () {
+      var code = '''
+      var result;
+      if (!true) {
+        result = "false branch";
+      } else {
+        result = "true branch";
+      }
+    ''';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], 'true branch');
+    });
+
+    test('! in if condition with false value', () {
+      var code = '''
+      var result;
+      if (!false) {
+        result = "false branch";
+      } else {
+        result = "true branch";
+      }
+    ''';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], 'false branch');
+    });
+
+    test('! in ternary conditional with non-empty string', () {
+      var code = 'var result = !"hello" ? "false branch" : "true branch";';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], 'true branch');
+    });
+
+    test('! in ternary conditional with empty string', () {
+      var code = 'var result = !"" ? "false branch" : "true branch";';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], 'false branch');
+    });
+
+    test('! in ternary conditional with null', () {
+      var code = 'var result = !null ? "false branch" : "true branch";';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['result'], 'false branch');
+    });
+
+    // Add more tests as needed to cover various scenarios and data types
+  });
+
 }
