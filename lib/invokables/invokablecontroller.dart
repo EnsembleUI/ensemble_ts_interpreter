@@ -423,19 +423,29 @@ class _List {
   }
   static Map<String, Function> methods(List list) {
     return {
-      'map': (Function f) => list.map((e) => f([e])).toList(),
-      'filter': (Function f) => filter(list,f),
-      'forEach': (Function f) =>  list.forEach((e) => f([e])),
+      'map': (Function f) => list
+          .asMap()
+          .entries
+          .map((entry) => f([entry.value, entry.key]))
+          .toList(),
+      'filter': (Function f) => list
+          .asMap()
+          .entries
+          .where((entry) => f([entry.value, entry.key]))
+          .map((entry) => entry.value)
+          .toList(),
+      'forEach': (Function f) =>
+          list.asMap().forEach((index, element) => f([element, index])),
       'add': (dynamic val) => list.add(val),
       'push': (dynamic val) => list.add(val),
       'indexOf': (dynamic val) => list.indexOf(val),
       'lastIndexOf': (dynamic val) => list.lastIndexOf(val),
       'unique': () => list.toSet().toList(),
       'sort': ([Function? f]) {
-        if ( f == null ) {
+        if (f == null) {
           list.sort();
         } else {
-          list.sort((a,b)=> f([a,b]));
+          list.sort((a, b) => f([a, b]));
         }
         return list;
 
