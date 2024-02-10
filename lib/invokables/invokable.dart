@@ -45,27 +45,42 @@ mixin Invokable {
     return m;
   }
   static List<String> getGettableProperties(Invokable obj) {
-    List<String> rtn = obj.getters().keys.toList();
-    if (obj is HasController) {
-      rtn.addAll((obj as HasController).controller.getBaseGetters().keys);
+    try {
+      List<String> rtn = obj.getters().keys.toList();
+      if (obj is HasController) {
+        rtn.addAll((obj as HasController).controller.getBaseGetters().keys);
+      }
+      return rtn;
+    } catch (e) {
+      //we ignore this, there is no point at this stage to throw an error
     }
-    return rtn;
+    return [];
   }
 
   static List<String> getSettableProperties(Invokable obj) {
-    List<String> rtn = obj.setters().keys.toList();
-    if (obj is HasController) {
-      rtn.addAll((obj as HasController).controller.getBaseSetters().keys);
+    try {
+      List<String> rtn = obj.setters().keys.toList();
+      if (obj is HasController) {
+        rtn.addAll((obj as HasController).controller.getBaseSetters().keys);
+      }
+      return rtn;
+    } catch (e) {
+      //we ignore this, there is no point at this stage to throw an error
     }
-    return rtn;
+    return [];
   }
 
   static Map<String, Function> getMethods(Invokable obj) {
-    Map<String, Function> rtn = obj.methods();
-    if (obj is HasController) {
-      rtn.addAll((obj as HasController).controller.getBaseMethods());
+    try {
+      Map<String, Function> rtn = obj.methods();
+      if (obj is HasController) {
+        rtn.addAll((obj as HasController).controller.getBaseMethods());
+      }
+      return rtn;
+    } catch (e) {
+      //we ignore this, there is no point at this stage to throw an error
     }
-    return rtn;
+    return {};
   }
   bool hasSettableProperty(dynamic prop) {
     return getSettableProperties(this).contains(prop);
