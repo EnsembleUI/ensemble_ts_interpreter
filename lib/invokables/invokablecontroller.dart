@@ -53,6 +53,12 @@ class InvokableController {
     context['atob'] = _String.atob;
     context['console'] = Console();
     context['Date'] = StaticDate();
+    // Encode and Decode URI Component functions
+    context['encodeURIComponent'] = (String s) => Uri.encodeComponent(s);
+    context['decodeURIComponent'] = (String s) => Uri.decodeComponent(s);
+    // Encode and Decode URI functions
+    context['encodeURI'] = (String uri) => Uri.encodeFull(uri);
+    context['decodeURI'] = (String uri) => Uri.decodeFull(uri);
     // context['debug'] = () async {
     //   await waitForCondition();
     // };

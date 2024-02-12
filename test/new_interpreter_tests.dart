@@ -1661,4 +1661,33 @@ function createRandomizedTiles() {
     JSInterpreter.fromCode(code, context).evaluate();
     //expect(context['result'], 'false branch');
   });
+  group('URI Encoding and Decoding Tests', () {
+    test('encodeURIComponent encodes URI components', () {
+      var code = 'var encoded = encodeURIComponent("Hello, world!");';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['encoded'], 'Hello%2C%20world!');
+    });
+
+    test('decodeURIComponent decodes URI components', () {
+      var code = 'var decoded = decodeURIComponent("Hello%2C%20world%21");';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['decoded'], 'Hello, world!');
+    });
+
+    test('encodeURI encodes full URI without affecting special URI characters', () {
+      var code = 'var fullEncoded = encodeURI("https://example.com/?q=Hello, world!");';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['fullEncoded'], 'https://example.com/?q=Hello,%20world!');
+    });
+
+    test('decodeURI decodes full URI without affecting special URI characters', () {
+      var code = 'var fullDecoded = decodeURI("https://example.com/?q=Hello,%20world!");';
+      var context = initContext();
+      JSInterpreter.fromCode(code, context).evaluate();
+      expect(context['fullDecoded'], 'https://example.com/?q=Hello, world!');
+    });
+  });
 }
