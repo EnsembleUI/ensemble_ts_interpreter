@@ -122,15 +122,20 @@ mixin Invokable {
 
       // ask our controller to notify its listeners of changes
       if (this is HasController) {
-        (this as HasController).controller.dispatchChanges(KeyValue(prop.toString(), val));
+        (this as HasController)
+            .controller
+            .dispatchChanges(KeyValue(prop.toString(), val));
       } else if (this is EnsembleController) {
         (this as EnsembleController).notifyListeners();
       }
-
     } else {
-      throw InvalidPropertyException('Object with id:${id??''} does not have a settable property named $prop');
+      throw InvalidPropertyException(
+          'Object with id:${id ?? ''} does not have a settable property named $prop');
     }
   }
+}
+mixin MethodExecutor {
+  dynamic callMethod(String methodName, List<dynamic> args);
 }
 
 /// Base Mixin for Widgets that want to participate in Ensemble widget tree.

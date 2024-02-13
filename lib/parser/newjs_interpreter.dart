@@ -315,7 +315,8 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     } else if ( node.key is LiteralExpression ) {
       key = (node.key as LiteralExpression).value;
     } else {
-      throw JSException(node.line??1, 'Property of object ${node.toString()} is not supported. Only Name or LiteralExpression are supported.');
+      throw JSException(node.line ?? -1,
+          'Property of object ${node.toString()} is not supported. Only Name or LiteralExpression are supported.');
     }
     return {'key':key,'value':getValueFromNode(node.value)};
   }
@@ -331,10 +332,10 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   @override
   visitReturn(ReturnStatement node) {
     dynamic returnValue;
-    if ( node.argument != null ) {
+    if (node.argument != null) {
       returnValue = getValueFromExpression(node.argument!);
     }
-    throw ControlFlowReturnException(node.line??1,'',returnValue);
+    throw ControlFlowReturnException(node.line ?? -1, '', returnValue);
   }
   @override
   visitUnary(UnaryExpression node) {
@@ -362,7 +363,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
         val = !toBoolean(val);
         break;
       default:
-        throw JSException(node.line ?? 1, "${node.operator} not yet implemented.", detailedError: "Code: " + getCode(node));
+        throw JSException(
+            node.line ?? -1, "${node.operator} not yet implemented.",
+            detailedError: "Code: " + getCode(node));
     }
     return val;
   }
@@ -408,10 +411,13 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       number = val;
       originalNumber = number;
     } else {
-      throw JSException(node.line ?? 1,
-          'The operator ' + node.operator! +
+      throw JSException(
+          node.line ?? -1,
+          'The operator ' +
+              node.operator! +
               ' is only valid for numbers and ' +
-              node.argument.toString() + ' is not a number.',
+              node.argument.toString() +
+              ' is not a number.',
           detailedError: 'Code: ${getCode(node)}');
     }
     if (node.argument is MemberExpression) {
@@ -434,9 +440,8 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           InvokableController.setProperty(obj, pattern.property, number);
           break;
         default:
-          throw JSException(node.line ?? 1,
-              "${node.operator!} in Code: ${getCode(
-                  node)} is not yet supported");
+          throw JSException(node.line ?? -1,
+              "${node.operator!} in Code: ${getCode(node)} is not yet supported");
       }
     } else if (node.argument is Name || node.argument is NameExpression) {
       Name n;
@@ -619,7 +624,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       }
       if (!done) {
         throw JSException(
-            node.line ?? 1, node.operator! + ' is not yet supported',
+            node.line ?? -1, node.operator! + ' is not yet supported',
             detailedError: 'Code: ${getCode(node)}');
       }
       return rtn;
@@ -738,7 +743,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           } else {
             l.add(v);
           }
-        } else if ( node is Name ) {
+        } else if (node is Name) {
           l.add(getValue(node));
         }
       } else {
@@ -747,9 +752,15 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     }
     return l;
   }
-  executeMethod(dynamic method,List<Expression> declaredArguments) {
-    List<dynamic> arguments = computeArguments(declaredArguments,resolveNames:true);
-    if ( method is Function ) {
+
+  executeMethod(dynamic method, List<Expression> declaredArguments,
+      {String? methodName, MethodExecutor? executor}) {
+    List<dynamic> arguments =
+        computeArguments(declaredArguments, resolveNames: true);
+    if (methodName != null && executor != null) {
+      return executor.callMethod(methodName, arguments);
+    }
+    if (method is Function) {
       //functions being called from js to dart
       if (arguments.length == 0) {
         return Function.apply(method, null);
@@ -774,18 +785,18 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           //a new object is being instantiated
           final dynamic _class = getValue((node.callee as NameExpression).name);
           if ( _class == null ) {
-            throw JSException(
-                node.line ?? 1, 'Cannot instantiate object of class ${(node.callee as NameExpression).name} No definition found for class in code ${getCode(node)}.',
+            throw JSException(node.line ?? -1,
+                'Cannot instantiate object of class ${(node.callee as NameExpression).name} No definition found for class in code ${getCode(node)}.',
                 recovery: 'Check your syntax and try again.');
           }
           if ( !( _class is Invokable) ) {
-            throw JSException(
-                node.line ?? 1, 'Cannot instantiate object of class ${(node.callee as NameExpression).name} Class is not invokable in code ${getCode(node)}.',
+            throw JSException(node.line ?? -1,
+                'Cannot instantiate object of class ${(node.callee as NameExpression).name} Class is not invokable in code ${getCode(node)}.',
                 recovery: 'Check your syntax and try again.');
           }
           if ( _class.methods()['init'] == null ) {
-            throw JSException(
-                node.line ?? 1, 'Cannot instantiate object of class ${(node.callee as NameExpression).name} No init method found for class in code ${getCode(node)}. init method is called to construct an instance. It must take List<parms> as argument.',
+            throw JSException(node.line ?? -1,
+                'Cannot instantiate object of class ${(node.callee as NameExpression).name} No init method found for class in code ${getCode(node)}. init method is called to construct an instance. It must take List<parms> as argument.',
                 recovery: 'Check your syntax and try again.');
           }
           method = _class.methods()['init'];
@@ -793,7 +804,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           method = getValue((node.callee as NameExpression).name);
           if (method == null) {
             throw JSException(
-                node.line ?? 1, 'No definition found for ${getCode(node)}.',
+                node.line ?? -1, 'No definition found for ${getCode(node)}.',
                 recovery: 'Check your syntax and try again.');
           }
         }
@@ -802,11 +813,18 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       if (node.callee is MemberExpression || node.callee is IndexExpression) {
         ObjectPattern? pattern;
         dynamic method;
+        MethodExecutor? methodExecutor;
+        String? methodName;
         if (node.callee is MemberExpression) {
-          pattern = visitMember(
-              node.callee as MemberExpression, computeAsPattern: true);
+          pattern = visitMember(node.callee as MemberExpression,
+              computeAsPattern: true);
+          if (pattern!.obj is MethodExecutor) {
+            methodExecutor = pattern!.obj as MethodExecutor;
+            methodName = pattern.property;
+          } else {
+            method = InvokableController.methods(pattern.obj)[pattern.property];
+          }
           method = InvokableController.methods(pattern!.obj)[pattern.property];
-          //old: method = pattern!.obj.methods()[pattern.property];
         } else if (node.callee is IndexExpression) {
           pattern = visitIndex(
               node.callee as IndexExpression, computeAsPattern: true);
@@ -815,19 +833,23 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           //old: method = pattern!.obj.getProperty(pattern.property);
         }
         if (method == null) {
-          throw JSException(node.line ?? 1,
-              "cannot compute statement=" + node.toString() + " "
-                  "as no method found for property=" +
+          throw JSException(
+              node.line ?? -1,
+              "cannot compute statement=" +
+                  node.toString() +
+                  " "
+                      "as no method found for property=" +
                   ((pattern != null) ? pattern.property.toString() : ''),
               detailedError: 'Code: ${getCode(node)}');
         }
         try {
-          val = executeMethod(method, node.arguments);
+          val = executeMethod(method, node.arguments,
+              methodName: methodName, executor: methodExecutor);
         } on JSException catch (e) {
           rethrow;
         } catch (e) {
           throw JSException(
-              node.line ?? 1,
+              node.line ?? -1,
               'Error while executing method: ${getCode(node)}. Underlying error:${e.toString()}',
               originalError: e);
         }
@@ -898,9 +920,8 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
                 InvokableController.getProperty(obj, pattern.property) & val);
             break;
           default:
-            throw JSException(node.line ?? 1,
-                "${node.operator!} in Code: ${getCode(
-                    node)} is not yet supported");
+            throw JSException(node.line ?? -1,
+                "${node.operator!} in Code: ${getCode(node)} is not yet supported");
         }
       } else if (node.left is Name || node.left is NameExpression) {
         Name n;
@@ -946,9 +967,8 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
               value &= val;
               break;
             default:
-              throw JSException(node.line ?? 1,
-                  "${node.operator!} in Code: ${getCode(
-                      node)} is not yet supported");
+              throw JSException(node.line ?? -1,
+                  "${node.operator!} in Code: ${getCode(node)} is not yet supported");
           }
         } else {
           value = val;

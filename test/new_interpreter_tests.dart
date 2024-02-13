@@ -1683,11 +1683,151 @@ function createRandomizedTiles() {
       expect(context['fullEncoded'], 'https://example.com/?q=Hello,%20world!');
     });
 
-    test('decodeURI decodes full URI without affecting special URI characters', () {
-      var code = 'var fullDecoded = decodeURI("https://example.com/?q=Hello,%20world!");';
+    test('decodeURI decodes full URI without affecting special URI characters',
+        () {
+      var code =
+          'var fullDecoded = decodeURI("https://example.com/?q=Hello,%20world!");';
       var context = initContext();
       JSInterpreter.fromCode(code, context).evaluate();
       expect(context['fullDecoded'], 'https://example.com/?q=Hello, world!');
     });
+  });
+  group('InvokableMath Method Tests', () {
+    // Testing max with various inputs
+    test('max with multiple numbers', () {
+      String codeToEvaluate = """
+      var result = Math.max(1, 5, 3, 4, 2);
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 5);
+    });
+
+    test('max with negative numbers', () {
+      String codeToEvaluate = """
+      var result = Math.max(-10, -20, -30);
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], -10);
+    });
+
+    // Testing min with various inputs
+    test('min with multiple numbers', () {
+      String codeToEvaluate = """
+      var result = Math.min(10, 5, 15, 20);
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 5);
+    });
+
+    test('min with string and number mix', () {
+      String codeToEvaluate = """
+      var result = Math.min('100', 50, '25', 75);
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 25);
+    });
+
+    // Testing round with various inputs
+    test('round with float number', () {
+      String codeToEvaluate = """
+      var result = Math.round('2.5');
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 3);
+    });
+
+    test('round with negative float', () {
+      String codeToEvaluate = """
+      var result = Math.round(-2.3);
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], -2);
+    });
+
+    // Additional tests for robustness
+    test('abs with a string number', () {
+      String codeToEvaluate = """
+      var result = Math.abs('-123');
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 123);
+    });
+
+    test('sqrt with a positive number', () {
+      String codeToEvaluate = """
+      var result = Math.sqrt('16');
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 4);
+    });
+
+    test('pow with zero exponent', () {
+      String codeToEvaluate = """
+      var result = Math.pow(5, 0);
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 1);
+    });
+  });
+  group('InvokableMath Negative Tests', () {
+    // Test handling of null inputs
+    test('max with null argument', () {
+      String codeToEvaluate = """
+        var result = Math.max(null, 5, 3);
+      """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 5);
+    });
+
+    test('min with null argument', () {
+      String codeToEvaluate = """
+        var result = Math.min(null, 10, 2);
+      """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 0);
+    });
+
+    // Test handling of string that cannot be converted to number
+    test('round with non-numeric string', () {
+      String codeToEvaluate = """
+        var result = Math.round('abc');
+      """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], null);
+    });
+
+    // Test handling of undefined or missing arguments
+    test('abs with no arguments', () {
+      String codeToEvaluate = """
+        var result = Math.abs();
+      """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 0);
+    });
+
+    // Test handling of an excessive number of arguments
+    test('sqrt with multiple arguments', () {
+      String codeToEvaluate = """
+        var result = Math.sqrt(16, 4, 9);
+      """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 4); // Assuming it ignores additional arguments
+    });
+
+    // Add more negative tests as needed to cover other scenarios and methods
   });
 }

@@ -43,11 +43,54 @@ class InvokableController {
 //     print('Condition met! Continuing execution...');
 //   }
   static void addGlobals(Map<String,dynamic> context) {
-    context['regExp']= regExp;
+    context['regExp'] = regExp;
     context['Math'] = InvokableMath();
-    context['parseFloat'] = (String s) => double.parse(s);
-    context['parseInt'] = (String s,[int? radix]) => int.parse(s,radix:radix);
-    context['parseDouble'] = (String s) => double.parse(s);
+    context['parseFloat'] = (dynamic value) {
+      if (value is String) {
+        return double.tryParse(value) ?? double.nan;
+      } else if (value is num) {
+        return value.toDouble();
+      } else {
+        return double.nan;
+      }
+    };
+
+    context['parseInt'] = (dynamic value, [int? radix = 10]) {
+      // Directly return the value if it's already an integer
+      if (value is int) return value;
+
+      // Convert to string to handle both String and double inputs
+      String stringValue = value.toString();
+
+      // Handling radix for non-decimal numbers correctly requires parsing integers only
+      if (radix != null && radix >= 2 && radix <= 36) {
+        // Check if the value is a valid integer for the specified radix
+        int? parsedInt = int.tryParse(stringValue, radix: radix);
+        if (parsedInt != null) return parsedInt;
+
+        // If parsing as int fails, try double and then convert to int
+        double? parsedDouble = double.tryParse(stringValue);
+        if (parsedDouble != null) return parsedDouble.toInt();
+      } else {
+        // Fallback to parsing as a decimal number if no valid radix is provided
+        double? parsedDouble = double.tryParse(stringValue);
+        if (parsedDouble != null) return parsedDouble.toInt();
+      }
+
+      // Return 0 if all parsing attempts fail
+      return double.nan;
+    };
+
+    context['parseDouble'] = (dynamic value) {
+      if (value is String) {
+        return double.tryParse(value) ?? double.nan;
+      } else if (value is num) {
+        return value.toDouble();
+      } else {
+        return double.nan;
+      }
+    };
+
     context['JSON'] = JSON();
     context['btoa'] = _String.btoa;
     context['atob'] = _String.atob;
