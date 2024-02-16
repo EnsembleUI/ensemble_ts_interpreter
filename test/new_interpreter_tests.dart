@@ -1830,4 +1830,193 @@ function createRandomizedTiles() {
 
     // Add more negative tests as needed to cover other scenarios and methods
   });
+  group('Binary Expressions with nulls', () {
+    test('null plus number mimics JavaScript coercion to 0', () {
+      String codeToEvaluate = """
+      var result = null + 5;
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 5); // null is coerced to 0, result is 5
+    });
+
+    test('null logical OR with true', () {
+      String codeToEvaluate = """
+      var result = null || true;
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], true); // null is falsy, returns second operand
+    });
+
+    test('null logical AND with false', () {
+      String codeToEvaluate = """
+      var result = null && false;
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], null); // null is falsy, returns first operand
+    });
+
+    test('String concatenation with null', () {
+      String codeToEvaluate = """
+      var result = "hello" + null;
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'],
+          "hellonull"); // null is converted to "null" for concatenation
+    });
+
+    test('null equality with null', () {
+      String codeToEvaluate = """
+      var result = null == null;
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], true); // null is equal to null
+    });
+
+    test('null inequality with 0', () {
+      String codeToEvaluate = """
+      var result = null != 0;
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], true); // In JavaScript, null is not equal to 0
+    });
+
+    test('null less than 1', () {
+      String codeToEvaluate = """
+      var result = null < 1;
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], true); // null is coerced to 0, 0 < 1 is true
+    });
+    // Arithmetic Operators
+    test('null subtracted by number', () {
+      String codeToEvaluate = "var result = null - 5;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], -5); // null is coerced to 0
+    });
+
+    test('null multiplied by number', () {
+      String codeToEvaluate = "var result = null * 5;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 0); // null is coerced to 0
+    });
+
+    test('null divided by number', () {
+      String codeToEvaluate = "var result = null / 5;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 0); // null is coerced to 0
+    });
+
+    test('number divided by null', () {
+      String codeToEvaluate = "var result = 5 / null;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'],
+          double.infinity); // null is coerced to 0, division by 0 is Infinity
+    });
+
+    test('null modulo number', () {
+      String codeToEvaluate = "var result = null % 5;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 0); // null is coerced to 0
+    });
+
+    // Logical Operators
+    test('true OR null', () {
+      String codeToEvaluate = "var result = true || null;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], true); // true is returned immediately
+    });
+
+    test('false AND null', () {
+      String codeToEvaluate = "var result = false && null;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], false); // false is returned immediately
+    });
+
+    // Comparison Operators
+    test('null greater than 0', () {
+      String codeToEvaluate = "var result = null > 0;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], false); // null is coerced to 0
+    });
+
+    test('null greater than or equal to null', () {
+      String codeToEvaluate = "var result = null >= null;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], true); // both are coerced to 0
+    });
+
+    test('null less than or equal to 0', () {
+      String codeToEvaluate = "var result = null <= 0;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], true); // null is coerced to 0
+    });
+
+    // Bitwise Operators
+    test('null bitwise OR with number', () {
+      String codeToEvaluate = "var result = null | 1;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 1); // null is coerced to 0
+    });
+
+    test('null bitwise AND with number', () {
+      String codeToEvaluate = "var result = null & 1;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 0); // null is coerced to 0
+    });
+
+    test('null bitwise XOR with number', () {
+      String codeToEvaluate = "var result = null ^ 1;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 1); // null is coerced to 0
+    });
+
+    test('null shifted left by 1', () {
+      String codeToEvaluate = "var result = null << 1;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 0); // null is coerced to 0
+    });
+
+    test('null shifted right by 1', () {
+      String codeToEvaluate = "var result = null >> 1;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], 0); // null is coerced to 0
+    });
+
+    // Strict Equality and Inequality
+    test('null strictly equal to null', () {
+      String codeToEvaluate = "var result = null === null;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], true); // Strict equality
+    });
+
+    test('null strictly not equal to 0', () {
+      String codeToEvaluate = "var result = null !== 0;";
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
+      expect(context['result'], true); // Strict inequality
+    });
+  });
 }

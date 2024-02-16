@@ -552,17 +552,40 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       }
       dynamic right = getValueFromExpression(node.right);
       dynamic rtn = false;
-      if ( left is SupportsPrimitiveOperations ) {
+      if (left is SupportsPrimitiveOperations) {
         return left.runOperation(node.operator!, right);
       }
-      if (left is String || right is String) {
-        //let's say left is a string and right is an integer. Dart does not allow an operation like
-        //concatenation on different types, javascript etc do allow that
-        if (left != null) {
-          left = left.toString();
+      if (node.operator == '+') {
+        if (left == null && right == null) {
+          left = 0;
+          right = 0;
+        } else if (left is String || right is String) {
+          left = left?.toString() ?? "null";
+          right = right?.toString() ?? "null";
+        } else {
+          left = left ?? 0;
+          right = right ?? 0;
         }
-        if (right != null) {
-          right = right.toString();
+      } else {
+        // For other operators, treat null as 0 where applicable
+        if ([
+          '-',
+          '/',
+          '*',
+          '%',
+          '|',
+          '&',
+          '^',
+          '<<',
+          '>>',
+          '>>>',
+          '<',
+          '<=',
+          '>',
+          '>='
+        ].contains(node.operator)) {
+          left = left ?? 0;
+          right = right ?? 0;
         }
       }
       bool done = true;
@@ -574,6 +597,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           rtn = left == right;
           break;
         case '!=':
+          rtn = left != right;
+          break;
+        case '!==':
           rtn = left != right;
           break;
         case '<':
