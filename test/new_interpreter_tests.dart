@@ -1,4 +1,3 @@
-import 'package:ensemble_ts_interpreter/invokables/context.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablecontroller.dart';
 import 'package:ensemble_ts_interpreter/parser/newjs_interpreter.dart';
@@ -123,7 +122,7 @@ void main() {
       ensemble.navigateScreen("KPN Home");
       """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['ensembleStore']['session']['login']['contextId'],'123456');
     expect((context['ensemble'] as Ensemble).navigateScreenCalledForScreen,'KPN Home');
   });
@@ -132,7 +131,7 @@ void main() {
       ensemble.name
       """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(rtnValue,(context['ensemble'] as Ensemble).name);
   });
   test('propsThroughQuotesTest', () async {
@@ -141,7 +140,7 @@ void main() {
       ensembleStore.session.login.cookie = response.headers['Set-Cookie'].split(';')[a]
       """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['ensembleStore']['session']['login']['cookie'],context['response']['headers']['Set-Cookie'].split(';')[0]);
   });
   test('arrayAccessTest', () async {
@@ -150,7 +149,7 @@ void main() {
       users[0];
       """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(rtnValue,context['users'][1]);
   });
   test('mapTest', () async {
@@ -162,7 +161,7 @@ void main() {
       """;
     Map<String, dynamic> context = initContext();
     String origValue = context['users'][1]['name'];
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['newUsers'][1]['name'], origValue + 'NEW1');
   });
   test('variableDeclarationTest', () async {
@@ -179,7 +178,7 @@ void main() {
       """;
     Map<String, dynamic> context = initContext();
     context.remove('age');
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['users'][0]['name'],'user=John Doe II is 15 years old and has \$12.94');
   });
   test('primitives', () async {
@@ -189,7 +188,7 @@ void main() {
     users[0]['name'] = 'John has '+curr;
       """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['users'][0]['name'],'John has \$12.35');
   });
   test('returnExpression', () async {
@@ -198,12 +197,12 @@ void main() {
       """;
     Map<String, dynamic> context = initContext();
     context['users'][0]["name"] = 'jumped';
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(rtnValue,'quick brown fox jumped over the fence and received 6 dollars');
   });
   test('returnIdentifier', () async {
     Map<String, dynamic> context = initContext();
-    dynamic rtn = JSInterpreter.fromCode("""age""",SimpleContext(context)).evaluate();
+    dynamic rtn = JSInterpreter.fromCode("""age""",context).evaluate();
     expect(rtn,context['age']);
   });
   test('ifstatement', () async {
@@ -218,7 +217,7 @@ void main() {
       """;
     Map<String, dynamic> context = initContext();
     context['age'] = 3;
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['users'][0]['age'],'Over Two years old');
   });
   test('ternary', () async {
@@ -227,7 +226,7 @@ void main() {
       """;
     Map<String, dynamic> context = initContext();
     context['age'] = 1;
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['users'][0]['age'],'2 and under');
   });
   test('moreArrayTests', () async {
@@ -239,7 +238,7 @@ void main() {
         }];
       """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['apiChart']['data'][0]['data'][1],-33);
   });
   test('jsonpathtest', () async {
@@ -260,7 +259,7 @@ void main() {
     context['response'] = json;
     JSInterpreter.fromCode("""
       var result = response.path('\$..Year',function (match) {match});
-      """,SimpleContext(context)).evaluate();
+      """,context).evaluate();
     expect(context['result'][1],'1910');
   });
   test('listsortuniquetest', () async {
@@ -281,7 +280,7 @@ void main() {
       });
       """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['sortedList'][2],3);
     expect(context['strList'][2],"3");
   });
@@ -298,7 +297,7 @@ void main() {
     String origStr = 'r@kpn.signin';
     context['response']['name'] = 'r@Peter Parker';
     context['users'][0]['name'] = 'r@John';
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['stringToBeTranslated'],'Translated $origStr');
     expect(context['response']['name'],'r@Peter Parker');
     expect(context['users'][0]['name'],'Translated r@John');
@@ -321,7 +320,7 @@ void main() {
       }
     };
     context['getPrivWiFi'] = getPrivWiFi;
-    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(rtn,false);
   });
   test('jsparser', () async {
@@ -333,7 +332,7 @@ void main() {
       });
       """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['arr'][0],'worked!');
   });
   test('nullTest', () async {
@@ -346,7 +345,7 @@ void main() {
       """;
     Map<String, dynamic> context = initContext();
 
-    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(rtn,'it worked!');
   });
   test('notNullTest', () async {
@@ -358,7 +357,7 @@ void main() {
        }
       """;
     Map<String, dynamic> context = initContext();
-    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtn = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(rtn,'it worked!');
   });
   test('bindingconditionaltests', () async {
@@ -432,7 +431,7 @@ void main() {
         var _date = abcdef || date;
       """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['date'],'2022-08-08:00:00');
     expect(context['_false'],false);
     expect(context['_date'],context['date']);
@@ -444,7 +443,7 @@ void main() {
        return (a/b)*50 + 100 - 100;
        """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(rtnValue,100);
   });
   test('forinoperatortest', () async {
@@ -464,7 +463,7 @@ void main() {
       console.log(indices);
     """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['indices'][2],2);
   });
 
@@ -489,7 +488,7 @@ void main() {
       console.log(indices);
     """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['indices'][2],2);
   });
 
@@ -514,7 +513,7 @@ void main() {
       console.log(indices);
     """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['indices'][2],2);
   });
 
@@ -539,7 +538,7 @@ void main() {
       'p2': {'first_name':'jane','last_name':'doe'},
       'p3': {'first_name':'mick','last_name':'jagger'},
     };
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['people']['p1']['last_name'],'adamsjon');
     expect(context['people']['p2']['last_name'],'doejane');
     expect(context['people']['p3']['last_name'],'jagger');
@@ -563,7 +562,7 @@ void main() {
     bool hasMatch = exp.hasMatch('1233344');
     print('hasMatch=$hasMatch');
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(r'var a = /\d+/;a = a.test("123");',SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(r'var a = /\d+/;a = a.test("123");',context).evaluate();
     expect(context['a'],true);
   });
   test('mathtest', () async {
@@ -580,7 +579,7 @@ void main() {
       var k = i.toString();
        """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['a'],5);
     expect(context['b'],1.543);
     expect(context['c'],240);
@@ -605,7 +604,7 @@ void main() {
       });
       """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect((context['arr']).join(''),'hello nobody hello John hello Mary');
   });
   test('functiondeclarationtext', () async {
@@ -632,7 +631,7 @@ void main() {
         
       """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['users'][0]['name'],'Khurram');
     expect(context['users'][0]['salary'],10000);
     expect(context['users'][1]['salary'],900000);
@@ -650,7 +649,7 @@ void main() {
         //addMe(10);
        """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['original'],5);
   });
   test('functiondecalltest', () async {
@@ -661,7 +660,7 @@ void main() {
        return ensemble.firstName == 'Khurram!' && ensemble.lastName == 'Mahmood!' && ensemble.date == '8-09-2022!';
       """;
     Map<String, dynamic> context = initContext();
-    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    dynamic rtnValue = JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['ensemble'].firstName,'Khurram!');
     expect(context['ensemble'].date,'8-09-2022!');
     expect(rtnValue,true);
@@ -692,7 +691,7 @@ void main() {
         return a;
        """;
     Map<String, dynamic> context = initContext();
-    dynamic map = JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    dynamic map = JSInterpreter.fromCode(code, context).evaluate();
     JSInterpreter.toJSString(map);
     expect(map['label']['abc'](['hello']),'hello');
   });
@@ -704,8 +703,8 @@ void main() {
     context["text1"] = myText;
     context["text2"] = "World";
 
-    expect(JSInterpreter.fromCode('text1.text', SimpleContext(context)).evaluate(), 'Hi');
-    expect('Hello '+JSInterpreter.fromCode('text2', SimpleContext(context)).evaluate(), 'Hello World');
+    expect(JSInterpreter.fromCode('text1.text', context).evaluate(), 'Hi');
+    expect('Hello '+JSInterpreter.fromCode('text2', context).evaluate(), 'Hello World');
 
 
   });
@@ -731,7 +730,7 @@ void main() {
       });
     """;
     
-    JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(code, context).evaluate();
 
     // simple object
     expect(context['flatList'].length, 2);
@@ -765,7 +764,7 @@ void main() {
         var equalsDecoded = decoded == base64.atob();
         """;
 
-    JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(code, context).evaluate();
     expect(context['ensembleStr'],'ensemble');
     expect(context['len'],5);
     expect(context['isGreat'],'ensemble is GREAT');
@@ -802,7 +801,7 @@ void main() {
          var reversed = arr.reverse();
         """;
 
-    JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(code, context).evaluate();
     expect(context['b'],'b');
     expect(context['arr2'][4],'e');
     expect(context['f'],'f');
@@ -824,7 +823,7 @@ void main() {
       console.log(json);
       console.log('logging - '+str);
       """;
-    JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(code, context).evaluate();
   });
   test('ifthenexpression', () {
     Map<String, dynamic> context = {
@@ -843,7 +842,7 @@ void main() {
       var c = _null || zero;
       var d = zero || _null;
       """;
-    var rtn = JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
     expect(context['a'],false);
     expect(context['b'],true);
     expect(context['c'],0);
@@ -870,7 +869,7 @@ void main() {
       // UTC methods
       var utc = Date.UTC(2022, 5, 2, 10, 49, 7, 521);
       """;
-    JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(code, context).evaluate();
     // DateTime date = DateTime.now();
     // expect(context['getTime'], isNotNull);
     // expect(context['getFullYear'], date.year);
@@ -899,7 +898,7 @@ void main() {
               {'1':[myVar,'abc']}];
       return res[0]['1'][0];
       """;
-    var rtn = JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
     expect(rtn,context['myVar']);
   });
   test('regexmatchandmatchall', () {
@@ -913,7 +912,7 @@ void main() {
       var match = 'Hello World'.match(/[A-Z]/g);
       var secondMatch = 'Hello World'.matchAll(/[A-Z]/g)[1];
       """;
-    var rtn = JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
     expect(context['matches'][0], 'H');
     expect(context['matches'][1], 'W');
     expect(context['match'][0], 'H');
@@ -924,7 +923,7 @@ void main() {
     String code = """
       ensemble.invokeAPI('myAPI',{'input1': 123, 'input2': 'hello'});
       """;
-    var rtn = JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
   });
   test('objectexpressiontext', () {
     Map<String, dynamic> context = initContext();
@@ -937,7 +936,7 @@ void main() {
                             };
                             console.log(JSON.stringify(result));
       """;
-    var rtn = JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
     expect(context['result']['data']['abc'][1],2);
   });
   test('nestedforeach', () {
@@ -957,7 +956,7 @@ void main() {
       });
     });
       """;
-    var rtn = JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(code, context).evaluate();
     //expect(context['result']['data']['abc'][1],2);
   });
   test('functionscope', () {
@@ -969,13 +968,13 @@ void main() {
         console.log('inside '+counter);
       }
       """;
-    JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(code, context).evaluate();
     code = """
       counter = 0;
       increment();
       console.log('outside '+counter);
       """;
-    JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(code, context).evaluate();
     expect(context['counter'],1);
   });
   test('2darrayissue', () {
@@ -1012,7 +1011,7 @@ function createRandomizedTiles() {
     console.log(item[1]);
   });
       """;
-    JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(code, context).evaluate();
     //expect(context['counter'],1);
   });
   test('ORTest', () {
@@ -1027,7 +1026,7 @@ function createRandomizedTiles() {
           messages.push('worked');
         }
       """;
-    JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(code, context).evaluate();
     expect(context['messages'][0],'worked');
     expect(context['messages'][1],'worked');
   });
@@ -1040,7 +1039,7 @@ function createRandomizedTiles() {
       console.log(newArr);
       """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
     expect(context['newArr'][1],'Groceries');
   });
   test('stringreplace', () async {
@@ -1056,7 +1055,7 @@ function createRandomizedTiles() {
     console.log('replacedAllRegex='+replacedAllRegex);
       """;
     Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['replacedDog'],
         'The quick brown fox jumps over the lazy monkey. If the dog reacted, was it really lazy?');
     expect(context['replacedAllDogs'],
@@ -1081,7 +1080,7 @@ function createRandomizedTiles() {
   //     // Expected output: '"2006-01-02T15:04:05.000Z"'
   //     """;
   //   Map<String, dynamic> context = initContext();
-  //   JSInterpreter.fromCode(codeToEvaluate,SimpleContext(context)).evaluate();
+  //   JSInterpreter.fromCode(codeToEvaluate,context).evaluate();
   //   //expect(context['newArr'][1],'Groceries');
   // });
   test('issue:725 - bindingmap', () async {
@@ -1137,7 +1136,7 @@ function createRandomizedTiles() {
       }        
       """;
     Map<String, dynamic> context = initContext();
-    var rtn = JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['cond1'],true);
     expect(context['cond2'],true);
     expect(context['cond3'],true);
@@ -1153,7 +1152,7 @@ function createRandomizedTiles() {
       
       """;
     Map<String, dynamic> context = initContext();
-    var rtn = JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['var2'],123);
   });
   test('iterate_over_object', () async {
@@ -1184,7 +1183,7 @@ function createRandomizedTiles() {
       });      
       """;
 
-    var rtn = JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     //expect(context['var2'],123);
   });
   test('json-functions', () async {
@@ -1207,7 +1206,7 @@ function createRandomizedTiles() {
       // Expected output: "2011-10-05T14:48:00.000Z"
       """;
 
-    var rtn = JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['str'].startsWith('{"abc":"xyz","date":'),true);
     expect(context['json2']['abc'],'xyz');
   });
@@ -1241,7 +1240,7 @@ function createRandomizedTiles() {
 
       """;
 
-    var rtn = JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['expectedValues'][0] == '00:16:3E:2B:70:00',true);
     expect(context['expectedValues'][1] == '06:00:00:00:00:02',true);
     expect(context['expectedValues'][2] == '08:00:27:13:69:AE',true);
@@ -1263,7 +1262,7 @@ function createRandomizedTiles() {
       
       """;
     Map<String, dynamic> context = initContext();
-    var rtn = JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['a'][0]['player1']['score'],0);
     expect(context['b'],3);
     expect(context['c'],2);
@@ -1287,7 +1286,7 @@ function createRandomizedTiles() {
         
       """;
     Map<String, dynamic> context = initContext();
-    var rtn = JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['formattedResult'],'(925) 295-0000');
     expect(context['ssn'],'234-56-7890');
     expect(context['unformattedssn'],'234567890');
@@ -1460,7 +1459,7 @@ function createRandomizedTiles() {
       
       """;
     Map<String, dynamic> context = initContext();
-    var rtn = JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['a'],'');
     expect(context['b'],'hello');
     expect(context['c'],'');
@@ -1480,7 +1479,7 @@ function createRandomizedTiles() {
       
       """;
     Map<String, dynamic> context = initContext();
-    var rtn = JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['a'],1);
     expect(context['b'],3);
     expect(context['c'],3);
@@ -1496,7 +1495,7 @@ function createRandomizedTiles() {
       
       """;
     Map<String, dynamic> context = initContext();
-    var rtn = JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    var rtn = JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
     expect(context['a'],3);
 
   });
@@ -1504,21 +1503,21 @@ function createRandomizedTiles() {
     test('Negation Operator (-)', () {
       var code = 'var result = -5;';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], -5);
     });
 
     test('Unary Plus Operator (+)', () {
       var code = 'var result = +"3";';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], 3);
     });
 
     test('Increment Operator (++)', () {
       var code = 'var num = 5; var result = ++num;';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['num'], 6);
       expect(context['result'], 6);
     });
@@ -1526,7 +1525,7 @@ function createRandomizedTiles() {
     test('Decrement Operator (--)', () {
       var code = 'var num = 5; var result = --num;';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['num'], 4);
       expect(context['result'], 4);
     });
@@ -1534,21 +1533,21 @@ function createRandomizedTiles() {
     test('Bitwise NOT Operator (~)', () {
       var code = 'var result = ~5;';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], ~5);
     });
 
     test('Typeof Operator', () {
       var code = 'var result = typeof 5;';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], 'number');
     });
 
     test('Logical NOT Operator (!)', () {
       var code = 'var result = !true;';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], false);
     });
 
@@ -1558,49 +1557,49 @@ function createRandomizedTiles() {
     test('!null should be true', () {
       var code = 'var result = !null;';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], true);
     });
 
     test('!empty string should be true', () {
       var code = 'var result = !"";';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], true);
     });
 
     test('!non-empty string should be false', () {
       var code = 'var result = !"hello";';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], false);
     });
 
     test('!0 should be true', () {
       var code = 'var result = !0;';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], true);
     });
 
     test('!non-zero number should be false', () {
       var code = 'var result = !42;';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], false);
     });
 
     test('!false should be true', () {
       var code = 'var result = !false;';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], true);
     });
 
     test('!true should be false', () {
       var code = 'var result = !true;';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], false);
     });
   });
@@ -1615,7 +1614,7 @@ function createRandomizedTiles() {
       }
     ''';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], 'true branch');
     });
 
@@ -1629,28 +1628,28 @@ function createRandomizedTiles() {
       }
     ''';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], 'false branch');
     });
 
     test('! in ternary conditional with non-empty string', () {
       var code = 'var result = !"hello" ? "false branch" : "true branch";';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], 'true branch');
     });
 
     test('! in ternary conditional with empty string', () {
       var code = 'var result = !"" ? "false branch" : "true branch";';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], 'false branch');
     });
 
     test('! in ternary conditional with null', () {
       var code = 'var result = !null ? "false branch" : "true branch";';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['result'], 'false branch');
     });
 
@@ -1659,28 +1658,28 @@ function createRandomizedTiles() {
   test('doubele !!', () {
     var code = 'var result = "abc"; console.log(!!result);';
     var context = initContext();
-    JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+    JSInterpreter.fromCode(code, context).evaluate();
     //expect(context['result'], 'false branch');
   });
   group('URI Encoding and Decoding Tests', () {
     test('encodeURIComponent encodes URI components', () {
       var code = 'var encoded = encodeURIComponent("Hello, world!");';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['encoded'], 'Hello%2C%20world!');
     });
 
     test('decodeURIComponent decodes URI components', () {
       var code = 'var decoded = decodeURIComponent("Hello%2C%20world%21");';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['decoded'], 'Hello, world!');
     });
 
     test('encodeURI encodes full URI without affecting special URI characters', () {
       var code = 'var fullEncoded = encodeURI("https://example.com/?q=Hello, world!");';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['fullEncoded'], 'https://example.com/?q=Hello,%20world!');
     });
 
@@ -1689,7 +1688,7 @@ function createRandomizedTiles() {
       var code =
           'var fullDecoded = decodeURI("https://example.com/?q=Hello,%20world!");';
       var context = initContext();
-      JSInterpreter.fromCode(code, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(code, context).evaluate();
       expect(context['fullDecoded'], 'https://example.com/?q=Hello, world!');
     });
   });
@@ -1700,7 +1699,7 @@ function createRandomizedTiles() {
       var result = Math.max(1, 5, 3, 4, 2);
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 5);
     });
 
@@ -1709,7 +1708,7 @@ function createRandomizedTiles() {
       var result = Math.max(-10, -20, -30);
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], -10);
     });
 
@@ -1719,7 +1718,7 @@ function createRandomizedTiles() {
       var result = Math.min(10, 5, 15, 20);
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 5);
     });
 
@@ -1728,7 +1727,7 @@ function createRandomizedTiles() {
       var result = Math.min('100', 50, '25', 75);
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 25);
     });
 
@@ -1738,7 +1737,7 @@ function createRandomizedTiles() {
       var result = Math.round('2.5');
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 3);
     });
 
@@ -1747,7 +1746,7 @@ function createRandomizedTiles() {
       var result = Math.round(-2.3);
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], -2);
     });
 
@@ -1757,7 +1756,7 @@ function createRandomizedTiles() {
       var result = Math.abs('-123');
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 123);
     });
 
@@ -1766,7 +1765,7 @@ function createRandomizedTiles() {
       var result = Math.sqrt('16');
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 4);
     });
 
@@ -1775,7 +1774,7 @@ function createRandomizedTiles() {
       var result = Math.pow(5, 0);
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 1);
     });
   });
@@ -1786,7 +1785,7 @@ function createRandomizedTiles() {
         var result = Math.max(null, 5, 3);
       """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 5);
     });
 
@@ -1795,7 +1794,7 @@ function createRandomizedTiles() {
         var result = Math.min(null, 10, 2);
       """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 0);
     });
 
@@ -1805,7 +1804,7 @@ function createRandomizedTiles() {
         var result = Math.round('abc');
       """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], null);
     });
 
@@ -1815,7 +1814,7 @@ function createRandomizedTiles() {
         var result = Math.abs();
       """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 0);
     });
 
@@ -1825,7 +1824,7 @@ function createRandomizedTiles() {
         var result = Math.sqrt(16, 4, 9);
       """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 4); // Assuming it ignores additional arguments
     });
 
@@ -1837,7 +1836,7 @@ function createRandomizedTiles() {
       var result = null + 5;
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 5); // null is coerced to 0, result is 5
     });
 
@@ -1846,7 +1845,7 @@ function createRandomizedTiles() {
       var result = null || true;
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], true); // null is falsy, returns second operand
     });
 
@@ -1855,7 +1854,7 @@ function createRandomizedTiles() {
       var result = null && false;
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], null); // null is falsy, returns first operand
     });
 
@@ -1864,7 +1863,7 @@ function createRandomizedTiles() {
       var result = "hello" + null;
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'],
           "hellonull"); // null is converted to "null" for concatenation
     });
@@ -1874,7 +1873,7 @@ function createRandomizedTiles() {
       var result = null == null;
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], true); // null is equal to null
     });
 
@@ -1883,7 +1882,7 @@ function createRandomizedTiles() {
       var result = null != 0;
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], true); // In JavaScript, null is not equal to 0
     });
 
@@ -1892,35 +1891,35 @@ function createRandomizedTiles() {
       var result = null < 1;
     """;
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], true); // null is coerced to 0, 0 < 1 is true
     });
     // Arithmetic Operators
     test('null subtracted by number', () {
       String codeToEvaluate = "var result = null - 5;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], -5); // null is coerced to 0
     });
 
     test('null multiplied by number', () {
       String codeToEvaluate = "var result = null * 5;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 0); // null is coerced to 0
     });
 
     test('null divided by number', () {
       String codeToEvaluate = "var result = null / 5;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 0); // null is coerced to 0
     });
 
     test('number divided by null', () {
       String codeToEvaluate = "var result = 5 / null;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'],
           double.infinity); // null is coerced to 0, division by 0 is Infinity
     });
@@ -1928,7 +1927,7 @@ function createRandomizedTiles() {
     test('null modulo number', () {
       String codeToEvaluate = "var result = null % 5;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 0); // null is coerced to 0
     });
 
@@ -1936,14 +1935,14 @@ function createRandomizedTiles() {
     test('true OR null', () {
       String codeToEvaluate = "var result = true || null;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], true); // true is returned immediately
     });
 
     test('false AND null', () {
       String codeToEvaluate = "var result = false && null;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], false); // false is returned immediately
     });
 
@@ -1951,21 +1950,21 @@ function createRandomizedTiles() {
     test('null greater than 0', () {
       String codeToEvaluate = "var result = null > 0;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], false); // null is coerced to 0
     });
 
     test('null greater than or equal to null', () {
       String codeToEvaluate = "var result = null >= null;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], true); // both are coerced to 0
     });
 
     test('null less than or equal to 0', () {
       String codeToEvaluate = "var result = null <= 0;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], true); // null is coerced to 0
     });
 
@@ -1973,35 +1972,35 @@ function createRandomizedTiles() {
     test('null bitwise OR with number', () {
       String codeToEvaluate = "var result = null | 1;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 1); // null is coerced to 0
     });
 
     test('null bitwise AND with number', () {
       String codeToEvaluate = "var result = null & 1;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 0); // null is coerced to 0
     });
 
     test('null bitwise XOR with number', () {
       String codeToEvaluate = "var result = null ^ 1;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 1); // null is coerced to 0
     });
 
     test('null shifted left by 1', () {
       String codeToEvaluate = "var result = null << 1;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 0); // null is coerced to 0
     });
 
     test('null shifted right by 1', () {
       String codeToEvaluate = "var result = null >> 1;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], 0); // null is coerced to 0
     });
 
@@ -2009,121 +2008,15 @@ function createRandomizedTiles() {
     test('null strictly equal to null', () {
       String codeToEvaluate = "var result = null === null;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], true); // Strict equality
     });
 
     test('null strictly not equal to 0', () {
       String codeToEvaluate = "var result = null !== 0;";
       Map<String, dynamic> context = initContext();
-      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      JSInterpreter.fromCode(codeToEvaluate, context).evaluate();
       expect(context['result'], true); // Strict inequality
     });
   });
-  //scope tests
-  test('Variable Hoisting and Shadowing', () async {
-    String codeToEvaluate = """
-    var globalVar = 'global';
-    function testFunction() {
-      var globalVar = 'local';
-      return globalVar;
-    }
-    var result = testFunction();
-  """;
-    Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
-    expect(context['result'], 'local');
-    expect(context['globalVar'], 'global');
-  });
-  test('Function Scope and Arguments', () async {
-    String codeToEvaluate = """
-    function add(a, b) {
-      return a + b;
-    }
-    var result = add(5, 3);
-  """;
-    Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
-    expect(context['result'], 8);
-  });
-  test('Updating Global Variables within Functions', () async {
-    String codeToEvaluate = """
-    var counter = 0;
-    function increment() {
-      counter++;
-    }
-    increment();
-  """;
-    Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
-    expect(context['counter'], 1);
-  });
-  test('Variable Declarations Inside Loops', () async {
-    String codeToEvaluate = """
-    var sum = 0;
-    for (var i = 1; i <= 5; i++) {
-      sum += i;
-    }
-  """;
-    Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
-    expect(context['sum'], 15);
-  });
-  test('Nested Functions and Closure', () async {
-    String codeToEvaluate = """
-    function outer() {
-      var outerVar = 'outer';
-      function inner() {
-        return outerVar;
-      }
-      return inner();
-    }
-    var result = outer();
-  """;
-    Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
-    expect(context['result'], 'outer');
-  });
-  test('Function Expressions and Anonymous Functions', () async {
-    String codeToEvaluate = """
-    var result = (function(a, b) { return a - b; })(10, 5);
-  """;
-    Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
-    expect(context['result'], 5);
-  });
-  test('The `this` Keyword Inside Functions', () async {
-    String codeToEvaluate = """
-    var obj = {
-      value: 10,
-      increment: function() { this.value++; }
-    };
-    obj.increment();
-  """;
-    Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
-    expect(context['obj']['value'], 11);
-  });
-  test('Immediately Invoked Function Expressions (IIFE)', () async {
-    String codeToEvaluate = """
-    var result = (function() {
-      var privateVar = 'secret';
-      return privateVar;
-    })();
-  """;
-    Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
-    expect(context['result'], 'secret');
-  });
-  test('Using Array.prototype Methods', () async {
-    String codeToEvaluate = """
-    var numbers = [1, 2, 3, 4, 5];
-    var doubled = numbers.map(function(number) { return number * 2; });
-  """;
-    Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
-    expect(context['doubled'], [2, 4, 6, 8, 10]);
-  });
-
-
 }

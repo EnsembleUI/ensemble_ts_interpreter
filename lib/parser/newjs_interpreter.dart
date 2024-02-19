@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:ensemble_ts_interpreter/errors.dart';
-import 'package:ensemble_ts_interpreter/invokables/context.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokable.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokablecontroller.dart';
 import 'package:jsparser/jsparser.dart';
@@ -112,10 +111,9 @@ class Bindings extends RecursiveVisitor<dynamic> {
   }
 }
 class JSInterpreter extends RecursiveVisitor<dynamic> {
-
   late String code;
   late Program program;
-  Map<Scope,Context> contexts= {};
+  Map<Scope,Map<String,dynamic>> contexts= {};
   @override
   defaultNode(Node node) {
     dynamic rtn;
@@ -130,14 +128,14 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     }
     return rtn;
   }
-  JSInterpreter(this.code, this.program, Context programContext) {
+  JSInterpreter(this.code, this.program, Map<String,dynamic> programContext) {
     contexts[program] = programContext;
-    InvokableController.addGlobals(programContext.getContextMap());
+    InvokableController.addGlobals(programContext);
   }
   static const String parsingErrorAppendage = "Only ES5 is supported. "
       "Key words such as let, const, operators such as -> and templated strings are not yet supported. "
       "Here's a full list of features that are only available in ES6 and are therefore NOT supported in Ensemble at this time. https://www.w3schools.com/js/js_es6.asp";
-  JSInterpreter.fromCode(String code, Context programContext): this(code,parseCode(code),programContext);
+  JSInterpreter.fromCode(String code, Map<String,dynamic> programContext): this(code,parseCode(code),programContext);
   static Program parseCode(String code) {
     if ( code.isEmpty ) {
       throw JSException(1,"Empty string is being passed as javascript code to parse. Please check your javascript code and fix it");
@@ -176,14 +174,14 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     }
     return node;
   }
-  Context findProgramContext(Node node) {
+  Map<String,dynamic> findProgramContext(Node node) {
     Scope scope = enclosingScope(node);
     while (scope is! Program) {
       scope = enclosingScope(scope.parent!);
     }
     return getContextForScope(scope);
   }
-  JSInterpreter cloneForContext(Scope scope,Context ctx,bool inheritContexts) {
+  JSInterpreter cloneForContext(Scope scope,Map<String,dynamic> ctx,bool inheritContexts) {
     JSInterpreter i = JSInterpreter(this.code, this.program,getContextForScope(this.program));
     if ( inheritContexts ) {
       contexts.keys.forEach((key) {
@@ -209,17 +207,17 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     }
     return scope;
   }
-  Context getContextForScope(Scope scope) {
+  Map<String,dynamic> getContextForScope(Scope scope) {
     return contexts[scope]!;
   }
   void addToContext(Name node, dynamic value) {
-    Context ctx = getContextForScope(node.scope!);
-    ctx.addDataContextById(node.value,value);
+    Map m = getContextForScope(node.scope!);
+    m[node.value] = value;
   }
-  // dynamic removeFromContext(Name node) {
-  //   Map m = getContextForScope(node.scope!);
-  //   return m.remove(node.value);
-  // }
+  dynamic removeFromContext(Name node) {
+    Map m = getContextForScope(node.scope!);
+    return m.remove(node.value);
+  }
   dynamic getValueFromNode(Node node) {
     dynamic value = node.visitBy(this);
     if ( value is List ) {
@@ -246,13 +244,16 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return value;
   }
   dynamic getValueFromString(String name) {
-    Context ctx = getContextForScope(program);
-    return ctx.getContextById(name);
+    Map m = getContextForScope(program);
+    if ( m.containsKey(name) ) {
+      return m[name];
+    }
+    return null;
   }
   dynamic getValue(Name node) {
     Scope scope = findScope(node);
-    Context ctx = getContextForScope(scope);
-    return ctx.getContextById(node.value);
+    Map m = getContextForScope(scope);
+    return m[node.value];
   }
   evaluate({Node? node}) {
     dynamic rtn;
@@ -491,8 +492,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           ctx[node.params[i].value] = i < params.length ? params[i] : null;
         }
       }
-      Context context = SimpleContext(ctx);
-      JSInterpreter i = cloneForContext(node,context,inheritContext??false);
+      JSInterpreter i = cloneForContext(node,ctx,inheritContext??false);
       dynamic rtn;
       try {
         if (node.body != null) {
@@ -735,9 +735,9 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   }
   @override
   visitLiteral(LiteralExpression node) {
-    Context programContext = findProgramContext(node);
+    Map<String,dynamic> programContext = findProgramContext(node);
     if ( node.value is String ) {
-      Function? getStringFunc = programContext.getContextById('getStringValue');
+      Function? getStringFunc = programContext['getStringValue'];
       if (getStringFunc != null) {
         //this takes care of translating strings into different languages
         return Function.apply(getStringFunc, [node.value]);
