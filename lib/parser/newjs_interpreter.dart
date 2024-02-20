@@ -212,6 +212,10 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   Context getContextForScope(Scope scope) {
     return contexts[scope]!;
   }
+  void addToThisContext(Name node, dynamic value) {
+    Context ctx = getContextForScope(node.scope!);
+    ctx.addToThisContext(node.value,value);
+  }
   void addToContext(Name node, dynamic value) {
     Context ctx = getContextForScope(node.scope!);
     ctx.addDataContextById(node.value,value);
@@ -468,7 +472,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
   visitFunctionDeclaration(FunctionDeclaration node) {
     JavascriptFunction? func = getValue(node.function.name!);
     if ( func == null ) {
-      addToContext(node.function.name!, visitFunctionNode(node.function));
+      addToThisContext(node.function.name!, visitFunctionNode(node.function));
     }
     return func;
   }
@@ -526,7 +530,7 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     if ( node.init != null ) {
       value = getValueFromExpression(node.init!);
     }
-    addToContext(name,value);
+    addToThisContext(name,value);
     return name;
   }
   @override

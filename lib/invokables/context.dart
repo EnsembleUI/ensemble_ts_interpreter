@@ -4,6 +4,7 @@ abstract class Context {
   bool hasContext(String id);
   dynamic getContextById(String id);
   Map<String,dynamic> getContextMap();
+  void addToThisContext(String id, dynamic value);
 }
 
 class SimpleContext implements Context {
@@ -34,5 +35,10 @@ class SimpleContext implements Context {
   @override
   Map<String, dynamic> getContextMap() {
     return _dataContext;
+  }
+
+  @override
+  void addToThisContext(String id, value) {
+    _dataContext[id] = value;
   }
 }
