@@ -13,9 +13,33 @@ class InvokableRegExp extends Object with Invokable {
   Map<String, Function> methods() {
     return {
       'test': (String input) => regExp.hasMatch(input),
-      //'exec': (String input) => regExp.allMatches(input).toList()
-
+      'exec': (String input) {
+        var match = regExp.firstMatch(input);
+        return match != null ? _getNamedGroups(match) : null;
+      },
+      'match': (String input) {
+        return input.split(regExp);
+      },
+      'search': (String input) => input.indexOf(regExp.toString()),
+      'replace': (String input, String replacement) =>
+          input.replaceAll(regExp, replacement),
+      'split': (String input) => input.split(regExp),
+      'matchAll': (String input) {
+        List<Map<String, String>> matches = [];
+        for (var match in regExp.allMatches(input)) {
+          matches.add(_getNamedGroups(match));
+        }
+        return matches;
+      },
     };
+  }
+
+  Map<String, String> _getNamedGroups(RegExpMatch match) {
+    var namedGroups = <String, String>{};
+    for (var groupName in match.groupNames) {
+      namedGroups[groupName] = match.namedGroup(groupName)!;
+    }
+    return namedGroups;
   }
 
   @override
@@ -23,5 +47,4 @@ class InvokableRegExp extends Object with Invokable {
     // TODO: implement setters
     throw UnimplementedError();
   }
-
 }
