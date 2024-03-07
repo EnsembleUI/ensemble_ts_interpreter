@@ -891,6 +891,47 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     }
     return val;
   }
+  dynamic performOperation(dynamic left, dynamic right, String operator, int line, String code) {
+    // Handle concatenation with strings
+    if (operator == '+=' && (left is String || right is String)) {
+      return left.toString() + right.toString();
+    }
+
+    // For arithmetic and bitwise operations, ensure both operands are numbers
+    num leftNum, rightNum;
+    try {
+      leftNum = num.parse(left.toString());
+      rightNum = num.parse(right.toString());
+    } catch (e) {
+      throw JSException(line,"Either '$left' or '$right' cannot be parsed ino a number and number if required for the $operator operation. Relevant Code: $code");
+    }
+    switch (operator) {
+      case '+=':
+        return leftNum + rightNum;
+      case '-=':
+        return leftNum - rightNum;
+      case '*=':
+        return leftNum * rightNum;
+      case '/=':
+        return leftNum / rightNum;
+      case '%=':
+        return leftNum % rightNum;
+      case '<<=':
+      // Ensure operands are integers for bitwise operations
+        return leftNum.toInt() << rightNum.toInt();
+      case '>>=':
+        return leftNum.toInt() >> rightNum.toInt();
+      case '|=':
+        return leftNum.toInt() | rightNum.toInt();
+      case '^=':
+        return leftNum.toInt() ^ rightNum.toInt();
+      case '&=':
+        return leftNum.toInt() & rightNum.toInt();
+      default:
+        throw JSException(line,
+            "$operator in Code: $code is not yet supported");
+    }
+  }
   @override
   visitAssignment(AssignmentExpression node) {
     try {
@@ -905,53 +946,14 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
       }
       if (pattern != null) {
         var obj = pattern.obj;
-        switch (node.operator) {
-          case '=':
-            InvokableController.setProperty(obj, pattern.property, val);
-            break;
-          case '+=':
-            InvokableController.setProperty(obj, pattern.property,
-                InvokableController.getProperty(obj, pattern.property) + val);
-            break;
-          case '-=':
-            InvokableController.setProperty(obj, pattern.property,
-                InvokableController.getProperty(obj, pattern.property) - val);
-            break;
-          case '*=':
-            InvokableController.setProperty(obj, pattern.property,
-                InvokableController.getProperty(obj, pattern.property) * val);
-            break;
-          case '/=':
-            InvokableController.setProperty(obj, pattern.property,
-                InvokableController.getProperty(obj, pattern.property) / val);
-            break;
-          case '%=':
-            InvokableController.setProperty(obj, pattern.property,
-                InvokableController.getProperty(obj, pattern.property) % val);
-            break;
-          case '<<=':
-            InvokableController.setProperty(obj, pattern.property,
-                InvokableController.getProperty(obj, pattern.property) << val);
-            break;
-          case '>>=':
-            InvokableController.setProperty(obj, pattern.property,
-                InvokableController.getProperty(obj, pattern.property) >> val);
-            break;
-          case '|=':
-            InvokableController.setProperty(obj, pattern.property,
-                InvokableController.getProperty(obj, pattern.property) | val);
-            break;
-          case '^=':
-            InvokableController.setProperty(obj, pattern.property,
-                InvokableController.getProperty(obj, pattern.property) ^ val);
-            break;
-          case '&=':
-            InvokableController.setProperty(obj, pattern.property,
-                InvokableController.getProperty(obj, pattern.property) & val);
-            break;
-          default:
-            throw JSException(node.line ?? -1,
-                "${node.operator!} in Code: ${getCode(node)} is not yet supported");
+        if ( node.operator == '=' ) {
+          InvokableController.setProperty(obj, pattern.property, val);
+        } else {
+          dynamic left = InvokableController.getProperty(obj, pattern.property);
+          dynamic right = val;
+          val = performOperation(
+              left, right, node.operator!, node.line ?? -1, getCode(node));
+          InvokableController.setProperty(obj, pattern.property, val);
         }
       } else if (node.left is Name || node.left is NameExpression) {
         Name n;
@@ -961,47 +963,11 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
           n = node.left as Name;
         }
         dynamic value = getValue(n);
-        if (value != null) {
-          switch (node.operator) {
-            case '=':
-              value = val;
-              break;
-            case '+=':
-              value += val;
-              break;
-            case '-=':
-              value -= val;
-              break;
-            case '*=':
-              value *= val;
-              break;
-            case '/=':
-              value /= val;
-              break;
-            case '%=':
-              value %= val;
-              break;
-            case '<<=':
-              value <<= val;
-              break;
-            case '>>=':
-              value >>= val;
-              break;
-            case '|=':
-              value |= val;
-              break;
-            case '^=':
-              value ^= val;
-              break;
-            case '&=':
-              value &= val;
-              break;
-            default:
-              throw JSException(node.line ?? -1,
-                  "${node.operator!} in Code: ${getCode(node)} is not yet supported");
-          }
-        } else {
+        if ( value == null || node.operator == '=') {
           value = val;
+        } else {
+          value = performOperation(
+              value, val, node.operator!, node.line ?? -1, getCode(node));
         }
         addToContext(n, value);
       }
