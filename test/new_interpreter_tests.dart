@@ -2125,5 +2125,44 @@ function createRandomizedTiles() {
     expect(context['doubled'], [2, 4, 6, 8, 10]);
   });
 
+  test('Reuben date bug', () async {
+    String codeToEvaluate = """
+      function formatDateRange(dateFrom, dateTo) {
+          var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          var fromParts = dateFrom.split('/');
+          var toParts = dateTo.split('/');
+      
+          var fromMonth = parseInt(fromParts[0], 10) - 1;
+          var fromDay = parseInt(fromParts[1], 10);
+          var fromYear = parseInt(fromParts[2], 10);
+      
+          var toMonth = parseInt(toParts[0], 10) - 1;
+          var toDay = parseInt(toParts[1], 10);
+          var toYear = parseInt(toParts[2], 10);
+      
+          var fromDate = new Date(fromYear, fromMonth, fromDay);
+          var toDate = new Date(toYear, toMonth, toDay);
+      
+          var formattedFromDate = months[fromDate.getMonth()] + ' ' + ('0' + fromDate.getDate()).slice(-2);
+          var formattedToDate = months[toDate.getMonth()] + ' ' + ('0' + toDate.getDate()).slice(-2);
+          //var formattedFromDate = months[fromDate.getMonth()] + ' ' + ('0' + fromDate.getDate()).slice(('0' + fromDate.getDate()).length - 2);
 
+          //var formattedToDate = months[toDate.getMonth()] + ' ' + ('0' + toDate.getDate()).slice(('0' + toDate.getDate()).length - 2);          
+      
+          if (fromDate.getMonth() === toDate.getMonth()) {
+              return formattedFromDate + '-' + formattedToDate;
+          } else {
+              return formattedFromDate + '-' + formattedToDate;
+          }
+      }
+      
+      // Example usage:
+      var dateFrom = "03/09/2024";
+      var dateTo = "03/14/2024";
+      console.log(formatDateRange(dateFrom, dateTo)); // Output: Mar 09-14
+      """;
+    Map<String, dynamic> context = initContext();
+    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+
+  });
 }

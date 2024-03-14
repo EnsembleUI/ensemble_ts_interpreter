@@ -310,7 +310,13 @@ class _String {
       'localeCompare': (String str) => val.compareTo(str),//not locale specific
       'repeat': (int count) => val * count,
       'search': (RegExp pattern) => pattern.hasMatch(val) ? pattern.firstMatch(val)?.start : -1,
-      'slice': (int start, [int? end]) => val.substring(start, end ?? val.length),
+      'slice': (int start, [int? end]) {
+        int adjustedStart = start < 0 ? val.length + start : start;
+        adjustedStart = adjustedStart.clamp(0, val.length);
+        int adjustedEnd = end == null ? val.length : (end < 0 ? val.length + end : end);
+        adjustedEnd = adjustedEnd.clamp(adjustedStart, val.length);
+        return val.substring(adjustedStart, adjustedEnd);
+      },
       'substr': (int start, [int? length]) => val.substring(start, start + (length ?? val.length - start)),
       'match': (regexp) {
         final matches = (regexp as RegExp).allMatches(val);
