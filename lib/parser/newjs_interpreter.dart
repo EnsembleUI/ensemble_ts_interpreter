@@ -516,6 +516,34 @@ class JSInterpreter extends RecursiveVisitor<dynamic> {
     return visitFunctionNode(node.function,inheritContext:true);
   }
   @override
+  visitArrowFunctionNode(ArrowFunctionNode node) {
+    final List<dynamic> args = computeArguments(node.params);
+    return JavascriptFunction((List<dynamic>? _params) {
+      List<dynamic> params = _params ?? [];
+      Map<String, dynamic> ctx = {};
+      if (node.params != null) {
+        for (int i = 0; i < node.params.length; i++) {
+          // Use the value from params if available, otherwise use null
+          ctx[node.params[i].value] = i < params.length ? params[i] : null;
+        }
+      }
+      Context context = SimpleContext(ctx);
+      JSInterpreter i = cloneForContext(node,context,true);
+      dynamic rtn;
+      try {
+        if (node.body != null) {
+          rtn = node.body.visitBy(i);
+        }
+      } on ControlFlowReturnException catch(e) {
+        rtn = e.returnValue;
+      }
+      if ( rtn is Node ) {
+        rtn = i.getValueFromNode(rtn);
+      }
+      return rtn;
+    },code.substring(node.start!,node.end));
+  }
+  @override
   visitBlock(BlockStatement node) {
     dynamic rtn;
     for ( Node stmt in node.body ) {

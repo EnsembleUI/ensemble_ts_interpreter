@@ -2165,4 +2165,73 @@ function createRandomizedTiles() {
     JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
 
   });
+  test('arrow function with parentheses and return', () async {
+    String codeToEvaluate = """
+      var numbers = [1, 2, 3, 4, 5];
+      
+      // Using map with an arrow function that contains a block statement
+      var squares = numbers.map((number) => {
+        return number * number;
+      });
+      """;
+    Map<String, dynamic> context = initContext();
+    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    expect(context['squares'], [1, 4, 9, 16, 25]);
+  });
+  test('arrow function without parm and no parenthesis', () async {
+    String codeToEvaluate = """
+      var greet = () => 'Hello, World!';
+      var hello = greet();
+      """;
+    Map<String, dynamic> context = initContext();
+    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    expect(context['hello'], 'Hello, World!');
+  });
+  test('arrow function without parm and parenthesis', () async {
+    String codeToEvaluate = """
+      var greet = () => {
+        var now = new Date();
+        return 'Hello, World!';
+      };
+      var hello = greet(); 
+      """;
+    Map<String, dynamic> context = initContext();
+    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    expect(context['hello'], 'Hello, World!');
+  });
+  test('arrow function with parentheses, multiple parms and return', () async {
+    String codeToEvaluate = """
+      var calculateArea = (length, width) => {
+        var area = length * width;
+        return area;
+      };
+      
+      var area = calculateArea(10, 20); 
+      """;
+    Map<String, dynamic> context = initContext();
+    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    expect(context['area'], 200);
+  });
+  test('arrow function with one parm, no parentheses and automatic return', () async {
+    String codeToEvaluate = """
+      var numbers = [1, 2, 3, 4, 5];
+      
+      // Using map with an arrow function that contains a block statement
+      var squares = numbers.map((number) => number * number);
+      """;
+    Map<String, dynamic> context = initContext();
+    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    expect(context['squares'], [1, 4, 9, 16, 25]);
+  });
+  test('arrow function with multiple parms, no parentheses and automatic return', () async {
+    String codeToEvaluate = """
+      var add = (a, b) => a + b;
+      
+      var n = add(5, 7); // Output: 12
+
+      """;
+    Map<String, dynamic> context = initContext();
+    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+    expect(context['n'], 12);
+  });
 }
