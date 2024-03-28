@@ -51,7 +51,7 @@ dependencies:
   #dartjsengine: ^1.0.1
   jsparser:
     git:
-      url: https://github.com/kmahmood74/parsejs_null_safety.dart.git
+      url: https://github.com/EnsembleUI/parsejs_null_safety.dart
       ref: master
   source_span: ^1.9.1
   intl: ^0.18.0
