@@ -2115,14 +2115,154 @@ function createRandomizedTiles() {
     JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
     expect(context['result'], 'secret');
   });
-  test('Using Array.prototype Methods', () async {
-    String codeToEvaluate = """
+  group('Using Array.prototype Methods', () {
+    test('map function', () async {
+      String codeToEvaluate = """
     var numbers = [1, 2, 3, 4, 5];
     var doubled = numbers.map(function(number) { return number * 2; });
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['doubled'], [2, 4, 6, 8, 10]);
+    });
+
+    test('filter function', () async {
+      String codeToEvaluate = """
+    var numbers = [1, 2, 3, 4, 5];
+    var even = numbers.filter(function(number) { return number % 2 === 0; });
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['even'], [2, 4]);
+    });
+
+    test('forEach function', () async {
+      String codeToEvaluate = """
+    var numbers = [1, 2, 3];
+    var sum = 0;
+    numbers.forEach(function(number) { sum += number; });
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['sum'], 6);
+    });
+
+    test('reduce function', () async {
+      String codeToEvaluate = """
+    var numbers = [1, 2, 3, 4, 5];
+    var total = numbers.reduce(function(accumulator, number) { return accumulator + number; }, 0);
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['total'], 15);
+    });
+
+    test('concat function', () async {
+      String codeToEvaluate = """
+    var arr1 = [1, 2, 3];
+    var arr2 = [4, 5, 6];
+    var combined = arr1.concat(arr2);
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['combined'], [1, 2, 3, 4, 5, 6]);
+    });
+
+    test('find and findIndex functions', () async {
+      String codeToEvaluate = """
+    var numbers = [4, 6, 8, 10];
+    var found = numbers.find(function(number) { return number > 7; });
+    var foundIndex = numbers.findIndex(function(number) { return number > 7; });
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['found'], 8);
+      expect(context['foundIndex'], 2);
+    });
+
+    test('reverse function', () async {
+      String codeToEvaluate = """
+    var numbers = [1, 2, 3];
+    var reversed = numbers.reverse();
+    """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['reversed'], [3, 2, 1]);
+    });
+    test('shift function', () async {
+      String codeToEvaluate = """
+  var numbers = [1, 2, 3];
+  var first = numbers.shift();
   """;
-    Map<String, dynamic> context = initContext();
-    JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
-    expect(context['doubled'], [2, 4, 6, 8, 10]);
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['first'], 1);
+      expect(context['numbers'], [2, 3]);
+    });
+
+    test('unshift function', () async {
+      String codeToEvaluate = """
+  var numbers = [2, 3];
+  var newLength = numbers.unshift(1);
+  """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['newLength'], 3);
+      expect(context['numbers'], [1, 2, 3]);
+    });
+
+    test('splice function', () async {
+      String codeToEvaluate = """
+      var numbers = [1, 2, 4, 5];
+      var removed = numbers.splice(2, 1, 3);
+      """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['removed'], [4]);
+      expect(context['numbers'], [1, 2, 3, 5]);
+    });
+
+    test('some function', () async {
+      String codeToEvaluate = """
+  var numbers = [1, 2, 3, 4, 5];
+  var hasHighNumbers = numbers.some(function(number) { return number > 4; });
+  """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['hasHighNumbers'], true);
+    });
+
+    test('every function', () async {
+      String codeToEvaluate = """
+  var numbers = [1, 2, 3];
+  var allLessThanFive = numbers.every(function(number) { return number < 5; });
+  """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['allLessThanFive'], true);
+    });
+
+    test('slice function', () async {
+      String codeToEvaluate = """
+  var numbers = [1, 2, 3, 4, 5];
+  var middle = numbers.slice(1, 4);
+  """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['middle'], [2, 3, 4]);
+    });
+
+    test('fill function', () async {
+      String codeToEvaluate = """
+  var numbers = [1, 2, 3, 4, 5];
+  numbers.fill(0, 1, 4);
+  """;
+      Map<String, dynamic> context = initContext();
+      JSInterpreter.fromCode(codeToEvaluate, SimpleContext(context)).evaluate();
+      expect(context['numbers'], [1, 0, 0, 0, 5]);
+    });
+
+    // Further extend these tests to cover additional scenarios or edge cases as needed.
   });
 
   test('Reuben date bug', () async {

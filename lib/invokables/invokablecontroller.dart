@@ -8,44 +8,16 @@ import 'package:ensemble_ts_interpreter/invokables/invokablemath.dart';
 import 'package:ensemble_ts_interpreter/invokables/invokableprimitives.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:json_path/json_path.dart';
-
-class InvokableController {
-  static bool isPrimitive(dynamic val) {
-    bool rtn = val == null;
-    if ( !rtn ) {
-      rtn = val is String || val is num || val is bool; //add more
-    }
-    return rtn;
-  }
-  static bool isNative(dynamic val) {
-    bool rtn = isPrimitive(val);
-    if ( !rtn ) {
-      rtn = val is Map || val is List || val is RegExp;
-    }
-    return rtn;
-  }
-  static RegExp regExp(String regex,String options) {
-    RegExp r =  RegExp(regex);
+abstract class GlobalContext {
+  static RegExp regExp(String regex, String options) {
+    RegExp r = RegExp(regex);
     return r;
   }
-//   // Sample function to simulate a changing condition
-//   static bool isConditionMet() {
-//     // Replace this with your actual condition-checking code
-//     return DateTime.now().second % 10 == 0;
-//   }
-//
-// // Function to wait until the condition is met
-//   static Future<void> waitForCondition() async {
-//     while (!isConditionMet()) {
-//       print('Condition not met, waiting 500ms...');
-//       await Future.delayed(Duration(milliseconds: 500));
-//     }
-//     print('Condition met! Continuing execution...');
-//   }
-  static void addGlobals(Map<String,dynamic> context) {
-    context['regExp'] = regExp;
-    context['Math'] = InvokableMath();
-    context['parseFloat'] = (dynamic value) {
+
+  static Map<String, dynamic> _context = {
+    'regExp': regExp,
+    'Math': InvokableMath(),
+    'parseFloat': (dynamic value) {
       if (value is String) {
         return double.tryParse(value) ?? double.nan;
       } else if (value is num) {
@@ -53,9 +25,8 @@ class InvokableController {
       } else {
         return double.nan;
       }
-    };
-
-    context['parseInt'] = (dynamic value, [int? radix = 10]) {
+    },
+    'parseInt': (dynamic value, [int? radix = 10]) {
       // Directly return the value if it's already an integer
       if (value is int) return value;
 
@@ -79,9 +50,9 @@ class InvokableController {
 
       // Return 0 if all parsing attempts fail
       return double.nan;
-    };
+    },
 
-    context['parseDouble'] = (dynamic value) {
+    'parseDouble': (dynamic value) {
       if (value is String) {
         return double.tryParse(value) ?? double.nan;
       } else if (value is num) {
@@ -89,29 +60,68 @@ class InvokableController {
       } else {
         return double.nan;
       }
-    };
+    },
 
-    context['JSON'] = JSON();
-    context['btoa'] = _String.btoa;
-    context['atob'] = _String.atob;
-    context['console'] = Console();
-    context['Date'] = StaticDate();
+    'JSON': JSON(),
+    'btoa': _String.btoa,
+    'atob': _String.atob,
+    'console': Console(),
+    'Date': StaticDate(),
     // Encode and Decode URI Component functions
-    context['encodeURIComponent'] = (String s) => Uri.encodeComponent(s);
-    context['decodeURIComponent'] = (String s) => Uri.decodeComponent(s);
+    'encodeURIComponent': (String s) => Uri.encodeComponent(s),
+    'decodeURIComponent': (String s) => Uri.decodeComponent(s),
     // Encode and Decode URI functions
-    context['encodeURI'] = (String uri) => Uri.encodeFull(uri);
-    context['decodeURI'] = (String uri) => Uri.decodeFull(uri);
+    'encodeURI': (String uri) => Uri.encodeFull(uri),
+    'decodeURI': (String uri) => Uri.decodeFull(uri),
+  };
+
+  static get context => _context;
+}
+
+class InvokableController {
+  static bool isPrimitive(dynamic val) {
+    bool rtn = val == null;
+    if (!rtn) {
+      rtn = val is String || val is num || val is bool; //add more
+    }
+    return rtn;
+  }
+
+  static bool isNative(dynamic val) {
+    bool rtn = isPrimitive(val);
+    if (!rtn) {
+      rtn = val is Map || val is List || val is RegExp;
+    }
+    return rtn;
+  }
+
+//   // Sample function to simulate a changing condition
+//   static bool isConditionMet() {
+//     // Replace this with your actual condition-checking code
+//     return DateTime.now().second % 10 == 0;
+//   }
+//
+// // Function to wait until the condition is met
+//   static Future<void> waitForCondition() async {
+//     while (!isConditionMet()) {
+//       print('Condition not met, waiting 500ms...');
+//       await Future.delayed(Duration(milliseconds: 500));
+//     }
+//     print('Condition met! Continuing execution...');
+//   }
+  static void addGlobals(Map<String, dynamic> context) {
+    context.addAll(GlobalContext.context);
     // context['debug'] = () async {
     //   await waitForCondition();
     // };
   }
+
   static Map<String, Function> methods(dynamic val) {
-    if ( val == null ) {
+    if (val == null) {
       return {};
-    } else if ( val is Invokable ) {
+    } else if (val is Invokable) {
       return val.methods();
-    } else if ( val is String) {
+    } else if (val is String) {
       return _String.methods(val);
     } else if ( val is bool ) {
       return _Boolean.methods(val);
@@ -515,13 +525,56 @@ class _List {
       },
       'at': (int index) => list[index],
       'concat': (List arr) => list + arr,
-      'find': (Function f) => list.firstWhere((e) => f([e]),orElse: () => -1),
+      'find': (Function f) => list.firstWhere((e) => f([e]), orElse: () => -1),
       'includes': (dynamic v) => list.contains(v),
       'contains': (dynamic v) => list.contains(v),
-      'join': ([String str=',']) => list.join(str),
-      'pop': () => (list.isNotEmpty)? list.removeLast(): null,
-      'reduce': (Function f) =>  list.reduce((value, element) => f([value,element])),
+      'join': ([String str = ',']) => list.join(str),
+      'pop': () => (list.isNotEmpty) ? list.removeLast() : null,
+      'reduce': (Function f, [dynamic initialValue]) {
+        // Check if an initial value is provided
+        if (initialValue != null) {
+          // Use fold when an initial value is provided
+          return list.fold(initialValue,
+              (currentValue, element) => f([currentValue, element]));
+        } else {
+          // Use reduce directly when no initial value is provided
+          // This will throw if the list is empty, similar to JS reduce without an initial value
+          return list
+              .reduce((currentValue, element) => f([currentValue, element]));
+        }
+      },
       'reverse': () => list.reversed.toList(),
+      'slice': (int start, [int? end]) =>
+          list.sublist(start, end ?? list.length),
+      'shift': () => list.isNotEmpty ? list.removeAt(0) : null,
+      'unshift': (dynamic val) {
+        list.insert(0, val);
+        return list.length;
+      },
+      'splice': (int start, int deleteCount, [dynamic items]) {
+        var removedItems = list.sublist(start, start + deleteCount);
+        list.removeRange(start, start + deleteCount);
+        if (items != null) {
+          if (items is List) {
+            list.insertAll(start, items);
+          } else {
+            list.insert(start, items);
+          }
+        }
+        return removedItems;
+      },
+      'some': (Function f) => list.any((element) => f([element])),
+      'every': (Function f) => list.every((element) => f([element])),
+      'findIndex': (Function f) => list.indexWhere((e) => f([e])),
+      'fill': (dynamic value, [int start = 0, int? end]) {
+        end ??= list.length;
+        for (int i = start; i < end; i++) {
+          if (i >= 0 && i < list.length) {
+            list[i] = value;
+          }
+        }
+        return list;
+      },
     };
   }
 

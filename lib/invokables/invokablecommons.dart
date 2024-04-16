@@ -66,7 +66,7 @@ class Date extends Object with Invokable, SupportsPrimitiveOperations{
     return Date(DateTime.now());
   }
   static Date fromDate(Date d) {
-    return Date(d._dateTime.clone);
+    return Date(d.dateTime.clone);
   }
   static int utc([
         dynamic arg1,
@@ -102,12 +102,12 @@ class Date extends Object with Invokable, SupportsPrimitiveOperations{
         dynamic arg7,
       ]) {
     if (arg1 == null) {
-      _dateTime = DateTime.now();
+      dateTime = DateTime.now();
     } else if (arg2 == null) {
       if (arg1 is String) {
-        _dateTime = DateTime.parse(arg1);
+        dateTime = DateTime.parse(arg1);
       } else {
-        _dateTime = DateTime.fromMillisecondsSinceEpoch(arg1);
+        dateTime = DateTime.fromMillisecondsSinceEpoch(arg1);
       }
     } else {
       int year = arg1;
@@ -118,129 +118,175 @@ class Date extends Object with Invokable, SupportsPrimitiveOperations{
       int second = arg6 != null ? arg6 : 0;
       int millisecond = arg7 != null ? arg7 : 0;
 
-      _dateTime = DateTime(year, month, day, hour, minute, second, millisecond);
+      dateTime = DateTime(year, month, day, hour, minute, second, millisecond);
     }
   }
-  late DateTime _dateTime;
-  Date(this._dateTime);
+
+  late DateTime dateTime;
+
+  Date(this.dateTime);
 
   Map<String, Function> getters() {
     return {
-      'time': () => _dateTime.millisecondsSinceEpoch,
-      'year': () => _dateTime.year,
-      'month': () => _dateTime.month - 1, // JavaScript months are zero-based
-      'day': () => _dateTime.day,
-      'weekday': () => _dateTime.weekday % 7, // JavaScript days are zero-based
-      'hour': () => _dateTime.hour,
-      'minute': () => _dateTime.minute,
-      'second': () => _dateTime.second,
-      'millisecond': () => _dateTime.millisecond,
-      'timezoneOffset': () => -_dateTime.timeZoneOffset.inMinutes,
-      'isoString': () => _dateTime.toUtc().toIso8601String(),
-      'localDateString': () => _dateTime.toLocal().toString().split(' ')[0],
-      'localTimeString': () => _dateTime.toLocal().toString().split(' ')[1].split('.')[0],
-      'localString': () => _dateTime.toLocal().toString().split('.')[0],
-      'utcFullYear': () => _dateTime.toUtc().year,
-      'utcMonth': () => _dateTime.toUtc().month - 1, // JavaScript months are zero-based
-      'utcDate': () => _dateTime.toUtc().day,
-      'utcDay': () => _dateTime.toUtc().weekday % 7, // JavaScript days are zero-based
-      'utcHours': () => _dateTime.toUtc().hour,
-      'utcMinutes': () => _dateTime.toUtc().minute,
-      'utcSeconds': () => _dateTime.toUtc().second,
-      'utcMilliseconds': () => _dateTime.toUtc().millisecond,
+      'time': () => dateTime.millisecondsSinceEpoch,
+      'year': () => dateTime.year,
+      'month': () => dateTime.month - 1, // JavaScript months are zero-based
+      'day': () => dateTime.day,
+      'weekday': () => dateTime.weekday % 7, // JavaScript days are zero-based
+      'hour': () => dateTime.hour,
+      'minute': () => dateTime.minute,
+      'second': () => dateTime.second,
+      'millisecond': () => dateTime.millisecond,
+      'timezoneOffset': () => -dateTime.timeZoneOffset.inMinutes,
+      'isoString': () => dateTime.toUtc().toIso8601String(),
+      'localDateString': () => dateTime.toLocal().toString().split(' ')[0],
+      'localTimeString': () =>
+          dateTime.toLocal().toString().split(' ')[1].split('.')[0],
+      'localString': () => dateTime.toLocal().toString().split('.')[0],
+      'utcFullYear': () => dateTime.toUtc().year,
+      'utcMonth': () =>
+          dateTime.toUtc().month - 1, // JavaScript months are zero-based
+      'utcDate': () => dateTime.toUtc().day,
+      'utcDay': () =>
+          dateTime.toUtc().weekday % 7, // JavaScript days are zero-based
+      'utcHours': () => dateTime.toUtc().hour,
+      'utcMinutes': () => dateTime.toUtc().minute,
+      'utcSeconds': () => dateTime.toUtc().second,
+      'utcMilliseconds': () => dateTime.toUtc().millisecond,
     };
   }
   @override
   String toJson() {
-    return _dateTime.toUtc().toIso8601String();
+    return dateTime.toUtc().toIso8601String();
   }
   Map<String, Function> methods() {
     return {
-      'getTime': () => _dateTime.millisecondsSinceEpoch,
-      'getFullYear': () => _dateTime.year,
-      'getMonth': () => _dateTime.month - 1, // JavaScript months are zero-based
-      'getDate': () => _dateTime.day,
-      'getDay': () => _dateTime.weekday % 7, // JavaScript days are zero-based
-      'getHours': () => _dateTime.hour,
-      'getMinutes': () => _dateTime.minute,
-      'getSeconds': () => _dateTime.second,
-      'getMilliseconds': () => _dateTime.millisecond,
-      'getTimezoneOffset': () => -_dateTime.timeZoneOffset.inMinutes,
-      'toISOString': () => _dateTime.toUtc().toIso8601String(),
-      'toLocaleDateString': () => _dateTime.toLocal().toString().split(' ')[0],
-      'toLocaleTimeString': () => _dateTime.toLocal().toString().split(' ')[1].split('.')[0],
-      'toLocaleString': () => _dateTime.toLocal().toString().split('.')[0],
-      'toJSON': () => _dateTime.toUtc().toIso8601String(),
-      'getUTCFullYear': () => _dateTime.toUtc().year,
-      'getUTCMonth': () => _dateTime.toUtc().month - 1, // JavaScript months are zero-based
-      'getUTCDate': () => _dateTime.toUtc().day,
-      'getUTCDay': () => _dateTime.toUtc().weekday % 7, // JavaScript days are zero-based
-      'getUTCHours': () => _dateTime.toUtc().hour,
-      'getUTCMinutes': () => _dateTime.toUtc().minute,
-      'getUTCSeconds': () => _dateTime.toUtc().second,
-      'getUTCMilliseconds': () => _dateTime.toUtc().millisecond,
+      'getTime': () => dateTime.millisecondsSinceEpoch,
+      'getFullYear': () => dateTime.year,
+      'getMonth': () => dateTime.month - 1, // JavaScript months are zero-based
+      'getDate': () => dateTime.day,
+      'getDay': () => dateTime.weekday % 7, // JavaScript days are zero-based
+      'getHours': () => dateTime.hour,
+      'getMinutes': () => dateTime.minute,
+      'getSeconds': () => dateTime.second,
+      'getMilliseconds': () => dateTime.millisecond,
+      'getTimezoneOffset': () => -dateTime.timeZoneOffset.inMinutes,
+      'toISOString': () => dateTime.toUtc().toIso8601String(),
+      'toLocaleDateString': () => dateTime.toLocal().toString().split(' ')[0],
+      'toLocaleTimeString': () =>
+          dateTime.toLocal().toString().split(' ')[1].split('.')[0],
+      'toLocaleString': () => dateTime.toLocal().toString().split('.')[0],
+      'toJSON': () => dateTime.toUtc().toIso8601String(),
+      'getUTCFullYear': () => dateTime.toUtc().year,
+      'getUTCMonth': () =>
+          dateTime.toUtc().month - 1, // JavaScript months are zero-based
+      'getUTCDate': () => dateTime.toUtc().day,
+      'getUTCDay': () =>
+          dateTime.toUtc().weekday % 7, // JavaScript days are zero-based
+      'getUTCHours': () => dateTime.toUtc().hour,
+      'getUTCMinutes': () => dateTime.toUtc().minute,
+      'getUTCSeconds': () => dateTime.toUtc().second,
+      'getUTCMilliseconds': () => dateTime.toUtc().millisecond,
       'setFullYear': (int year) {
-        _dateTime = DateTime(year, _dateTime.month, _dateTime.day, _dateTime.hour, _dateTime.minute, _dateTime.second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
-        },
+        dateTime = DateTime(year, dateTime.month, dateTime.day, dateTime.hour,
+            dateTime.minute, dateTime.second, dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
+      },
       'setMonth': (int month) {
-        _dateTime = DateTime(_dateTime.year, month + 1, _dateTime.day, _dateTime.hour, _dateTime.minute, _dateTime.second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
-        },
+        dateTime = DateTime(
+            dateTime.year,
+            month + 1,
+            dateTime.day,
+            dateTime.hour,
+            dateTime.minute,
+            dateTime.second,
+            dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
+      },
       'setDate': (int day) {
-        _dateTime = DateTime(_dateTime.year, _dateTime.month, day, _dateTime.hour, _dateTime.minute, _dateTime.second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime(dateTime.year, dateTime.month, day, dateTime.hour,
+            dateTime.minute, dateTime.second, dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setHours': (int hour) {
-        _dateTime = DateTime(_dateTime.year, _dateTime.month, _dateTime.day, hour, _dateTime.minute, _dateTime.second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day, hour,
+            dateTime.minute, dateTime.second, dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setMinutes': (int minute) {
-        _dateTime = DateTime(_dateTime.year, _dateTime.month, _dateTime.day, _dateTime.hour, minute, _dateTime.second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day,
+            dateTime.hour, minute, dateTime.second, dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setSeconds': (int second) {
-        _dateTime = DateTime(_dateTime.year, _dateTime.month, _dateTime.day, _dateTime.hour, _dateTime.minute, second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day,
+            dateTime.hour, dateTime.minute, second, dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setMilliseconds': (int millisecond) {
-        _dateTime = DateTime(_dateTime.year, _dateTime.month, _dateTime.day, _dateTime.hour, _dateTime.minute, _dateTime.second, millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day,
+            dateTime.hour, dateTime.minute, dateTime.second, millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setUTCFullYear': (int year) {
-        _dateTime = DateTime.utc(year, _dateTime.month, _dateTime.day, _dateTime.hour, _dateTime.minute, _dateTime.second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime.utc(
+            year,
+            dateTime.month,
+            dateTime.day,
+            dateTime.hour,
+            dateTime.minute,
+            dateTime.second,
+            dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setUTCMonth': (int month) {
-        _dateTime = DateTime.utc(_dateTime.year, month + 1, _dateTime.day, _dateTime.hour, _dateTime.minute, _dateTime.second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime.utc(
+            dateTime.year,
+            month + 1,
+            dateTime.day,
+            dateTime.hour,
+            dateTime.minute,
+            dateTime.second,
+            dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setUTCDate': (int day) {
-        _dateTime = DateTime.utc(_dateTime.year, _dateTime.month, day, _dateTime.hour, _dateTime.minute, _dateTime.second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime.utc(
+            dateTime.year,
+            dateTime.month,
+            day,
+            dateTime.hour,
+            dateTime.minute,
+            dateTime.second,
+            dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setUTCHours': (int hour) {
-        _dateTime = DateTime.utc(_dateTime.year, _dateTime.month, _dateTime.day, hour, _dateTime.minute, _dateTime.second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime.utc(dateTime.year, dateTime.month, dateTime.day,
+            hour, dateTime.minute, dateTime.second, dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setUTCMinutes': (int minute) {
-        _dateTime = DateTime.utc(_dateTime.year, _dateTime.month, _dateTime.day, _dateTime.hour, minute, _dateTime.second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime.utc(dateTime.year, dateTime.month, dateTime.day,
+            dateTime.hour, minute, dateTime.second, dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setUTCSeconds': (int second) {
-        _dateTime = DateTime.utc(_dateTime.year, _dateTime.month, _dateTime.day, _dateTime.hour, _dateTime.minute, second, _dateTime.millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime.utc(dateTime.year, dateTime.month, dateTime.day,
+            dateTime.hour, dateTime.minute, second, dateTime.millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setUTCMilliseconds': (int millisecond) {
-        _dateTime = DateTime.utc(_dateTime.year, _dateTime.month, _dateTime.day, _dateTime.hour, _dateTime.minute, _dateTime.second, millisecond);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime.utc(dateTime.year, dateTime.month, dateTime.day,
+            dateTime.hour, dateTime.minute, dateTime.second, millisecond);
+        return dateTime.millisecondsSinceEpoch;
       },
       'setTime': (int milliseconds) {
-        _dateTime = DateTime.fromMillisecondsSinceEpoch(milliseconds);
-        return _dateTime.millisecondsSinceEpoch;
+        dateTime = DateTime.fromMillisecondsSinceEpoch(milliseconds);
+        return dateTime.millisecondsSinceEpoch;
       },
-      'valueOf': () => _dateTime.millisecondsSinceEpoch,
-      'toString': () => _dateTime.toString()
+      'valueOf': () => dateTime.millisecondsSinceEpoch,
+      'toString': () => dateTime.toString()
     };
   }
   Map<String, Function> setters() {
@@ -250,18 +296,18 @@ class Date extends Object with Invokable, SupportsPrimitiveOperations{
   }
   @override
   String toString() {
-    return _dateTime.toString();
+    return dateTime.toString();
   }
 
   @override
   runOperation(String operator, dynamic rhs) {
-    int left = _dateTime.millisecondsSinceEpoch;
+    int left = dateTime.millisecondsSinceEpoch;
     int right = 0;
-    if ( rhs is Date ) {
-      right = rhs._dateTime.millisecondsSinceEpoch;
-    } else if ( rhs is num ) {
+    if (rhs is Date) {
+      right = rhs.dateTime.millisecondsSinceEpoch;
+    } else if (rhs is num) {
       right = rhs.toInt();
-    } else if ( rhs is String ) {
+    } else if (rhs is String) {
       right = DateTime.parse(rhs).millisecondsSinceEpoch;
     }
     dynamic rtn;
