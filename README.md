@@ -1,3 +1,5 @@
+(This repo is deprecated. Please use the monorepo [Ensemble](https://github.com/EnsembleUI/ensemble) instead).
+
 
 This is a javascript [ES5](https://www.geeksforgeeks.org/difference-between-es5-and-es6/) parser and interpreter written entirely in dart. 
 
